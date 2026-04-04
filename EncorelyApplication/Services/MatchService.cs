@@ -1,4 +1,5 @@
 using EncorelyApplication.Interfaces;
+using EncorelyDomain.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace EncorelyApplication.Services;
@@ -7,11 +8,16 @@ public class MatchService : IMatchService
 {
     private readonly IMatchNotificationService _notificationService;
     private readonly IEncorelyDbContext _dbContext;
-    
-    public MatchService(IMatchNotificationService notificationService, IEncorelyDbContext dbContext)
+    private readonly IEventProducer<MatchConvertedToChatEvent> _analyticsProducer;
+
+    public MatchService(
+        IMatchNotificationService notificationService,
+        IEncorelyDbContext dbContext,
+        IEventProducer<MatchConvertedToChatEvent> analyticsProducer)
     {
         _notificationService = notificationService;
         _dbContext = dbContext;
+        _analyticsProducer = analyticsProducer;
     }
 
     // Persistence via Entity Framework Core
@@ -60,5 +66,32 @@ public class MatchService : IMatchService
             .ToListAsync(ct);
 
         return messages;
+    }
+
+    // Tarea 77: Match-to-Chat Conversion Analytics
+    public async Task<object> SendMessageAsync(Guid matchId, Guid senderId, string content, CancellationToken ct = default)
+    {
+        var isFirstMessage = !await _dbContext.Messages
+            .AnyAsync(m => m.MatchId == matchId && m.SenderId != Guid.Empty, ct);
+
+        var message = new EncorelyDomain.Entities.Message
+        {
+            Id = Guid.NewGuid(),
+            MatchId = matchId,
+            SenderId = senderId,
+            Content = content,
+            Timestamp = DateTime.UtcNow
+        };
+
+        await _dbContext.Messages.AddAsync(message, ct);
+        await _dbContext.SaveChangesAsync(ct);
+
+        if (isFirstMessage)
+        {
+            var analyticsEvent = new MatchConvertedToChatEvent(matchId, senderId, DateTime.UtcNow);
+            await _analyticsProducer.ProduceAsync(KafkaTopics.MatchConvertedToChat, analyticsEvent, ct);
+        }
+
+        return new { message.Id, message.Content, message.Timestamp };
     }
 }

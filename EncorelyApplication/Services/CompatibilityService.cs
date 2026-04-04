@@ -28,4 +28,9 @@ public class CompatibilityService : ICompatibilityService
     {
         return affinityPercentage >= COMPATIBILITY_THRESHOLD;
     }
+
+    public bool IsHighPriority(double affinityPercentage)
+    {
+        return affinityPercentage >= 0.85; // 85% Affinity = Priority
+    }
 }

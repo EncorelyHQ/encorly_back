@@ -30,4 +30,15 @@ public class ChatController : ControllerBase
         var messages = await _matchService.GetChatMessagesAsync(roomId, ct);
         return Ok(messages);
     }
+
+    /// <summary>Tarea 77: Sends a message and emits Match-to-Chat analytics event on first message.</summary>
+    [HttpPost("{matchId}/messages")]
+    public async Task<IActionResult> SendMessage(Guid matchId, [FromQuery] Guid userId, [FromBody] string content, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return BadRequest(new { message = "El mensaje no puede estar vacío." });
+
+        var result = await _matchService.SendMessageAsync(matchId, userId, content, ct);
+        return Ok(result);
+    }
 }

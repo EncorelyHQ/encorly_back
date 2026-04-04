@@ -4,6 +4,8 @@ using EncorelyApplication.Services;
 using EncorelyInfrastructure.Messaging;
 using EncorelyInfrastructure.Persistence;
 using EncorelyApi.Hubs;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
@@ -22,6 +24,18 @@ var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "admin";
 var dbPass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Encorely2026!";
 
 var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPass}";
+
+try
+{
+    if (FirebaseApp.DefaultInstance == null)
+    {
+        FirebaseApp.Create();
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Umbral] Firebase init bypassed (mock environment): {ex.Message}");
+}
 
 builder.Services.AddDbContext<EncorelyDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -50,6 +64,7 @@ builder.Services.AddSingleton(producerConfig);
 builder.Services.AddSingleton(typeof(IKafkaProducer<>), typeof(KafkaProducer<>));
 builder.Services.AddSingleton(typeof(IEventProducer<>), typeof(KafkaProducer<>));
 builder.Services.AddScoped<IMatchNotificationService, EncorelyApi.Services.SignalRNotificationService>();
+builder.Services.AddScoped<IPushNotificationService, FirebasePushNotificationService>();
 
 var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
 builder.Services.AddStackExchangeRedisCache(options =>

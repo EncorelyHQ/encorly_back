@@ -39,7 +39,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("{eventId}/matches")]
-    public async Task<IActionResult> GetMatches(string eventId, [FromQuery] Guid userId, CancellationToken ct)
+    public async Task<IActionResult> GetMatches(string eventId, [FromQuery] Guid userId, [FromQuery] ConcertMood? targetMood, CancellationToken ct)
     {
         var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null) return NotFound("User not found");
@@ -53,23 +53,38 @@ public class EventsController : ControllerBase
 
         _logger.LogInformation("[UMBRAL] Usuario {UserId} ha alcanzado los 25 swipes. Acceso al Radar CONCEDIDO", userId);
 
-        var otherUsers = new List<(Guid Id, string Name, double Energy, double Danceability)>
-        {
-            (Guid.NewGuid(), "Moshpit King", 0.9, 0.8),
-            (Guid.NewGuid(), "Chill Listener", 0.2, 0.3),
-            (Guid.NewGuid(), "Dance Machine", 0.8, 0.95)
-        };
-
         var myProfile = await _userService.GetMusicalProfileAsync(userId, ct);
         if (myProfile == null)
         {
             return BadRequest(new { message = "Musical profile not found for user." });
         }
-        
-        var compatibleMatches = otherUsers
-            .Select(u => new { u.Id, DisplayName = u.Name, Affinity = _compatibilityService.CalculateAffinity(myProfile, new MusicalProfile { Energy = u.Energy, Danceability = u.Danceability, Valence = 0.6 }) })
-            .Where(m => _compatibilityService.IsCompatible(m.Affinity))
-            .ToList();
+
+        // Tarea 74: Implementation of Advanced Filtering by ConcertMood
+        var moodFilter = targetMood ?? user.Mood;
+        var candidateUsers = await _dbContext.Users.AsNoTracking()
+            .Where(u => u.Id != userId && u.Mood == moodFilter)
+            .ToListAsync(ct);
+
+        var compatibleMatches = new List<object>();
+
+        foreach (var candidate in candidateUsers)
+        {
+            var candidateProfile = await _userService.GetMusicalProfileAsync(candidate.Id, ct);
+            if (candidateProfile == null) continue;
+
+            var affinity = _compatibilityService.CalculateAffinity(myProfile, candidateProfile);
+            
+            // Tarea 75: Priority Match Logic
+            var isHighPriority = affinity >= 85.0;
+
+            if (_compatibilityService.IsCompatible(affinity))
+            {
+                compatibleMatches.Add(new { candidate.Id, candidate.DisplayName, Affinity = affinity, IsHighPriority = isHighPriority, Mood = candidate.Mood });
+            }
+        }
+
+        // Bubbling high affinity ones up
+        compatibleMatches = compatibleMatches.OrderByDescending(m => (double)((dynamic)m).Affinity).ToList();
 
         return Ok(compatibleMatches);
     }
