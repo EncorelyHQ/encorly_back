@@ -2,8 +2,6 @@ using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
 using EncorelyDomain.Entities;
 using EncorelyDomain.Events;
-using EncorelyInfrastructure.Messaging;
-using EncorelyInfrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -11,12 +9,12 @@ namespace EncorelyApplication.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly EncorelyDbContext _dbContext;
+    private readonly IEncorelyDbContext _dbContext;
     private readonly IKafkaProducer<UserSyncEvent> _kafkaProducer;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        EncorelyDbContext dbContext,
+        IEncorelyDbContext dbContext,
         IKafkaProducer<UserSyncEvent> kafkaProducer,
         ILogger<AuthService> logger)
     {

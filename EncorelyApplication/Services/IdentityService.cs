@@ -1,8 +1,7 @@
 using EncorelyApplication.Interfaces;
 using EncorelyDomain.Entities;
 using EncorelyDomain.Events;
-using EncorelyInfrastructure.Messaging;
-using EncorelyInfrastructure.Persistence;
+using EncorelyApplication.DTOs.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,34 +9,36 @@ namespace EncorelyApplication.Services;
 
 public class IdentityService : IIdentityService
 {
-    // Persistence in Memory for rapid testing (Tarea 5)
-    private static readonly List<User> _usersMemory = new();
-    private static readonly List<MusicalProfile> _profilesMemory = new();
+    // Persistence via Entity Framework Core
 
-    private readonly EncorelyDbContext _dbContext;
+    private readonly IEncorelyDbContext _dbContext;
     private readonly IKafkaProducer<UserSyncEvent> _kafkaProducer;
+    private readonly ITokenService _tokenService;
+    private readonly ISpotifyService _spotifyService;
     private readonly ILogger<IdentityService> _logger;
 
     public IdentityService(
-        EncorelyDbContext dbContext,
+        IEncorelyDbContext dbContext,
         IKafkaProducer<UserSyncEvent> kafkaProducer,
+        ITokenService tokenService,
+        ISpotifyService spotifyService,
         ILogger<IdentityService> logger)
     {
         _dbContext = dbContext;
         _kafkaProducer = kafkaProducer;
+        _tokenService = tokenService;
+        _spotifyService = spotifyService;
         _logger = logger;
     }
 
-    public async Task<Guid> LoginWithSpotifyAsync(string accessToken, CancellationToken ct = default)
+    public async Task<TokenResponse> LoginWithSpotifyAsync(string accessToken, CancellationToken ct = default)
     {
-        // Mock Spotify Profile
-        var spotifyId = "spotify_" + Guid.NewGuid().ToString().Substring(0, 8);
-        var email = $"{spotifyId}@spotify.com";
+        var (spotifyId, email, displayName) = await _spotifyService.GetUserProfileAsync(accessToken, ct);
         
-        return await ProcessIdentityAsync(spotifyId, email, AuthProvider.Spotify, accessToken, ct);
+        return await ProcessIdentityAsync(spotifyId, email ?? $"{spotifyId}@spotify.com", AuthProvider.Spotify, accessToken, ct, null, displayName);
     }
 
-    public async Task<Guid> LoginWithGoogleAsync(string idToken, CancellationToken ct = default)
+    public async Task<TokenResponse> LoginWithGoogleAsync(string idToken, CancellationToken ct = default)
     {
         // Mock Google Profile
         var googleId = "google_" + Guid.NewGuid().ToString().Substring(0, 8);
@@ -46,31 +47,45 @@ public class IdentityService : IIdentityService
         return await ProcessIdentityAsync(googleId, email, AuthProvider.Google, null, ct);
     }
 
-    public async Task<Guid> RegisterWithEmailAsync(string email, string password, CancellationToken ct = default)
+    public async Task<TokenResponse> RegisterWithEmailAsync(string email, string password, CancellationToken ct = default)
     {
-        if (_usersMemory.Any(u => u.Email == email))
+        if (await _dbContext.Users.AnyAsync(u => u.Email == email, ct))
             throw new Exception("User already exists");
 
         return await ProcessIdentityAsync(email, email, AuthProvider.Custom, null, ct, password);
     }
 
-    public async Task<Guid> LoginWithEmailAsync(string email, string password, CancellationToken ct = default)
+    public async Task<TokenResponse> LoginWithEmailAsync(string email, string password, CancellationToken ct = default)
     {
-        var user = _usersMemory.FirstOrDefault(u => u.Email == email && u.PasswordHash == password);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password, ct);
         if (user == null) throw new Exception("Invalid credentials");
         
-        return user.Id;
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _dbContext.SaveChangesAsync(ct);
+
+        return new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expiration = DateTime.UtcNow.AddMinutes(30),
+            UserId = user.Id
+        };
     }
 
-    private async Task<Guid> ProcessIdentityAsync(
+    private async Task<TokenResponse> ProcessIdentityAsync(
         string providerId, 
         string email, 
         AuthProvider provider, 
         string? token, 
         CancellationToken ct,
-        string? password = null)
+        string? password = null,
+        string? displayName = null)
     {
-        var user = _usersMemory.FirstOrDefault(u => u.SpotifyId == providerId || u.Email == email);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.SpotifyId == providerId || u.Email == email, ct);
 
         if (user == null)
         {
@@ -78,25 +93,38 @@ public class IdentityService : IIdentityService
             {
                 Id = Guid.NewGuid(),
                 SpotifyId = providerId,
-                DisplayName = email.Split('@')[0],
+                DisplayName = displayName ?? email.Split('@')[0],
                 Email = email,
                 Provider = provider,
                 PasswordHash = password, // Simplified hash for testing
                 CreatedAt = DateTime.UtcNow
             };
 
-            _usersMemory.Add(user);
+            await _dbContext.Users.AddAsync(user, ct);
             
-            // Tarea 1 logic: Create basic MusicalProfile
-            _profilesMemory.Add(new MusicalProfile
+            MusicalProfile profile;
+            if (provider == AuthProvider.Spotify && token != null)
             {
-                Id = Guid.NewGuid(),
-                UserId = user.Id,
-                Energy = 0.5,
-                Danceability = 0.5,
-                Valence = 0.5,
-                Tempo = 120
-            });
+                profile = await _spotifyService.GenerateMusicalProfileAsync(token, ct);
+                profile.Id = Guid.NewGuid();
+                profile.UserId = user.Id;
+            }
+            else
+            {
+                profile = new MusicalProfile
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    Energy = 0.5,
+                    Danceability = 0.5,
+                    Valence = 0.5,
+                    Tempo = 120
+                };
+            }
+
+            await _dbContext.MusicalProfiles.AddAsync(profile, ct);
+
+            await _dbContext.SaveChangesAsync(ct);
 
             _logger.LogInformation("New user registered via {Provider}: {UserId}", provider, user.Id);
         }
@@ -107,6 +135,19 @@ public class IdentityService : IIdentityService
             await _kafkaProducer.ProduceAsync(KafkaTopics.UserDnaSync, new UserSyncEvent(user.Id, token, DateTime.UtcNow), ct);
         }
 
-        return user.Id;
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _dbContext.SaveChangesAsync(ct);
+
+        return new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expiration = DateTime.UtcNow.AddMinutes(30),
+            UserId = user.Id
+        };
     }
 }

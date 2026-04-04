@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +25,12 @@ var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Passw
 
 builder.Services.AddDbContext<EncorelyDbContext>(options =>
     options.UseNpgsql(connectionString));
+builder.Services.AddScoped<IEncorelyDbContext>(provider => provider.GetRequiredService<EncorelyDbContext>());
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ISpotifyService, SpotifyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
@@ -42,6 +48,15 @@ var producerConfig = new ProducerConfig
 
 builder.Services.AddSingleton(producerConfig);
 builder.Services.AddSingleton(typeof(IKafkaProducer<>), typeof(KafkaProducer<>));
+builder.Services.AddSingleton(typeof(IEventProducer<>), typeof(KafkaProducer<>));
+builder.Services.AddScoped<IMatchNotificationService, EncorelyApi.Services.SignalRNotificationService>();
+
+var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = $"{redisHost}:6379";
+    options.InstanceName = "Encorely_";
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -56,6 +71,31 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Encorely Social API", Version = "v1" });
 });
 
+var secretKey = builder.Configuration["JWT_SECRET_KEY"] ?? "This_Is_A_Very_Long_Secret_Key_For_Encorely_JWT_2026";
+var issuer = builder.Configuration["JWT_ISSUER"] ?? "Encorely.Api";
+var audience = builder.Configuration["JWT_AUDIENCE"] ?? "Encorely.Clients";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -65,6 +105,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");

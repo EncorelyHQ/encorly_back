@@ -1,4 +1,4 @@
-namespace EncorelyInfrastructure.Messaging;
+namespace EncorelyDomain.Events;
 
 public static class KafkaTopics
 {

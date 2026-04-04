@@ -18,29 +18,29 @@ public class AuthController : ControllerBase
     [HttpPost("spotify")]
     public async Task<IActionResult> SpotifyAuth([FromBody] TokenRequest req, CancellationToken ct)
     {
-        var id = await _identityService.LoginWithSpotifyAsync(req.Token, ct);
-        return Accepted(new { userId = id });
+        var response = await _identityService.LoginWithSpotifyAsync(req.Token, ct);
+        return Accepted(response);
     }
 
     [HttpPost("google")]
     public async Task<IActionResult> GoogleAuth([FromBody] TokenRequest req, CancellationToken ct)
     {
-        var id = await _identityService.LoginWithGoogleAsync(req.Token, ct);
-        return Accepted(new { userId = id });
+        var response = await _identityService.LoginWithGoogleAsync(req.Token, ct);
+        return Accepted(response);
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] EmailAuthRequest req, CancellationToken ct)
     {
-        var id = await _identityService.RegisterWithEmailAsync(req.Email, req.Password, ct);
-        return Accepted(new { userId = id });
+        var response = await _identityService.RegisterWithEmailAsync(req.Email, req.Password, ct);
+        return Accepted(response);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] EmailAuthRequest req, CancellationToken ct)
     {
-        var id = await _identityService.LoginWithEmailAsync(req.Email, req.Password, ct);
-        return Ok(new { userId = id });
+        var response = await _identityService.LoginWithEmailAsync(req.Email, req.Password, ct);
+        return Ok(response);
     }
 }
 

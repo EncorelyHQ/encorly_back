@@ -1,51 +1,64 @@
-using EncorelyApi.Hubs;
-using Microsoft.AspNetCore.SignalR;
 using EncorelyApplication.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace EncorelyApplication.Services;
 
 public class MatchService : IMatchService
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IMatchNotificationService _notificationService;
+    private readonly IEncorelyDbContext _dbContext;
     
-    public MatchService(IHubContext<NotificationHub> hubContext)
+    public MatchService(IMatchNotificationService notificationService, IEncorelyDbContext dbContext)
     {
-        _hubContext = hubContext;
+        _notificationService = notificationService;
+        _dbContext = dbContext;
     }
 
-    // In-Memory Chat Storage (Tarea 2)
-    private static readonly Dictionary<Guid, List<object>> _chatMemory = new();
-
+    // Persistence via Entity Framework Core
     public async Task<IEnumerable<object>> GetPendingMatchesAsync(Guid userId, CancellationToken ct = default)
     {
-        return await Task.FromResult(new List<object>
-        {
-            new { MatchId = Guid.NewGuid(), DisplayName = "Fan de Arctic Monkeys", Compatibility = 0.92 },
-            new { MatchId = Guid.NewGuid(), DisplayName = "Rockero 80s", Compatibility = 0.85 }
-        });
+        var matches = await _dbContext.Matches
+            .Where(m => m.UserId1 == userId || m.UserId2 == userId)
+            .OrderByDescending(m => m.CreatedAt)
+            .Select(m => new { MatchId = m.Id, DisplayName = "Match " + m.Id.ToString().Substring(0, 4), Compatibility = m.AffinityScore })
+            .ToListAsync(ct);
+
+        return matches;
     }
 
     public async Task<Guid> AcceptMatchAsync(Guid userId, Guid matchId, CancellationToken ct = default)
     {
-        var roomId = Guid.NewGuid();
+        var match = await _dbContext.Matches.FindAsync(new object[] { matchId }, ct);
+        if (match == null) throw new Exception("Match not found");
+        
+        var roomId = match.Id;
         
         // Tarea 3: Real-Time Notification via SignalR
-        await _hubContext.Clients.Group(userId.ToString()).SendAsync("NotifyMatchFound", userId, matchId, 0.95);
-        await _hubContext.Clients.Group(matchId.ToString()).SendAsync("NotifyMatchFound", matchId, userId, 0.95);
+        await _notificationService.NotifyMatchFoundAsync(userId, matchId, match.AffinityScore, ct);
 
-        _chatMemory[roomId] = new List<object>
+        var welcomeMessage = new EncorelyDomain.Entities.Message
         {
-            new { SenderId = Guid.Empty, Content = "¡Match creado! Ya pueden chatear.", Timestamp = DateTime.UtcNow }
+            Id = Guid.NewGuid(),
+            MatchId = roomId,
+            SenderId = Guid.Empty, // System message
+            Content = "¡Match creado! Ya pueden chatear.",
+            Timestamp = DateTime.UtcNow
         };
-        return await Task.FromResult(roomId);
+
+        await _dbContext.Messages.AddAsync(welcomeMessage, ct);
+        await _dbContext.SaveChangesAsync(ct);
+
+        return roomId;
     }
 
     public async Task<IEnumerable<object>> GetChatMessagesAsync(Guid roomId, CancellationToken ct = default)
     {
-        if (_chatMemory.TryGetValue(roomId, out var messages))
-        {
-            return await Task.FromResult(messages);
-        }
-        return Enumerable.Empty<object>();
+        var messages = await _dbContext.Messages
+            .Where(m => m.MatchId == roomId)
+            .OrderBy(m => m.Timestamp)
+            .Select(m => new { SenderId = m.SenderId, Content = m.Content, Timestamp = m.Timestamp })
+            .ToListAsync(ct);
+
+        return messages;
     }
 }

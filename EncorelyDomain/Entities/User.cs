@@ -25,6 +25,8 @@ public class User
     public int SwipeCount { get; set; } = 0;
     public ConcertMood Mood { get; set; } = ConcertMood.Chill;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
 
     // Navigation property
     public ICollection<Swipe> UserSwipes { get; set; } = new List<Swipe>();

@@ -1,8 +1,6 @@
 using EncorelyApplication.Interfaces;
 using EncorelyDomain.Entities;
 using EncorelyDomain.Events;
-using EncorelyInfrastructure.Messaging;
-using EncorelyInfrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -12,12 +10,12 @@ public class SwipeService : ISwipeService
 {
     private const int MIN_SWIPES_THRESHOLD = 25; // Adjusted from 100 to 25 (Tarea 3)
     
-    private readonly EncorelyDbContext _dbContext;
+    private readonly IEncorelyDbContext _dbContext;
     private readonly IKafkaProducer<SwipeRegisteredEvent> _kafkaProducer;
     private readonly ILogger<SwipeService> _logger;
 
     public SwipeService(
-        EncorelyDbContext dbContext,
+        IEncorelyDbContext dbContext,
         IKafkaProducer<SwipeRegisteredEvent> kafkaProducer,
         ILogger<SwipeService> logger)
     {

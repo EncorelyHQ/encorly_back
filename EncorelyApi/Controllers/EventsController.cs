@@ -14,17 +14,20 @@ public class EventsController : ControllerBase
     private readonly IEventService _eventService;
     private readonly EncorelyDbContext _dbContext;
     private readonly ICompatibilityService _compatibilityService;
+    private readonly IUserService _userService;
     private readonly ILogger<EventsController> _logger;
 
     public EventsController(
         IEventService eventService, 
         EncorelyDbContext dbContext, 
         ICompatibilityService compatibilityService,
+        IUserService userService,
         ILogger<EventsController> logger)
     {
         _eventService = eventService;
         _dbContext = dbContext;
         _compatibilityService = compatibilityService;
+        _userService = userService;
         _logger = logger;
     }
 
@@ -57,7 +60,11 @@ public class EventsController : ControllerBase
             (Guid.NewGuid(), "Dance Machine", 0.8, 0.95)
         };
 
-        var myProfile = new MusicalProfile { Energy = 0.85, Danceability = 0.80, Valence = 0.70 };
+        var myProfile = await _userService.GetMusicalProfileAsync(userId, ct);
+        if (myProfile == null)
+        {
+            return BadRequest(new { message = "Musical profile not found for user." });
+        }
         
         var compatibleMatches = otherUsers
             .Select(u => new { u.Id, DisplayName = u.Name, Affinity = _compatibilityService.CalculateAffinity(myProfile, new MusicalProfile { Energy = u.Energy, Danceability = u.Danceability, Valence = 0.6 }) })

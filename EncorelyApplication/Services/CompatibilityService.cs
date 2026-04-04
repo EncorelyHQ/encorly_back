@@ -9,21 +9,19 @@ public class CompatibilityService : ICompatibilityService
 
     public double CalculateAffinity(MusicalProfile profileA, MusicalProfile profileB)
     {
-        // Tarea: Implementar algoritmo de similitud musical (Euclidean Distance en 3D/4D)
-        // Atributos: Energy, Danceability, Valence
-        
-        double sumSquares = Math.Pow(profileA.Energy - profileB.Energy, 2) +
-                           Math.Pow(profileA.Danceability - profileB.Danceability, 2) +
-                           Math.Pow(profileA.Valence - profileB.Valence, 2);
-        
-        double distance = Math.Sqrt(sumSquares);
-        
-        // La distancia máxima en un espacio 3D [0,1] es sqrt(3) ≈ 1.732
-        // Normalizamos la afinidad: 1.0 (identidad) a 0.0 (opuestos)
-        double maxDistance = Math.Sqrt(3);
-        double affinity = 1.0 - (distance / maxDistance);
+        // Phase 1: Evolve to Cosine Similarity
+        double dotProduct = (profileA.Energy * profileB.Energy) +
+                            (profileA.Danceability * profileB.Danceability) +
+                            (profileA.Valence * profileB.Valence);
 
-        return Math.Round(affinity, 2);
+        double magnitudeA = Math.Sqrt(Math.Pow(profileA.Energy, 2) + Math.Pow(profileA.Danceability, 2) + Math.Pow(profileA.Valence, 2));
+        double magnitudeB = Math.Sqrt(Math.Pow(profileB.Energy, 2) + Math.Pow(profileB.Danceability, 2) + Math.Pow(profileB.Valence, 2));
+
+        if (magnitudeA == 0 || magnitudeB == 0) return 0.0;
+
+        double cosineSimilarity = dotProduct / (magnitudeA * magnitudeB);
+        
+        return Math.Round(cosineSimilarity, 2);
     }
 
     public bool IsCompatible(double affinityPercentage)

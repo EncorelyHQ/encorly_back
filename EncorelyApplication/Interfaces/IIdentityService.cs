@@ -1,12 +1,14 @@
 using EncorelyApplication.DTOs;
 using EncorelyDomain.Entities;
 
+using EncorelyApplication.DTOs.Auth;
+
 namespace EncorelyApplication.Interfaces;
 
 public interface IIdentityService
 {
-    Task<Guid> LoginWithSpotifyAsync(string accessToken, CancellationToken ct = default);
-    Task<Guid> LoginWithGoogleAsync(string idToken, CancellationToken ct = default);
-    Task<Guid> RegisterWithEmailAsync(string email, string password, CancellationToken ct = default);
-    Task<Guid> LoginWithEmailAsync(string email, string password, CancellationToken ct = default);
+    Task<TokenResponse> LoginWithSpotifyAsync(string accessToken, CancellationToken ct = default);
+    Task<TokenResponse> LoginWithGoogleAsync(string idToken, CancellationToken ct = default);
+    Task<TokenResponse> RegisterWithEmailAsync(string email, string password, CancellationToken ct = default);
+    Task<TokenResponse> LoginWithEmailAsync(string email, string password, CancellationToken ct = default);
 }
