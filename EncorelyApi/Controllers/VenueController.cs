@@ -8,10 +8,12 @@ namespace EncorelyApi.Controllers;
 public class VenueController : ControllerBase
 {
     private readonly IVenueService _venueService;
+    private readonly Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.VenueHub> _hubContext;
 
-    public VenueController(IVenueService venueService)
+    public VenueController(IVenueService venueService, Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.VenueHub> hubContext)
     {
         _venueService = venueService;
+        _hubContext = hubContext;
     }
 
     /// <summary>Tarea 78: Creates a temporary Venue Room for a live event.</summary>
@@ -38,6 +40,13 @@ public class VenueController : ControllerBase
             return BadRequest(new { message = "El contenido del mensaje no puede estar vacío." });
 
         var message = await _venueService.PostMessageAsync(roomId, userId, content, ct);
+
+        if (!message.IsModerated)
+        {
+            await _hubContext.Clients.Group($"venue_{roomId}")
+                .SendAsync("ReceiveVenueMessage", userId, content, message.Timestamp, ct);
+        }
+
         return Ok(new { message.Id, message.Content, message.IsModerated, message.Timestamp });
     }
 

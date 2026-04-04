@@ -38,4 +38,26 @@ public class SpotifyService : ISpotifyService
             Tempo = Math.Round(features.Average(f => f.Tempo), 2)
         };
     }
+
+    public async Task<string> CreatePlaylistAsync(string accessToken, string name, string description, CancellationToken ct = default)
+    {
+        var spotify = new SpotifyClient(accessToken);
+        var profile = await spotify.UserProfile.Current();
+        var request = new PlaylistCreateRequest(name)
+        {
+            Public = true,
+            Description = description
+        };
+
+        var playlist = await spotify.Playlists.Create(profile.Id, request);
+        return playlist.Id;
+    }
+
+    public async Task<bool> AddTracksToPlaylistAsync(string accessToken, string playlistId, List<string> trackUris, CancellationToken ct = default)
+    {
+        var spotify = new SpotifyClient(accessToken);
+        var request = new PlaylistAddItemsRequest(trackUris);
+        var response = await spotify.Playlists.AddItems(playlistId, request);
+        return !string.IsNullOrEmpty(response.SnapshotId);
+    }
 }

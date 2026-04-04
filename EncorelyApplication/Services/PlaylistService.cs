@@ -23,16 +23,26 @@ public class PlaylistService : IPlaylistService
         var tracksUser2 = await GetTopTrackIdsAsync(accessToken2, ct);
 
         // DNA Blend: Interleave both lists to create a shared playlist
-        var blended = InterleaveTrackLists(tracksUser1, tracksUser2);
+        var blendedIds = InterleaveTrackLists(tracksUser1, tracksUser2);
+        var trackUris = blendedIds.Select(id => id.StartsWith("spotify:track:") ? id : $"spotify:track:{id}").ToList();
 
-        _logger.LogInformation("[DNA Playlist] Generated shared playlist for users {U1} & {U2}: {Count} tracks", userId1, userId2, blended.Count);
+        // Tarea 80: Create real playlist on Spotify (using User 1 account as host)
+        var playlistName = $"Encorely DNA Mix 🎵";
+        var playlistDesc = $"Mezcla musical generada por afinidad entre usuarios en Encorely.";
+        
+        var playlistId = await _spotifyService.CreatePlaylistAsync(accessToken1, playlistName, playlistDesc, ct);
+        var success = await _spotifyService.AddTracksToPlaylistAsync(accessToken1, playlistId, trackUris, ct);
+
+        _logger.LogInformation("[DNA Playlist] Real playlist created {Id} for users {U1} & {U2}", playlistId, userId1, userId2);
 
         return new
         {
-            Name = $"Encorely DNA Mix 🎵",
-            Description = $"Playlist generada por afinidad musical entre usuarios",
-            TotalTracks = blended.Count,
-            Tracks = blended
+            SpotifyPlaylistId = playlistId,
+            Name = playlistName,
+            Description = playlistDesc,
+            TotalTracks = trackUris.Count,
+            ExternalUrl = $"https://open.spotify.com/playlist/{playlistId}",
+            SyncSuccess = success
         };
     }
 
