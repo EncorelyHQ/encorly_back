@@ -1,0 +1,22 @@
+# .gitignore for .NET
+[Bb]in/
+[Oo]bj/
+[Tt]mp/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Secrets
+.env
+appsettings.json
+!appsettings.Development.json
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
