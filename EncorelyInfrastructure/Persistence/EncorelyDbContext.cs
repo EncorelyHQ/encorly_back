@@ -13,6 +13,8 @@ public class EncorelyDbContext : DbContext, IEncorelyDbContext
     public DbSet<MusicalProfile> MusicalProfiles { get; set; }
     public DbSet<Match> Matches { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<VenueRoom> VenueRooms { get; set; }
+    public DbSet<VenueMessage> VenueMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +29,14 @@ public class EncorelyDbContext : DbContext, IEncorelyDbContext
             entity.HasOne(s => s.User)
                   .WithMany(u => u.UserSwipes)
                   .HasForeignKey(s => s.UserId);
+        });
+
+        modelBuilder.Entity<VenueRoom>(entity =>
+        {
+            entity.HasMany(r => r.Messages)
+                  .WithOne()
+                  .HasForeignKey(m => m.RoomId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

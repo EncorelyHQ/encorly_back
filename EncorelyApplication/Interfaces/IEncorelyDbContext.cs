@@ -10,5 +10,7 @@ public interface IEncorelyDbContext
     DbSet<Swipe> Swipes { get; set; }
     DbSet<Match> Matches { get; set; }
     DbSet<Message> Messages { get; set; }
+    DbSet<VenueRoom> VenueRooms { get; set; }
+    DbSet<VenueMessage> VenueMessages { get; set; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

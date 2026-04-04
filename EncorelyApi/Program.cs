@@ -65,6 +65,8 @@ builder.Services.AddSingleton(typeof(IKafkaProducer<>), typeof(KafkaProducer<>))
 builder.Services.AddSingleton(typeof(IEventProducer<>), typeof(KafkaProducer<>));
 builder.Services.AddScoped<IMatchNotificationService, EncorelyApi.Services.SignalRNotificationService>();
 builder.Services.AddScoped<IPushNotificationService, FirebasePushNotificationService>();
+builder.Services.AddScoped<IVenueService, VenueService>();
+builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 
 var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -124,5 +126,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<EncorelyApi.Hubs.VenueHub>("/venueHub");
 
 app.Run();
