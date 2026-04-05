@@ -87,7 +87,7 @@ public class KafkaConsumerWorker : BackgroundService
 
                             // Notificar vía SignalR
                             await hubContext.Clients.Group(user.Id.ToString())
-                                .SendAsync("DnaCompleted", new { UserId = user.Id, Message = "¡Tu ADN musical está listo! Ya puedes usar el Radar." }, stoppingToken);
+                                .SendAsync("DnaCompleted", new { UserId = user.Id, Message = "¡Tu ADN musical está listo! Ya puedes usar el Radar." });
                             
                             _logger.LogInformation("[DNA_COMPLETED] El ADN Musical del usuario {UserId} ha sido actualizado y notificado.", user.Id);
                         }

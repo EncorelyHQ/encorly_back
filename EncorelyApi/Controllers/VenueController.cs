@@ -1,5 +1,6 @@
 using EncorelyApplication.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace EncorelyApi.Controllers;
 
@@ -44,7 +45,7 @@ public class VenueController : ControllerBase
         if (!message.IsModerated)
         {
             await _hubContext.Clients.Group($"venue_{roomId}")
-                .SendAsync("ReceiveVenueMessage", userId, content, message.Timestamp, ct);
+                .SendAsync("ReceiveVenueMessage", userId, content, message.Timestamp);
         }
 
         return Ok(new { message.Id, message.Content, message.IsModerated, message.Timestamp });
