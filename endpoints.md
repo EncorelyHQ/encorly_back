@@ -4,7 +4,7 @@ Este archivo detalla los endpoints principales. Para una experiencia interactiva
 
 > [!TIP]
 > **Documentación Interactiva (Swagger UI)**:  
-> URL: `https://encorly-back.onrender.com/swagger` o `http://localhost:5000/swagger`
+> URL: `https://encorly-back.onrender.com/docs` o `http://localhost:5000/docs`
 > 
 > Aquí puedes probar los endpoints directamente desde el navegador y ver los tipos de datos exactos de cada DTO.
 
