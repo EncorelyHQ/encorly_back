@@ -14,6 +14,7 @@ COPY EncorelyApplication/ EncorelyApplication/
 COPY EncorelyInfrastructure/ EncorelyInfrastructure/
 COPY EncorelyApi/ EncorelyApi/
 COPY EncorelyWorker/ EncorelyWorker/
+COPY Encorely.Tests/ Encorely.Tests/
 
 RUN dotnet restore
 
