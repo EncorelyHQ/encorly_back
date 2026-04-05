@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace EncorelyApi.Hubs;
+namespace EncorelyInfrastructure.Hubs;
 
 /// <summary>SignalR Hub para las salas grupales temporales de un venue musical.</summary>
 public class VenueHub : Hub

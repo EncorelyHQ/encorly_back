@@ -9,9 +9,9 @@ namespace EncorelyApi.Controllers;
 public class VenueController : ControllerBase
 {
     private readonly IVenueService _venueService;
-    private readonly Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.VenueHub> _hubContext;
+    private readonly IHubContext<EncorelyInfrastructure.Hubs.VenueHub> _hubContext;
 
-    public VenueController(IVenueService venueService, Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.VenueHub> hubContext)
+    public VenueController(IVenueService venueService, IHubContext<EncorelyInfrastructure.Hubs.VenueHub> hubContext)
     {
         _venueService = venueService;
         _hubContext = hubContext;

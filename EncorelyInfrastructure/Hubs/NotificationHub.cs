@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace EncorelyApi.Hubs;
+namespace EncorelyInfrastructure.Hubs;
 
 public class NotificationHub : Hub
 {

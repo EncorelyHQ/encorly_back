@@ -3,7 +3,7 @@ using EncorelyApplication.Interfaces;
 using EncorelyApplication.Services;
 using EncorelyInfrastructure.Messaging;
 using EncorelyInfrastructure.Persistence;
-using EncorelyApi.Hubs;
+using EncorelyInfrastructure.Hubs;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
@@ -135,6 +135,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
-app.MapHub<EncorelyApi.Hubs.VenueHub>("/venueHub");
+app.MapHub<VenueHub>("/venueHub");
 
 app.Run();

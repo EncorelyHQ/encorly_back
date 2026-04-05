@@ -11,5 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EncorelyApplication\EncorelyApplication.csproj" />
+    <ProjectReference Include="..\EncorelyInfrastructure\EncorelyInfrastructure.csproj" />
   </ItemGroup>
 </Project>

@@ -51,7 +51,7 @@ public class KafkaConsumerWorker : BackgroundService
                     using var scope = _scopeFactory.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<IEncorelyDbContext>();
                     var spotifyService = scope.ServiceProvider.GetRequiredService<ISpotifyService>();
-                    var hubContext = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.NotificationHub>>();
+                    var hubContext = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<EncorelyInfrastructure.Hubs.NotificationHub>>();
                     
                     var user = await dbContext.Users.FindAsync(new object[] { swipeEvent.UserId }, stoppingToken);
                     if (user != null)

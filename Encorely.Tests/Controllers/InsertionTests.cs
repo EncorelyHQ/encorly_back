@@ -53,7 +53,7 @@ public class InsertionTests
     {
         // Arrange
         var venueService = Substitute.For<IVenueService>();
-        var hubContext = Substitute.For<Microsoft.AspNetCore.SignalR.IHubContext<EncorelyApi.Hubs.VenueHub>>();
+        var hubContext = Substitute.For<Microsoft.AspNetCore.SignalR.IHubContext<EncorelyInfrastructure.Hubs.VenueHub>>();
         var sut = new VenueController(venueService, hubContext);
         var eventId = "event-456";
         var room = new VenueRoom { Id = Guid.NewGuid(), Name = "Moshpit", EventId = eventId };
