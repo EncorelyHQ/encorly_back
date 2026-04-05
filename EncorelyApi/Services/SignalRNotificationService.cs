@@ -1,4 +1,4 @@
-using EncorelyApi.Hubs;
+using EncorelyInfrastructure.Hubs;
 using EncorelyApplication.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
