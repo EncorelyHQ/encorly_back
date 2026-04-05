@@ -1,6 +1,12 @@
 # 📡 Documentación de Endpoints - Encorely Backend
 
-Este archivo detalla todos los endpoints disponibles en el API de Encorely para el consumo desde el Frontend, incluyendo tipos de datos, estructuras de petición y respuesta.
+Este archivo detalla los endpoints principales. Para una experiencia interactiva, pruebas en vivo y esquemas detallados de cada modelo, visita la documentación oficial de Swagger:
+
+> [!TIP]
+> **Documentación Interactiva (Swagger UI)**:  
+> URL: `https://[TU-DOMINIO]/swagger` o `http://localhost:5000/swagger`
+> 
+> Aquí puedes probar los endpoints directamente desde el navegador y ver los tipos de datos exactos de cada DTO.
 
 ---
 
