@@ -37,14 +37,15 @@ public class CompatibilityServiceTests
     public void CalculateAffinity_OppositeProfiles_ReturnsLowScore()
     {
         // Arrange
-        var profileA = new MusicalProfile { Energy = 1.0, Danceability = 1.0, Valence = 1.0 };
-        var profileB = new MusicalProfile { Energy = 0.1, Danceability = 0.1, Valence = 0.1 };
+        // Orthogonal vectors for Cosine Similarity should return 0
+        var profileA = new MusicalProfile { Energy = 1.0, Danceability = 0.0, Valence = 0.0 };
+        var profileB = new MusicalProfile { Energy = 0.0, Danceability = 1.0, Valence = 0.0 };
 
         // Act
         var result = _sut.CalculateAffinity(profileA, profileB);
 
         // Assert
-        result.Should().BeLessThan(1.0);
+        result.Should().Be(0.0);
     }
 
     [Theory]
