@@ -19,11 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "encorely_db";
-var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "admin";
+var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "postgres";
+var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
 var dbPass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Encorely2026!";
 
-var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPass}";
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};SSL Mode=Require;Trust Server Certificate=True";
 
 try
 {
