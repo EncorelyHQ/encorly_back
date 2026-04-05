@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using Microsoft.AspNetCore.SignalR;
 using EncorelyDomain.Events;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

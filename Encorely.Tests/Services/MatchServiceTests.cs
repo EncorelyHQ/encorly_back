@@ -1,6 +1,7 @@
 using EncorelyApplication.Interfaces;
 using EncorelyApplication.Services;
 using EncorelyDomain.Entities;
+using EncorelyDomain.Events;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
@@ -26,23 +27,39 @@ public class MatchServiceTests
     }
 
     [Fact]
-    public async Task CreateMatchAsync_ShouldPersistMatchAndNotify()
+    public async Task AcceptMatchAsync_ShouldNotifyAndCreateSystemMessage()
     {
         // Arrange
-        var userId1 = Guid.NewGuid();
-        var userId2 = Guid.NewGuid();
-        var affinity = 0.85;
+        var userId = Guid.NewGuid();
+        var matchId = Guid.NewGuid();
+        var match = new Match { Id = matchId, UserId1 = userId, UserId2 = Guid.NewGuid(), AffinityScore = 0.9 };
+        await _dbContext.Matches.AddAsync(match);
+        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _sut.CreateMatchAsync(userId1, userId2, affinity);
+        var result = await _sut.AcceptMatchAsync(userId, matchId);
 
         // Assert
-        result.Should().NotBeNull();
-        result.AffinityScore.Should().Be(affinity);
+        result.Should().Be(matchId);
+        await _notificationService.Received(1).NotifyMatchFoundAsync(userId, matchId, match.AffinityScore, Arg.Any<CancellationToken>());
         
-        var persisted = await _dbContext.Matches.FirstOrDefaultAsync(m => m.Id == result.Id);
-        persisted.Should().NotBeNull();
-        
-        await _notificationService.Received(1).NotifyMatchAsync(userId1, userId2, affinity);
+        var message = await _dbContext.Messages.FirstOrDefaultAsync(m => m.MatchId == matchId && m.SenderId == Guid.Empty);
+        message.Should().NotBeNull();
+        message.Content.Should().Contain("Match creado");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_ShouldProduceAnalytics_OnFirstMessage()
+    {
+        // Arrange
+        var matchId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        var content = "Hola!";
+
+        // Act
+        await _sut.SendMessageAsync(matchId, senderId, content);
+
+        // Assert
+        await _analyticsProducer.Received(1).ProduceAsync(KafkaTopics.MatchConvertedToChat, Arg.Any<MatchConvertedToChatEvent>(), Arg.Any<CancellationToken>());
     }
 }
