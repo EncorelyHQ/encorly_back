@@ -17,7 +17,7 @@ public class InsertionTests
         // Arrange
         var swipeService = Substitute.For<ISwipeService>();
         var sut = new SwipesController(swipeService);
-        var request = new SwipeRequest(Guid.NewGuid(), "track-123", SwipeDirection.Like);
+        var request = new SwipeRequest(Guid.NewGuid(), "track-123", SwipeDirection.Right);
 
         // Act
         var result = await sut.RegisterSwipe(request, default);
