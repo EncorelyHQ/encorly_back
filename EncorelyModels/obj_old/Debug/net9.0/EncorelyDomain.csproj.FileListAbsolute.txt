@@ -1,0 +1,12 @@
+/app/EncorelyDomain/bin/Debug/net9.0/EncorelyDomain.deps.json
+/app/EncorelyDomain/bin/Debug/net9.0/EncorelyDomain.dll
+/app/EncorelyDomain/bin/Debug/net9.0/EncorelyDomain.pdb
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.GeneratedMSBuildEditorConfig.editorconfig
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.AssemblyInfoInputs.cache
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.AssemblyInfo.cs
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.csproj.CoreCompileInputs.cache
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.sourcelink.json
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.dll
+/app/EncorelyDomain/obj/Debug/net9.0/refint/EncorelyDomain.dll
+/app/EncorelyDomain/obj/Debug/net9.0/EncorelyDomain.pdb
+/app/EncorelyDomain/obj/Debug/net9.0/ref/EncorelyDomain.dll

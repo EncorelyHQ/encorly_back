@@ -1,5 +1,5 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;

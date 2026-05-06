@@ -1,5 +1,5 @@
 using EncorelyApplication.Services;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using FluentAssertions;
 using Xunit;
 

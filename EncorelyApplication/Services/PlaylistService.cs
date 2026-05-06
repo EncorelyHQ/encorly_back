@@ -26,7 +26,7 @@ public class PlaylistService : IPlaylistService
         var blendedIds = InterleaveTrackLists(tracksUser1, tracksUser2);
         var trackUris = blendedIds.Select(id => id.StartsWith("spotify:track:") ? id : $"spotify:track:{id}").ToList();
 
-        // Tarea 80: Create real playlist on Spotify (using User 1 account as host)
+        // Tarea 80: Create real playlist on Spotify (using Usuario 1 account as host)
         var playlistName = $"Encorely DNA Mix 🎵";
         var playlistDesc = $"Mezcla musical generada por afinidad entre usuarios en Encorely.";
         

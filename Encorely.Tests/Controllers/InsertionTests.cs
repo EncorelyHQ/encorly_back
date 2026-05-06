@@ -1,6 +1,6 @@
 using EncorelyApi.Controllers;
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;

@@ -1,5 +1,5 @@
 using EncorelyApplication.DTOs;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 
 using EncorelyApplication.DTOs.Auth;
 

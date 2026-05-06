@@ -1,30 +1,38 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
 using EncorelyApplication.DTOs.Auth;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 
 namespace EncorelyApplication.Services;
 
 public class IdentityService : IIdentityService
 {
-    // Persistence via Entity Framework Core
-
-    private readonly IEncorelyDbContext _dbContext;
+    private readonly IUsuarioQueries _usuarioQueries;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IMusicalProfileQueries _profileQueries;
+    private readonly IMusicalProfileRepository _profileRepository;
     private readonly IKafkaProducer<UserSyncEvent> _kafkaProducer;
     private readonly ITokenService _tokenService;
     private readonly ISpotifyService _spotifyService;
     private readonly ILogger<IdentityService> _logger;
 
     public IdentityService(
-        IEncorelyDbContext dbContext,
+        IUsuarioQueries usuarioQueries,
+        IUsuarioRepository usuarioRepository,
+        IMusicalProfileQueries profileQueries,
+        IMusicalProfileRepository profileRepository,
         IKafkaProducer<UserSyncEvent> kafkaProducer,
         ITokenService tokenService,
         ISpotifyService spotifyService,
         ILogger<IdentityService> logger)
     {
-        _dbContext = dbContext;
+        _usuarioQueries = usuarioQueries;
+        _usuarioRepository = usuarioRepository;
+        _profileQueries = profileQueries;
+        _profileRepository = profileRepository;
         _kafkaProducer = kafkaProducer;
         _tokenService = tokenService;
         _spotifyService = spotifyService;
@@ -40,7 +48,6 @@ public class IdentityService : IIdentityService
 
     public async Task<TokenResponse> LoginWithGoogleAsync(string idToken, CancellationToken ct = default)
     {
-        // Mock Google Profile
         var googleId = "google_" + Guid.NewGuid().ToString().Substring(0, 8);
         var email = $"{googleId}@google.com";
         
@@ -49,23 +56,24 @@ public class IdentityService : IIdentityService
 
     public async Task<TokenResponse> RegisterWithEmailAsync(string email, string password, CancellationToken ct = default)
     {
-        if (await _dbContext.Users.AnyAsync(u => u.Email == email, ct))
-            throw new Exception("User already exists");
+        var existing = await _usuarioQueries.GetByEmailAsync(email);
+        if (existing != null)
+            throw new Exception("Usuario already exists");
 
         return await ProcessIdentityAsync(email, email, AuthProvider.Custom, null, ct, password);
     }
 
     public async Task<TokenResponse> LoginWithEmailAsync(string email, string password, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password, ct);
-        if (user == null) throw new Exception("Invalid credentials");
+        var user = await _usuarioQueries.GetByEmailAsync(email);
+        if (user == null || user.PasswordHash != password) throw new Exception("Invalid credentials");
         
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
         
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-        await _dbContext.SaveChangesAsync(ct);
+        await _usuarioRepository.UpdateAsync(user);
 
         return new TokenResponse
         {
@@ -85,22 +93,22 @@ public class IdentityService : IIdentityService
         string? password = null,
         string? displayName = null)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.SpotifyId == providerId || u.Email == email, ct);
+        var user = await _usuarioQueries.GetBySpotifyIdAsync(providerId) ?? await _usuarioQueries.GetByEmailAsync(email);
 
         if (user == null)
         {
-            user = new User
+            user = new Usuario
             {
                 Id = Guid.NewGuid(),
                 SpotifyId = providerId,
                 DisplayName = displayName ?? email.Split('@')[0],
                 Email = email,
                 Provider = provider,
-                PasswordHash = password, // Simplified hash for testing
+                PasswordHash = password,
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _dbContext.Users.AddAsync(user, ct);
+            await _usuarioRepository.CreateAsync(user);
             
             MusicalProfile profile;
             if (provider == AuthProvider.Spotify && token != null)
@@ -122,14 +130,11 @@ public class IdentityService : IIdentityService
                 };
             }
 
-            await _dbContext.MusicalProfiles.AddAsync(profile, ct);
-
-            await _dbContext.SaveChangesAsync(ct);
+            await _profileRepository.CreateOrUpdateAsync(profile);
 
             _logger.LogInformation("New user registered via {Provider}: {UserId}", provider, user.Id);
         }
 
-        // Tarea 1 logic: Emit Kafka event for Spotify users
         if (provider == AuthProvider.Spotify && token != null)
         {
             await _kafkaProducer.ProduceAsync(KafkaTopics.UserDnaSync, new UserSyncEvent(user.Id, token, DateTime.UtcNow), ct);
@@ -140,7 +145,7 @@ public class IdentityService : IIdentityService
         
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-        await _dbContext.SaveChangesAsync(ct);
+        await _usuarioRepository.UpdateAsync(user);
 
         return new TokenResponse
         {

@@ -1,5 +1,5 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,7 +22,7 @@ public class TokenService : ITokenService
         _audience = configuration["JWT_AUDIENCE"] ?? "Encorely.Clients";
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(Usuario user)
     {
         var authClaims = new List<Claim>
         {

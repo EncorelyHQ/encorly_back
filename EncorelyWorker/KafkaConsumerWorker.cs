@@ -5,8 +5,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using EncorelyApplication.Interfaces;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 using System.Text.Json;
 
 namespace EncorelyWorker;
@@ -50,15 +51,18 @@ public class KafkaConsumerWorker : BackgroundService
                     _logger.LogInformation("[WORKER] Procesando Swipe de Usuario {UserId} para Track {TrackId}", swipeEvent.UserId, swipeEvent.TrackId);
                     
                     using var scope = _scopeFactory.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<IEncorelyDbContext>();
+                    var usuarioQueries = scope.ServiceProvider.GetRequiredService<IUsuarioQueries>();
+                    var usuarioRepository = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+                    var profileQueries = scope.ServiceProvider.GetRequiredService<IMusicalProfileQueries>();
+                    var profileRepository = scope.ServiceProvider.GetRequiredService<IMusicalProfileRepository>();
                     var spotifyService = scope.ServiceProvider.GetRequiredService<ISpotifyService>();
                     var hubContext = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.SignalR.IHubContext<EncorelyInfrastructure.Hubs.NotificationHub>>();
                     
-                    var user = await dbContext.Users.FindAsync(new object[] { swipeEvent.UserId }, stoppingToken);
+                    var user = await usuarioQueries.GetByIdAsync(swipeEvent.UserId);
                     if (user != null)
                     {
                         user.SwipeCount++;
-                        await dbContext.SaveChangesAsync(stoppingToken);
+                        await usuarioRepository.UpdateAsync(user);
                         
                         _logger.LogInformation("[WORKER] Usuario {UserId} Swipe Count: {Count}", user.Id, user.SwipeCount);
 
@@ -66,27 +70,25 @@ public class KafkaConsumerWorker : BackgroundService
                         {
                             _logger.LogInformation("[DNA_COMPLETED] Generando perfil real para usuario {UserId}...", user.Id);
                             
-                            // Simular obtención de token (en un sistema real se obtendría de la sesión/DB)
                             var mockToken = "spotify_access_token_from_db"; 
                             var profile = await spotifyService.GenerateMusicalProfileAsync(mockToken, stoppingToken);
                             profile.UserId = user.Id;
 
-                            var existingProfile = await dbContext.MusicalProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id, stoppingToken);
+                            var existingProfile = await profileQueries.GetByUserIdAsync(user.Id);
                             if (existingProfile != null)
                             {
                                 existingProfile.Energy = profile.Energy;
                                 existingProfile.Danceability = profile.Danceability;
                                 existingProfile.Valence = profile.Valence;
                                 existingProfile.Tempo = profile.Tempo;
+                                await profileRepository.CreateOrUpdateAsync(existingProfile);
                             }
                             else
                             {
-                                await dbContext.MusicalProfiles.AddAsync(profile, stoppingToken);
+                                profile.Id = Guid.NewGuid();
+                                await profileRepository.CreateOrUpdateAsync(profile);
                             }
 
-                            await dbContext.SaveChangesAsync(stoppingToken);
-
-                            // Notificar vía SignalR
                             await hubContext.Clients.Group(user.Id.ToString())
                                 .SendAsync("DnaCompleted", new { UserId = user.Id, Message = "¡Tu ADN musical está listo! Ya puedes usar el Radar." });
                             

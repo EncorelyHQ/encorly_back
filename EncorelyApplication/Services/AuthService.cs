@@ -1,42 +1,45 @@
 using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 
 namespace EncorelyApplication.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IEncorelyDbContext _dbContext;
+    private readonly IUsuarioQueries _usuarioQueries;
+    private readonly IUsuarioRepository _usuarioRepository;
     private readonly IKafkaProducer<UserSyncEvent> _kafkaProducer;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        IEncorelyDbContext dbContext,
+        IUsuarioQueries usuarioQueries,
+        IUsuarioRepository usuarioRepository,
         IKafkaProducer<UserSyncEvent> kafkaProducer,
         ILogger<AuthService> logger)
     {
-        _dbContext = dbContext;
+        _usuarioQueries = usuarioQueries;
+        _usuarioRepository = usuarioRepository;
         _kafkaProducer = kafkaProducer;
         _logger = logger;
     }
 
     public async Task<Guid> AuthenticateWithSpotifyAsync(SpotifyAuthRequest authRequest, CancellationToken ct = default)
     {
-        // 1. Mock Spotify Profile Data (In a real scenario, call Spotify API)
+        // 1. Mock Spotify Profile Data
         var spotifyId = "spotify_id_123";
         var displayName = "Spotify Explorer";
         var email = "explorer@spotify.com";
 
         // 2. Check if user exists
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.SpotifyId == spotifyId, ct);
+        var user = await _usuarioQueries.GetBySpotifyIdAsync(spotifyId);
 
         if (user == null)
         {
-            user = new User
+            user = new Usuario
             {
                 Id = Guid.NewGuid(),
                 SpotifyId = spotifyId,
@@ -45,8 +48,7 @@ public class AuthService : IAuthService
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _dbContext.Users.AddAsync(user, ct);
-            await _dbContext.SaveChangesAsync(ct);
+            await _usuarioRepository.CreateAsync(user);
             
             _logger.LogInformation("New user registered: {UserId} ({SpotifyId})", user.Id, spotifyId);
         }

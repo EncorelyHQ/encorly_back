@@ -1,24 +1,35 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
-using Microsoft.EntityFrameworkCore;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 
 namespace EncorelyApplication.Services;
 
 public class VenueService : IVenueService
 {
-    private readonly IEncorelyDbContext _dbContext;
+    private readonly IVenueRoomQueries _roomQueries;
+    private readonly IVenueRoomRepository _roomRepository;
+    private readonly IVenueMessageQueries _messageQueries;
+    private readonly IVenueMessageRepository _messageRepository;
     private readonly IEventProducer<VenueMessageFlaggedEvent> _moderationProducer;
 
-    // Moderation keywords — Tarea 79
     private static readonly HashSet<string> BannedKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
         "spam", "odio", "hate", "violencia", "violence", "scam"
     };
 
-    public VenueService(IEncorelyDbContext dbContext, IEventProducer<VenueMessageFlaggedEvent> moderationProducer)
+    public VenueService(
+        IVenueRoomQueries roomQueries,
+        IVenueRoomRepository roomRepository,
+        IVenueMessageQueries messageQueries,
+        IVenueMessageRepository messageRepository,
+        IEventProducer<VenueMessageFlaggedEvent> moderationProducer)
     {
-        _dbContext = dbContext;
+        _roomQueries = roomQueries;
+        _roomRepository = roomRepository;
+        _messageQueries = messageQueries;
+        _messageRepository = messageRepository;
         _moderationProducer = moderationProducer;
     }
 
@@ -32,26 +43,22 @@ public class VenueService : IVenueService
             ExpiresAt = DateTime.UtcNow.Add(duration)
         };
 
-        await _dbContext.VenueRooms.AddAsync(room, ct);
-        await _dbContext.SaveChangesAsync(ct);
+        await _roomRepository.CreateAsync(room);
         return room;
     }
 
     public async Task<IEnumerable<VenueMessage>> GetActiveMessagesAsync(Guid roomId, CancellationToken ct = default)
     {
-        return await _dbContext.VenueMessages
-            .Where(m => m.RoomId == roomId && !m.IsModerated)
-            .OrderBy(m => m.Timestamp)
-            .ToListAsync(ct);
+        var messages = await _messageQueries.GetByRoomIdAsync(roomId);
+        return messages.Where(m => !m.IsModerated);
     }
 
     public async Task<VenueMessage> PostMessageAsync(Guid roomId, Guid senderId, string content, CancellationToken ct = default)
     {
-        var room = await _dbContext.VenueRooms.FindAsync(new object[] { roomId }, ct);
+        var room = await _roomQueries.GetByIdAsync(roomId);
         if (room == null || !room.IsActive)
             throw new InvalidOperationException("La sala de venue no está activa o ha expirado.");
 
-        // Tarea 79: Auto-moderation via keyword scanning
         var isFlagged = BannedKeywords.Any(kw => content.Contains(kw, StringComparison.OrdinalIgnoreCase));
 
         var message = new VenueMessage
@@ -64,8 +71,7 @@ public class VenueService : IVenueService
             Timestamp = DateTime.UtcNow
         };
 
-        await _dbContext.VenueMessages.AddAsync(message, ct);
-        await _dbContext.SaveChangesAsync(ct);
+        await _messageRepository.CreateAsync(message);
 
         if (isFlagged)
         {
@@ -78,11 +84,11 @@ public class VenueService : IVenueService
 
     public async Task<bool> ModerateMessageAsync(Guid messageId, string reason, CancellationToken ct = default)
     {
-        var message = await _dbContext.VenueMessages.FindAsync(new object[] { messageId }, ct);
+        var message = await _messageQueries.GetByIdAsync(messageId);
         if (message == null) return false;
 
         message.IsModerated = true;
-        await _dbContext.SaveChangesAsync(ct);
+        await _messageRepository.UpdateAsync(message);
 
         var flagEvent = new VenueMessageFlaggedEvent(message.RoomId, messageId, message.SenderId, reason, DateTime.UtcNow);
         await _moderationProducer.ProduceAsync(KafkaTopics.VenueModerationFlagged, flagEvent, ct);

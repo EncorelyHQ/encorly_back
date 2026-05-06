@@ -1,9 +1,8 @@
 using EncorelyApplication.Interfaces;
-using EncorelyInfrastructure.Persistence;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EncorelyQuery.Interfaces;
 
 namespace EncorelyApi.Controllers;
 
@@ -12,20 +11,20 @@ namespace EncorelyApi.Controllers;
 public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
-    private readonly EncorelyDbContext _dbContext;
+    private readonly IUsuarioQueries _usuarioQueries;
     private readonly ICompatibilityService _compatibilityService;
     private readonly IUserService _userService;
     private readonly ILogger<EventsController> _logger;
 
     public EventsController(
         IEventService eventService, 
-        EncorelyDbContext dbContext, 
+        IUsuarioQueries usuarioQueries, 
         ICompatibilityService compatibilityService,
         IUserService userService,
         ILogger<EventsController> logger)
     {
         _eventService = eventService;
-        _dbContext = dbContext;
+        _usuarioQueries = usuarioQueries;
         _compatibilityService = compatibilityService;
         _userService = userService;
         _logger = logger;
@@ -41,8 +40,8 @@ public class EventsController : ControllerBase
     [HttpGet("{eventId}/matches")]
     public async Task<IActionResult> GetMatches(string eventId, [FromQuery] Guid userId, [FromQuery] ConcertMood? targetMood, CancellationToken ct)
     {
-        var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
-        if (user == null) return NotFound("User not found");
+        var user = await _usuarioQueries.GetByIdAsync(userId);
+        if (user == null) return NotFound("Usuario not found");
 
         const int MIN_SWIPES_THRESHOLD = 25;
 
@@ -59,11 +58,8 @@ public class EventsController : ControllerBase
             return BadRequest(new { message = "Musical profile not found for user." });
         }
 
-        // Tarea 74: Implementation of Advanced Filtering by ConcertMood
         var moodFilter = targetMood ?? user.Mood;
-        var candidateUsers = await _dbContext.Users.AsNoTracking()
-            .Where(u => u.Id != userId && u.Mood == moodFilter)
-            .ToListAsync(ct);
+        var candidateUsers = await _usuarioQueries.GetByMoodExceptAsync(moodFilter, userId);
 
         var compatibleMatches = new List<object>();
 
@@ -74,7 +70,6 @@ public class EventsController : ControllerBase
 
             var affinity = _compatibilityService.CalculateAffinity(myProfile, candidateProfile);
             
-            // Tarea 75: Priority Match Logic
             var isHighPriority = affinity >= 85.0;
 
             if (_compatibilityService.IsCompatible(affinity))
@@ -83,7 +78,6 @@ public class EventsController : ControllerBase
             }
         }
 
-        // Bubbling high affinity ones up
         compatibleMatches = compatibleMatches.OrderByDescending(m => (double)((dynamic)m).Affinity).ToList();
 
         return Ok(compatibleMatches);

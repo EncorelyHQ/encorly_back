@@ -1,5 +1,5 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using SpotifyAPI.Web;
 
 namespace EncorelyApplication.Services;

@@ -1,9 +1,10 @@
 using EncorelyApplication.Interfaces;
 using EncorelyApplication.Services;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Xunit;
 
@@ -12,18 +13,22 @@ namespace Encorely.Tests.Services;
 public class MatchServiceTests
 {
     private readonly IMatchService _sut;
-    private readonly IEncorelyDbContext _dbContext;
     private readonly IMatchNotificationService _notificationService = Substitute.For<IMatchNotificationService>();
+    private readonly IMatchQueries _matchQueries = Substitute.For<IMatchQueries>();
+    private readonly IMatchRepository _matchRepository = Substitute.For<IMatchRepository>();
+    private readonly IMessageQueries _messageQueries = Substitute.For<IMessageQueries>();
+    private readonly IMessageRepository _messageRepository = Substitute.For<IMessageRepository>();
     private readonly IEventProducer<MatchConvertedToChatEvent> _analyticsProducer = Substitute.For<IEventProducer<MatchConvertedToChatEvent>>();
 
     public MatchServiceTests()
     {
-        var options = new DbContextOptionsBuilder<MockDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        
-        _dbContext = new MockDbContext(options);
-        _sut = new MatchService(_notificationService, _dbContext, _analyticsProducer);
+        _sut = new MatchService(
+            _notificationService, 
+            _matchQueries, 
+            _matchRepository, 
+            _messageQueries, 
+            _messageRepository, 
+            _analyticsProducer);
     }
 
     [Fact]
@@ -33,8 +38,8 @@ public class MatchServiceTests
         var userId = Guid.NewGuid();
         var matchId = Guid.NewGuid();
         var match = new Match { Id = matchId, UserId1 = userId, UserId2 = Guid.NewGuid(), AffinityScore = 0.9 };
-        await _dbContext.Matches.AddAsync(match);
-        await _dbContext.SaveChangesAsync();
+        
+        _matchQueries.GetByIdAsync(matchId).Returns(match);
 
         // Act
         var result = await _sut.AcceptMatchAsync(userId, matchId);
@@ -43,9 +48,7 @@ public class MatchServiceTests
         result.Should().Be(matchId);
         await _notificationService.Received(1).NotifyMatchFoundAsync(userId, matchId, match.AffinityScore, Arg.Any<CancellationToken>());
         
-        var message = await _dbContext.Messages.FirstOrDefaultAsync(m => m.MatchId == matchId && m.SenderId == Guid.Empty);
-        message.Should().NotBeNull();
-        message.Content.Should().Contain("Match creado");
+        await _messageRepository.Received(1).CreateAsync(Arg.Is<Message>(m => m.MatchId == matchId && m.SenderId == Guid.Empty));
     }
 
     [Fact]
@@ -55,6 +58,8 @@ public class MatchServiceTests
         var matchId = Guid.NewGuid();
         var senderId = Guid.NewGuid();
         var content = "Hola!";
+        
+        _messageQueries.GetByMatchIdAsync(matchId).Returns(new List<Message>());
 
         // Act
         await _sut.SendMessageAsync(matchId, senderId, content);

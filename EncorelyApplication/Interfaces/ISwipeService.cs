@@ -1,4 +1,4 @@
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
 
 namespace EncorelyApplication.Interfaces;

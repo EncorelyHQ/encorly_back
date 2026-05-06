@@ -1,6 +1,7 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
-using Microsoft.EntityFrameworkCore;
+using EncorelyModels;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
@@ -8,29 +9,37 @@ namespace EncorelyApplication.Services;
 
 public class UserService : IUserService
 {
-    private readonly IEncorelyDbContext _dbContext;
+    private readonly IUsuarioQueries _usuarioQueries;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IMusicalProfileQueries _profileQueries;
     private readonly IDistributedCache _cache;
 
-    public UserService(IEncorelyDbContext dbContext, IDistributedCache cache)
+    public UserService(
+        IUsuarioQueries usuarioQueries, 
+        IUsuarioRepository usuarioRepository,
+        IMusicalProfileQueries profileQueries,
+        IDistributedCache cache)
     {
-        _dbContext = dbContext;
+        _usuarioQueries = usuarioQueries;
+        _usuarioRepository = usuarioRepository;
+        _profileQueries = profileQueries;
         _cache = cache;
     }
 
-    public async Task<User> GetMeAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Usuario> GetMeAsync(Guid userId, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
-        if (user == null) throw new KeyNotFoundException("User not found");
+        var user = await _usuarioQueries.GetByIdAsync(userId);
+        if (user == null) throw new KeyNotFoundException("Usuario not found");
         return user;
     }
 
     public async Task UpdateSettingsAsync(Guid userId, ConcertMood mood, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users.FindAsync(new object[] { userId }, ct);
-        if (user == null) throw new KeyNotFoundException("User not found");
+        var user = await _usuarioQueries.GetByIdAsync(userId);
+        if (user == null) throw new KeyNotFoundException("Usuario not found");
 
         user.Mood = mood;
-        await _dbContext.SaveChangesAsync(ct);
+        await _usuarioRepository.UpdateAsync(user);
     }
 
     public async Task<MusicalProfile?> GetMusicalProfileAsync(Guid userId, CancellationToken ct = default)
@@ -43,7 +52,7 @@ public class UserService : IUserService
             return JsonSerializer.Deserialize<MusicalProfile>(cachedProfile);
         }
 
-        var profile = await _dbContext.MusicalProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        var profile = await _profileQueries.GetByUserIdAsync(userId);
         if (profile != null)
         {
             var options = new DistributedCacheEntryOptions()

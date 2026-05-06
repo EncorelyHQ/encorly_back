@@ -1,18 +1,23 @@
-using Confluent.Kafka;
-using EncorelyApplication.Interfaces;
-using EncorelyApplication.Services;
-using EncorelyInfrastructure.Messaging;
-using EncorelyInfrastructure.Persistence;
 using EncorelyInfrastructure.Hubs;
+using EncorelyQuery;
+using EncorelyRepository;
+using EncorelyQuery.Interfaces;
+using EncorelyQuery.Implementations;
+using EncorelyRepository.Interfaces;
+using EncorelyRepository.Implements;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using EncorelyApplication.Interfaces;
+using EncorelyApplication.Services;
+using EncorelyInfrastructure.Messaging;
+using EncorelyApi.Services;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,10 +43,6 @@ catch (Exception ex)
     Console.WriteLine($"[Umbral] Firebase init bypassed (mock environment): {ex.Message}");
 }
 
-builder.Services.AddDbContext<EncorelyDbContext>(options =>
-    options.UseNpgsql(connectionString));
-builder.Services.AddScoped<IEncorelyDbContext>(provider => provider.GetRequiredService<EncorelyDbContext>());
-
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -51,6 +52,24 @@ builder.Services.AddScoped<ICompatibilityService, CompatibilityService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<ISwipeService, SwipeService>();
 builder.Services.AddScoped<IEventService, EventService>();
+
+// Dapper Registrations
+builder.Services.AddSingleton<EncorelyQuery.IDbConnectionFactory, EncorelyQuery.DbConnectionFactory>();
+builder.Services.AddSingleton<EncorelyRepository.IDbConnectionFactory, EncorelyRepository.DbConnectionFactory>();
+builder.Services.AddScoped<IUsuarioQueries, UsuarioQueries>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IMatchQueries, MatchQueries>();
+builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+builder.Services.AddScoped<ISwipeQueries, SwipeQueries>();
+builder.Services.AddScoped<ISwipeRepository, SwipeRepository>();
+builder.Services.AddScoped<IVenueRoomQueries, VenueRoomQueries>();
+builder.Services.AddScoped<IVenueRoomRepository, VenueRoomRepository>();
+builder.Services.AddScoped<IMusicalProfileQueries, MusicalProfileQueries>();
+builder.Services.AddScoped<IMusicalProfileRepository, MusicalProfileRepository>();
+builder.Services.AddScoped<IMessageQueries, MessageQueries>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IVenueMessageQueries, VenueMessageQueries>();
+builder.Services.AddScoped<IVenueMessageRepository, VenueMessageRepository>();
 
 var kafkaPort = Environment.GetEnvironmentVariable("KAFKA_PORT") ?? "9092";
 var kafkaHost = Environment.GetEnvironmentVariable("KAFKA_HOST") ?? "localhost";

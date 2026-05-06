@@ -1,5 +1,6 @@
-using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
+using EncorelyModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;
@@ -8,17 +9,21 @@ namespace EncorelyApi.Controllers;
 [Route("api/v1/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IUsuarioQueries _usuarioQueries;
+    private readonly IUsuarioRepository _usuarioRepository;
 
-    public UserController(IUserService userService)
+    public UserController(IUsuarioQueries usuarioQueries, IUsuarioRepository usuarioRepository)
     {
-        _userService = userService;
+        _usuarioQueries = usuarioQueries;
+        _usuarioRepository = usuarioRepository;
     }
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMe([FromQuery] Guid userId, CancellationToken ct)
     {
-        var user = await _userService.GetMeAsync(userId, ct);
+        var user = await _usuarioQueries.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
         return Ok(new
         {
             user.Id,
@@ -33,7 +38,12 @@ public class UserController : ControllerBase
     [HttpPut("settings")]
     public async Task<IActionResult> UpdateSettings([FromBody] UpdateSettingsRequest request, CancellationToken ct)
     {
-        await _userService.UpdateSettingsAsync(request.UserId, request.Mood, ct);
+        var user = await _usuarioQueries.GetByIdAsync(request.UserId);
+        if (user == null) return NotFound();
+
+        user.Mood = request.Mood;
+        await _usuarioRepository.UpdateAsync(user);
+        
         return NoContent();
     }
 }

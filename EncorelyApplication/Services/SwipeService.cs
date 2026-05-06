@@ -1,46 +1,53 @@
 using EncorelyApplication.Interfaces;
-using EncorelyDomain.Entities;
+using EncorelyModels;
 using EncorelyDomain.Events;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EncorelyQuery.Interfaces;
+using EncorelyRepository.Interfaces;
 
 namespace EncorelyApplication.Services;
 
 public class SwipeService : ISwipeService
 {
-    private const int MIN_SWIPES_THRESHOLD = 25; // Adjusted from 100 to 25 (Tarea 3)
+    private const int MIN_SWIPES_THRESHOLD = 25; 
     
-    private readonly IEncorelyDbContext _dbContext;
+    private readonly IUsuarioQueries _usuarioQueries;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly ISwipeRepository _swipeRepository;
     private readonly IKafkaProducer<SwipeRegisteredEvent> _kafkaProducer;
     private readonly ILogger<SwipeService> _logger;
 
     public SwipeService(
-        IEncorelyDbContext dbContext,
+        IUsuarioQueries usuarioQueries,
+        IUsuarioRepository usuarioRepository,
+        ISwipeRepository swipeRepository,
         IKafkaProducer<SwipeRegisteredEvent> kafkaProducer,
         ILogger<SwipeService> logger)
     {
-        _dbContext = dbContext;
+        _usuarioQueries = usuarioQueries;
+        _usuarioRepository = usuarioRepository;
+        _swipeRepository = swipeRepository;
         _kafkaProducer = kafkaProducer;
         _logger = logger;
     }
 
     public async Task RegisterSwipeAsync(Guid userId, string trackId, SwipeDirection direction, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users.FindAsync(new object[] { userId }, ct);
-        if (user == null) throw new KeyNotFoundException("User not found");
+        var user = await _usuarioQueries.GetByIdAsync(userId);
+        if (user == null) throw new KeyNotFoundException("Usuario not found");
 
         var swipe = new Swipe { Id = Guid.NewGuid(), UserId = userId, TrackId = trackId, Direction = direction };
-        await _dbContext.Swipes.AddAsync(swipe, ct);
+        await _swipeRepository.CreateAsync(swipe);
         
         user.SwipeCount++;
-        await _dbContext.SaveChangesAsync(ct);
+        await _usuarioRepository.UpdateAsync(user);
 
         await _kafkaProducer.ProduceAsync(KafkaTopics.SwipeRawEvents, new SwipeRegisteredEvent(userId, trackId, direction.ToString()), ct);
     }
 
     public async Task<object> GetNextTrackAsync(Guid userId, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var user = await _usuarioQueries.GetByIdAsync(userId);
         
         if (user != null && user.Provider != AuthProvider.Spotify)
         {
