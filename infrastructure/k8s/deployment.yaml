@@ -1,0 +1,125 @@
+# ============================================================
+# Tarea 82: Kubernetes Deployment Manifests
+# Components: API Deployment, Worker Deployment, Services, HPA
+# ============================================================
+
+---
+# --- Namespace ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: encorely
+
+---
+# --- API Deployment ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encorely-api
+  namespace: encorely
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: encorely-api
+  template:
+    metadata:
+      labels:
+        app: encorely-api
+    spec:
+      containers:
+      - name: api
+        image: encorelyHQ/encorely-api:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: encorely-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+---
+# --- API Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encorely-api-svc
+  namespace: encorely
+spec:
+  selector:
+    app: encorely-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+
+---
+# --- Worker Deployment ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encorely-worker
+  namespace: encorely
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: encorely-worker
+  template:
+    metadata:
+      labels:
+        app: encorely-worker
+    spec:
+      containers:
+      - name: worker
+        image: encorelyHQ/encorely-worker:latest
+        envFrom:
+        - secretRef:
+            name: encorely-secrets
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+
+---
+# --- Horizontal Pod Autoscaler ---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: encorely-api-hpa
+  namespace: encorely
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: encorely-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
