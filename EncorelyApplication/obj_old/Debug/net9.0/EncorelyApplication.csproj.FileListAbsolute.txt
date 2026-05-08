@@ -1,0 +1,16 @@
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.csproj.AssemblyReference.cache
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.GeneratedMSBuildEditorConfig.editorconfig
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.AssemblyInfoInputs.cache
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.AssemblyInfo.cs
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.csproj.CoreCompileInputs.cache
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.sourcelink.json
+/app/EncorelyApplication/bin/Debug/net9.0/EncorelyApplication.deps.json
+/app/EncorelyApplication/bin/Debug/net9.0/EncorelyApplication.dll
+/app/EncorelyApplication/bin/Debug/net9.0/EncorelyApplication.pdb
+/app/EncorelyApplication/bin/Debug/net9.0/EncorelyDomain.dll
+/app/EncorelyApplication/bin/Debug/net9.0/EncorelyDomain.pdb
+/app/EncorelyApplication/obj/Debug/net9.0/Encorely.9E751F1F.Up2Date
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.dll
+/app/EncorelyApplication/obj/Debug/net9.0/refint/EncorelyApplication.dll
+/app/EncorelyApplication/obj/Debug/net9.0/EncorelyApplication.pdb
+/app/EncorelyApplication/obj/Debug/net9.0/ref/EncorelyApplication.dll
