@@ -18,7 +18,7 @@ public class MessageRepository : IMessageRepository
         using var connection = _connectionFactory.CreateConnection();
         const string sql = @"
             INSERT INTO ""Messages"" (""Id"", ""MatchId"", ""SenderId"", ""Content"", ""CreatedAt"")
-            VALUES (@Id, @MatchId, @SenderId, @Content, @CreatedAt)
+            VALUES (@Id, @MatchId, @SenderId, @Content, @Timestamp)
             RETURNING ""Id""";
         
         return await connection.ExecuteScalarAsync<Guid>(sql, message);

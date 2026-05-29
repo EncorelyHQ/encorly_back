@@ -19,6 +19,11 @@ using EncorelyInfrastructure.Messaging;
 using EncorelyApi.Services;
 using Confluent.Kafka;
 
+// Carga el .env del directorio actual (si existe) ANTES de leer cualquier env var.
+// En despliegues reales (Render, Docker) las vars vienen del entorno; el .env
+// solo es relevante en desarrollo local.
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
@@ -95,6 +100,17 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "Encorely_";
 });
 
+// CORS: permite que el frontend (Expo web / Vercel) consuma la API desde el navegador.
+const string FrontendCorsPolicy = "AllowFrontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+        policy.SetIsOriginAllowed(_ => true) // dev: cualquier origen. En prod, restringir a tu dominio.
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -137,6 +153,8 @@ var app = builder.Build();
 
 app.UseMiddleware<EncorelyApi.Middleware.ExceptionMiddleware>();
 
+app.UseCors(FrontendCorsPolicy);
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -152,6 +170,49 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health check (liveness + DB readiness). Anónimo: útil para monitores externos (Render, UptimeRobot)
+// y para diagnosticar la conexión a la base de datos (expone el error real de Postgres).
+app.MapGet("/health", async (EncorelyQuery.IDbConnectionFactory dbFactory) =>
+{
+    var dbStatus = new Dictionary<string, object?> { ["connected"] = false };
+    var sw = System.Diagnostics.Stopwatch.StartNew();
+    try
+    {
+        using var conn = dbFactory.CreateConnection();
+        if (conn is System.Data.Common.DbConnection asyncConn)
+            await asyncConn.OpenAsync();
+        else
+            conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT 1";
+        cmd.ExecuteScalar();
+
+        dbStatus["connected"] = true;
+    }
+    catch (Exception ex)
+    {
+        dbStatus["error"] = ex.Message;
+    }
+    finally
+    {
+        sw.Stop();
+        dbStatus["latencyMs"] = sw.ElapsedMilliseconds;
+    }
+
+    var connected = (bool)dbStatus["connected"]!;
+    var payload = new
+    {
+        status = connected ? "healthy" : "degraded",
+        timestamp = DateTime.UtcNow,
+        database = dbStatus
+    };
+
+    // Vivo siempre devuelve 200 a nivel de app; 503 si la BD no responde (readiness).
+    return connected ? Results.Ok(payload) : Results.Json(payload, statusCode: 503);
+}).AllowAnonymous();
+
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<VenueHub>("/venueHub");

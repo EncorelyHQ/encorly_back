@@ -16,14 +16,15 @@ public class VenueMessageQueries : IVenueMessageQueries
     public async Task<VenueMessage?> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = "SELECT * FROM \"VenueMessages\" WHERE \"Id\" = @Id";
+        // Columna real "CreatedAt" -> propiedad Timestamp del modelo.
+        const string sql = "SELECT \"Id\", \"RoomId\", \"SenderId\", \"Content\", \"IsModerated\", \"CreatedAt\" AS \"Timestamp\" FROM \"VenueMessages\" WHERE \"Id\" = @Id";
         return await connection.QueryFirstOrDefaultAsync<VenueMessage>(sql, new { Id = id });
     }
 
     public async Task<IEnumerable<VenueMessage>> GetByRoomIdAsync(Guid roomId)
     {
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = "SELECT * FROM \"VenueMessages\" WHERE \"RoomId\" = @RoomId ORDER BY \"CreatedAt\" ASC";
+        const string sql = "SELECT \"Id\", \"RoomId\", \"SenderId\", \"Content\", \"IsModerated\", \"CreatedAt\" AS \"Timestamp\" FROM \"VenueMessages\" WHERE \"RoomId\" = @RoomId ORDER BY \"CreatedAt\" ASC";
         return await connection.QueryAsync<VenueMessage>(sql, new { RoomId = roomId });
     }
 }

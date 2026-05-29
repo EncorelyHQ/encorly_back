@@ -17,7 +17,7 @@ public class VenueMessageRepository : IVenueMessageRepository
     {
         using var connection = _connectionFactory.CreateConnection();
         const string sql = @"
-            INSERT INTO ""VenueMessages"" (""Id"", ""RoomId"", ""SenderId"", ""Content"", ""IsModerated"", ""Timestamp"")
+            INSERT INTO ""VenueMessages"" (""Id"", ""RoomId"", ""SenderId"", ""Content"", ""IsModerated"", ""CreatedAt"")
             VALUES (@Id, @RoomId, @SenderId, @Content, @IsModerated, @Timestamp)
             RETURNING ""Id""";
         
@@ -29,7 +29,7 @@ public class VenueMessageRepository : IVenueMessageRepository
         using var connection = _connectionFactory.CreateConnection();
         const string sql = @"
             UPDATE ""VenueMessages""
-            SET ""RoomId"" = @RoomId, ""SenderId"" = @SenderId, ""Content"" = @Content, ""IsModerated"" = @IsModerated, ""Timestamp"" = @Timestamp
+            SET ""RoomId"" = @RoomId, ""SenderId"" = @SenderId, ""Content"" = @Content, ""IsModerated"" = @IsModerated, ""CreatedAt"" = @Timestamp
             WHERE ""Id"" = @Id";
         
         var affectedRows = await connection.ExecuteAsync(sql, message);
