@@ -51,4 +51,15 @@ public class UsuarioRepository : IUsuarioRepository
         var affectedRows = await connection.ExecuteAsync(sql, new { Id = id });
         return affectedRows > 0;
     }
+
+    public async Task<int> IncrementSwipeCountAsync(Guid userId)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        // UPDATE atómico (sin read-modify-write) para evitar lost-update bajo concurrencia.
+        const string sql = @"
+            UPDATE ""Users"" SET ""SwipeCount"" = ""SwipeCount"" + 1
+            WHERE ""Id"" = @Id
+            RETURNING ""SwipeCount""";
+        return await connection.ExecuteScalarAsync<int>(sql, new { Id = userId });
+    }
 }

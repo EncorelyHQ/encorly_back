@@ -38,9 +38,10 @@ public class SwipeService : ISwipeService
 
         var swipe = new Swipe { Id = Guid.NewGuid(), UserId = userId, TrackId = trackId, Direction = direction };
         await _swipeRepository.CreateAsync(swipe);
-        
-        user.SwipeCount++;
-        await _usuarioRepository.UpdateAsync(user);
+
+        // Incremento atómico en DB (UPDATE Users SET SwipeCount = SwipeCount + 1)
+        // para evitar lost-update bajo concurrencia.
+        await _usuarioRepository.IncrementSwipeCountAsync(userId);
 
         await _kafkaProducer.ProduceAsync(KafkaTopics.SwipeRawEvents, new SwipeRegisteredEvent(userId, trackId, direction.ToString()), ct);
     }

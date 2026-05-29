@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace EncorelyInfrastructure.Messaging;
 
-public class KafkaProducer<T> : IKafkaProducer<T>, IDisposable where T : class
+public class KafkaProducer<T> : IKafkaProducer<T>, IEventProducer<T>, IDisposable where T : class
 {
     private readonly IProducer<Null, string> _producer;
     private readonly ILogger<KafkaProducer<T>> _logger;
@@ -37,6 +37,10 @@ public class KafkaProducer<T> : IKafkaProducer<T>, IDisposable where T : class
             throw;
         }
     }
+
+    // IEventProducer<T> expone Task (no ValueTask); reusa la implementación de IKafkaProducer<T>.
+    Task IEventProducer<T>.ProduceAsync(string topic, T message, CancellationToken ct)
+        => ProduceAsync(topic, message, ct).AsTask();
 
     public void Dispose()
     {

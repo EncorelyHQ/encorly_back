@@ -1,5 +1,5 @@
 # ============================================================
-# Tarea 81: Multi-stage Docker build for production optimization
+# Multi-stage Docker build for production optimization
 # Build stage: compile + publish
 # Runtime stage: minimal ASP.NET runtime (no SDK bloat)
 # ============================================================
@@ -8,18 +8,30 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY *.sln ./
-COPY EncorelyDomain/ EncorelyDomain/
+# Copy build configuration shared by all projects
+COPY Directory.Build.props ./
+
+# Copy only the .csproj files first to leverage Docker layer caching
+# (restore is re-run only when a project file changes, not on every code edit)
+COPY EncorelyModels/EncorelyModels.csproj EncorelyModels/
+COPY EncorelyQuery/EncorelyQuery.csproj EncorelyQuery/
+COPY EncorelyRepository/EncorelyRepository.csproj EncorelyRepository/
+COPY EncorelyApplication/EncorelyApplication.csproj EncorelyApplication/
+COPY EncorelyInfrastructure/EncorelyInfrastructure.csproj EncorelyInfrastructure/
+COPY EncorelyApi/EncorelyApi.csproj EncorelyApi/
+
+# Restore only the API and its transitive project dependencies
+RUN dotnet restore EncorelyApi/EncorelyApi.csproj
+
+# Copy the source of the projects the API depends on
+COPY EncorelyModels/ EncorelyModels/
+COPY EncorelyQuery/ EncorelyQuery/
+COPY EncorelyRepository/ EncorelyRepository/
 COPY EncorelyApplication/ EncorelyApplication/
 COPY EncorelyInfrastructure/ EncorelyInfrastructure/
 COPY EncorelyApi/ EncorelyApi/
-COPY EncorelyWorker/ EncorelyWorker/
-COPY Encorely.Tests/ Encorely.Tests/
 
-RUN dotnet restore
-
-WORKDIR /src/EncorelyApi
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet publish EncorelyApi/EncorelyApi.csproj -c Release -o /app/publish --no-restore
 
 # --- Stage 2: Runtime ---
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
