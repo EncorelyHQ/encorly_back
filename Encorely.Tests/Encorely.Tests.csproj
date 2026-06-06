@@ -29,6 +29,7 @@
     <ProjectReference Include="..\EncorelyModels\EncorelyModels.csproj" />
     <ProjectReference Include="..\EncorelyApi\EncorelyApi.csproj" />
     <ProjectReference Include="..\EncorelyInfrastructure\EncorelyInfrastructure.csproj" />
+    <ProjectReference Include="..\EncorelyWorker\EncorelyWorker.csproj" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

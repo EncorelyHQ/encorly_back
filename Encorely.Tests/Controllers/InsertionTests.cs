@@ -1,4 +1,5 @@
 using EncorelyApi.Controllers;
+using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
 using EncorelyModels;
 using FluentAssertions;
