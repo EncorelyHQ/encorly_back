@@ -68,13 +68,14 @@ public class PlaylistService : IPlaylistService
 
     private static List<string> InterleaveTrackLists(List<string> list1, List<string> list2)
     {
+        var seen = new HashSet<string>();
         var result = new List<string>();
         var max = Math.Max(list1.Count, list2.Count);
 
         for (int i = 0; i < max; i++)
         {
-            if (i < list1.Count && !result.Contains(list1[i])) result.Add(list1[i]);
-            if (i < list2.Count && !result.Contains(list2[i])) result.Add(list2[i]);
+            if (i < list1.Count && seen.Add(list1[i])) result.Add(list1[i]);
+            if (i < list2.Count && seen.Add(list2[i])) result.Add(list2[i]);
         }
 
         return result;

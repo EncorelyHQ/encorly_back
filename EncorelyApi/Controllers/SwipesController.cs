@@ -1,9 +1,11 @@
+using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
-using EncorelyModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class SwipesController : ControllerBase
@@ -29,5 +31,3 @@ public class SwipesController : ControllerBase
         return Accepted();
     }
 }
-
-public record SwipeRequest(Guid UserId, string TrackId, SwipeDirection Direction);

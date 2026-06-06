@@ -37,7 +37,7 @@ public class UsuarioQueries : IUsuarioQueries
     public async Task<IEnumerable<Usuario>> GetAllAsync()
     {
         using var connection = _connectionFactory.CreateConnection();
-        const string sql = "SELECT * FROM \"Users\"";
+        const string sql = "SELECT * FROM \"Users\" LIMIT 500";
         return await connection.QueryAsync<Usuario>(sql);
     }
 

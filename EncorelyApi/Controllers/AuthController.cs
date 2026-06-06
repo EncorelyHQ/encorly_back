@@ -43,6 +43,3 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 }
-
-public record TokenRequest(string Token);
-public record EmailAuthRequest(string Email, string Password);

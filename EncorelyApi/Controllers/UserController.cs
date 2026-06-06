@@ -1,10 +1,12 @@
+using EncorelyApplication.DTOs;
 using EncorelyQuery.Interfaces;
 using EncorelyRepository.Interfaces;
-using EncorelyModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class UserController : ControllerBase
@@ -43,9 +45,7 @@ public class UserController : ControllerBase
 
         user.Mood = request.Mood;
         await _usuarioRepository.UpdateAsync(user);
-        
+
         return NoContent();
     }
 }
-
-public record UpdateSettingsRequest(Guid UserId, ConcertMood Mood);

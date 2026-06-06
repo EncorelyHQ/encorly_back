@@ -1,9 +1,12 @@
+using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class VenueController : ControllerBase
@@ -35,17 +38,14 @@ public class VenueController : ControllerBase
 
     /// <summary>Posts a message to the venue room and runs auto-moderation via keyword scan.</summary>
     [HttpPost("{roomId}/messages")]
-    public async Task<IActionResult> PostMessage(Guid roomId, [FromQuery] Guid userId, [FromBody] string content, CancellationToken ct)
+    public async Task<IActionResult> PostMessage(Guid roomId, [FromQuery] Guid userId, [FromBody] SendMessageRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(content))
-            return BadRequest(new { message = "El contenido del mensaje no puede estar vacío." });
-
-        var message = await _venueService.PostMessageAsync(roomId, userId, content, ct);
+        var message = await _venueService.PostMessageAsync(roomId, userId, request.Content, ct);
 
         if (!message.IsModerated)
         {
             await _hubContext.Clients.Group($"venue_{roomId}")
-                .SendAsync("ReceiveVenueMessage", userId, content, message.Timestamp);
+                .SendAsync("ReceiveVenueMessage", userId, request.Content, message.Timestamp);
         }
 
         return Ok(new { message.Id, message.Content, message.IsModerated, message.Timestamp });

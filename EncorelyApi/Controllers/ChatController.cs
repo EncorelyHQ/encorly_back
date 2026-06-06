@@ -1,9 +1,12 @@
+using EncorelyApplication.DTOs;
 using EncorelyApplication.Interfaces;
 using EncorelyModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class ChatController : ControllerBase
@@ -33,12 +36,9 @@ public class ChatController : ControllerBase
 
     /// <summary>Tarea 77: Sends a message and emits Match-to-Chat analytics event on first message.</summary>
     [HttpPost("{matchId}/messages")]
-    public async Task<IActionResult> SendMessage(Guid matchId, [FromQuery] Guid userId, [FromBody] string content, CancellationToken ct)
+    public async Task<IActionResult> SendMessage(Guid matchId, [FromQuery] Guid userId, [FromBody] SendMessageRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(content))
-            return BadRequest(new { message = "El mensaje no puede estar vacío." });
-
-        var result = await _matchService.SendMessageAsync(matchId, userId, content, ct);
+        var result = await _matchService.SendMessageAsync(matchId, userId, request.Content, ct);
         return Ok(result);
     }
 }

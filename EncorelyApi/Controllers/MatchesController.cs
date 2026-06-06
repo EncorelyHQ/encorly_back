@@ -1,8 +1,10 @@
 using EncorelyApplication.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class MatchesController : ControllerBase

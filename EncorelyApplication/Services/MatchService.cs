@@ -1,3 +1,4 @@
+using EncorelyApplication.Exceptions;
 using EncorelyApplication.Interfaces;
 using EncorelyDomain.Events;
 using EncorelyQuery.Interfaces;
@@ -33,19 +34,16 @@ public class MatchService : IMatchService
 
     public async Task<IEnumerable<object>> GetPendingMatchesAsync(Guid userId, CancellationToken ct = default)
     {
-        var allMatches = await _matchQueries.GetAllAsync();
-        var matches = allMatches
-            .Where(m => m.UserId1 == userId || m.UserId2 == userId)
+        var matches = await _matchQueries.GetByUserIdAsync(userId);
+        return matches
             .OrderByDescending(m => m.CreatedAt)
             .Select(m => new { MatchId = m.Id, DisplayName = "Match " + m.Id.ToString().Substring(0, 4), Compatibility = m.AffinityScore });
-
-        return matches;
     }
 
     public async Task<Guid> AcceptMatchAsync(Guid userId, Guid matchId, CancellationToken ct = default)
     {
         var match = await _matchQueries.GetByIdAsync(matchId);
-        if (match == null) throw new Exception("Match not found");
+        if (match == null) throw new NotFoundException("Match");
         
         var roomId = match.Id;
         

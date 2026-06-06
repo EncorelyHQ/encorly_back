@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EncorelyApplication.Exceptions;
 
 namespace EncorelyApi.Middleware;
 
@@ -24,18 +25,28 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            var (statusCode, message) = ex switch
+            {
+                NotFoundException e         => (HttpStatusCode.NotFound, e.Message),
+                DuplicateEmailException e   => (HttpStatusCode.Conflict, e.Message),
+                InvalidCredentialsException e => (HttpStatusCode.Unauthorized, e.Message),
+                _                          => (HttpStatusCode.InternalServerError, "Internal Server Error")
+            };
 
-            var response = _env.IsDevelopment()
+            if (statusCode == HttpStatusCode.InternalServerError)
+                _logger.LogError(ex, ex.Message);
+            else
+                _logger.LogWarning(ex.Message);
+
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)statusCode;
+
+            var body = _env.IsDevelopment() && statusCode == HttpStatusCode.InternalServerError
                 ? (object)new { statusCode = context.Response.StatusCode, message = ex.Message, stackTrace = ex.StackTrace?.ToString() }
-                : (object)new { statusCode = context.Response.StatusCode, message = "Internal Server Error" };
+                : (object)new { statusCode = context.Response.StatusCode, message };
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var json = JsonSerializer.Serialize(response, options);
-
-            await context.Response.WriteAsync(json);
+            await context.Response.WriteAsync(JsonSerializer.Serialize(body, options));
         }
     }
 }

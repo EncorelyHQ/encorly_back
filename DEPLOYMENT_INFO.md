@@ -10,11 +10,11 @@ Estas variables permiten que el API se conecte de forma segura a Supabase:
 
 | Variable | Valor Sugerido | Descripción |
 | :--- | :--- | :--- |
-| `DB_HOST` | `db.clsjlwjqytgracjethon.supabase.co` | Host de la base de datos. |
+| `DB_HOST` | `db.<tu-proyecto>.supabase.co` | Host de la base de datos. |
 | `DB_PORT` | `5432` | Puerto estándar de PostgreSQL. |
 | `DB_NAME` | `postgres` | Nombre de la base de datos. |
 | `DB_USER` | `postgres` | Usuario administrador. |
-| `DB_PASSWORD` | `fihtos-fetsuf-Zotqy1` | Contraseña del proyecto. |
+| `DB_PASSWORD` | `<CAMBIAR_POR_CONTRASEÑA_REAL>` | Contraseña del proyecto — nunca commitear el valor real. |
 
 > [!IMPORTANT]
 > El sistema está configurado para requerir **SSL** (`SSL Mode=Require`) y confiar en el certificado del servidor para facilitar la conexión con Supabase.

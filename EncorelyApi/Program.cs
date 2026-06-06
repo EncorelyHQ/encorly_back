@@ -102,10 +102,15 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 // CORS: permite que el frontend (Expo web / Vercel) consuma la API desde el navegador.
 const string FrontendCorsPolicy = "AllowFrontend";
+var allowedOrigins = builder.Environment.IsDevelopment()
+    ? new[] { "http://localhost:8081", "http://localhost:3000", "http://localhost:19006" }
+    : (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") ?? "https://encorely-front.vercel.app")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
-        policy.SetIsOriginAllowed(_ => true) // dev: cualquier origen. En prod, restringir a tu dominio.
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());

@@ -1,3 +1,5 @@
+using BCrypt.Net;
+using EncorelyApplication.Exceptions;
 using EncorelyApplication.Interfaces;
 using EncorelyModels;
 using EncorelyDomain.Events;
@@ -58,7 +60,7 @@ public class IdentityService : IIdentityService
     {
         var existing = await _usuarioQueries.GetByEmailAsync(email);
         if (existing != null)
-            throw new Exception("Usuario already exists");
+            throw new DuplicateEmailException();
 
         return await ProcessIdentityAsync(email, email, AuthProvider.Custom, null, ct, password);
     }
@@ -66,7 +68,8 @@ public class IdentityService : IIdentityService
     public async Task<TokenResponse> LoginWithEmailAsync(string email, string password, CancellationToken ct = default)
     {
         var user = await _usuarioQueries.GetByEmailAsync(email);
-        if (user == null || user.PasswordHash != password) throw new Exception("Invalid credentials");
+        if (user == null || user.PasswordHash == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            throw new InvalidCredentialsException();
         
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
@@ -104,7 +107,7 @@ public class IdentityService : IIdentityService
                 DisplayName = displayName ?? email.Split('@')[0],
                 Email = email,
                 Provider = provider,
-                PasswordHash = password,
+                PasswordHash = password != null ? BCrypt.Net.BCrypt.HashPassword(password) : null,
                 CreatedAt = DateTime.UtcNow
             };
 

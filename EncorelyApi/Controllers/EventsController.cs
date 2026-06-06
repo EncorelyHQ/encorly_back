@@ -1,11 +1,13 @@
 using EncorelyApplication.Interfaces;
 using EncorelyModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using EncorelyQuery.Interfaces;
 
 namespace EncorelyApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class EventsController : ControllerBase
