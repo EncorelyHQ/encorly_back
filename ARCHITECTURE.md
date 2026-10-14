@@ -106,7 +106,9 @@ Reglas que la BD garantiza (no solo el código):
   exclusivo al suspender, para que un ban concurrente no deje un match activo).
 - `user_artists` guarda el top importado de Spotify (se reemplaza en cada importación), con `key` = nombre normalizado
   para cruzar perfiles. `profile_reactions` (PK de, para, tipo de objetivo, key) guarda una reacción por objetivo y par;
-  bloquear borra las del par y suspender las de la cuenta. Quién ve un perfil ajeno lo decide `ProfileService.CanViewAsync`.
+  bloquear borra las del par y suspender las de la cuenta. Un perfil ajeno lo ve cualquier usuario autenticado si la persona
+  aceptó la versión de consentimiento con esa finalidad (`ProfileService.PublicProfileConsentSince`) y tiene
+  `show_profile_to_others` encendido; con bloqueo en cualquier sentido, no (`ProfileService.CanViewAsync`).
 - El bloqueo por intentos no vive en la BD: `LoginThrottle` cuenta en memoria por par (correo, IP). Login, borrado web y
   `DELETE /me` con contraseña pasan por la misma puerta de `AuthService`.
 - El access token lleva `sid` (familia del refresh): los push tokens se ligan a esa sesión y se borran al cerrarla. Cada

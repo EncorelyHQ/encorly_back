@@ -7,7 +7,7 @@ public enum ReactionType { MeToo, LetsGo, SendOne }
 
 /// <summary>
 /// Reacción de una persona a un artista o género del perfil de otra. Una por (de, para, objetivo): reaccionar de nuevo
-/// cambia el tipo. No cuenta para el match ni manda push, y quien la recibe solo ve el conteo, nunca quién.
+/// cambia el tipo. No cuenta para el match ni manda push. Quien la recibe ve quién fue (<c>/me/reactions/received</c>).
 /// </summary>
 public sealed class ProfileReaction
 {
@@ -16,6 +16,8 @@ public sealed class ProfileReaction
     public ReactionTargetKind TargetKind { get; set; }
     /// <summary>Slug del género o <c>ArtistKey</c> del artista.</summary>
     public required string TargetKey { get; set; }
+    /// <summary>Nombre del artista o género al reaccionar: la lista de recibidas no depende del perfil actual.</summary>
+    public string TargetName { get; set; } = "";
     public ReactionType Reaction { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

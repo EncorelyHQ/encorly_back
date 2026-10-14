@@ -752,7 +752,7 @@
         "tags": [
           "Perfil social"
         ],
-        "summary": "Perfil de otra persona (match activo o evento pr\u00F3ximo en com\u00FAn); 404 si no se puede ver",
+        "summary": "Perfil de otra persona; 404 si no existe, est\u00E1 suspendida o hay bloqueo en cualquier sentido",
         "operationId": "GetUserProfile",
         "parameters": [
           {
@@ -933,6 +933,73 @@
               "application/problem\u002Bjson": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/reactions/received": {
+      "get": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Qui\u00E9n reaccion\u00F3 a mi perfil, de la m\u00E1s reciente a la m\u00E1s vieja. ?before=nextCursor pagina",
+        "operationId": "ListReceivedReactions",
+        "parameters": [
+          {
+            "name": "before",
+            "in": "query",
+            "description": "nextCursor de la p\u00E1gina anterior",
+            "schema": {
+              "maxLength": 400,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u201350, por defecto 20",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedReactionPage"
                 }
               }
             }
@@ -5337,7 +5404,9 @@
           "hasPassword",
           "artists",
           "stats",
-          "reactionsReceived"
+          "reactionsReceived",
+          "showProfileToOthers",
+          "profileVisible"
         ],
         "type": "object",
         "properties": {
@@ -5429,7 +5498,15 @@
             "items": {
               "$ref": "#/components/schemas/ReceivedReactionDto"
             },
-            "description": "Reacciones a mi perfil, agregadas por objetivo y tipo; nunca dicen qui\u00E9n."
+            "description": "Resumen de reacciones a mi perfil, agregado por objetivo y tipo. Qui\u00E9n reaccion\u00F3: \u0060GET /me/reactions/received\u0060."
+          },
+          "showProfileToOthers": {
+            "type": "boolean",
+            "description": "Interruptor del perfil p\u00FAblico (PATCH /me lo cambia)."
+          },
+          "profileVisible": {
+            "type": "boolean",
+            "description": "true si otros ven mi perfil ahora: interruptor encendido y la versi\u00F3n de consentimiento con esa finalidad aceptada."
           }
         }
       },
@@ -5919,6 +5996,22 @@
           }
         }
       },
+      "ReactionFromDto": {
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
       "ReactionRequest": {
         "required": [
           "targetKind",
@@ -5981,7 +6074,63 @@
             "format": "int32"
           }
         },
-        "description": "Reacciones recibidas, agregadas: nunca dicen qui\u00E9n."
+        "description": "Resumen de reacciones recibidas, agregado por objetivo y tipo. El detalle con qui\u00E9n est\u00E1 en \u0060/me/reactions/received\u0060."
+      },
+      "ReceivedReactionItemDto": {
+        "required": [
+          "from",
+          "targetKind",
+          "targetKey",
+          "targetName",
+          "reaction",
+          "reactedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/ReactionFromDto"
+          },
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "targetName": {
+            "type": "string",
+            "description": "Nombre del artista o g\u00E9nero cuando se reaccion\u00F3 (puede ya no estar en mi perfil)."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "reactedAt": {
+            "type": "string",
+            "description": "Cu\u00E1ndo se puso o se cambi\u00F3 por \u00FAltima vez.",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReceivedReactionPage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedReactionItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Pasarlo como \u0060?before\u0060 para la p\u00E1gina siguiente; null si no hay m\u00E1s."
+          }
+        }
       },
       "RefreshRequest": {
         "required": [
@@ -6466,6 +6615,13 @@
               "type": "string"
             },
             "description": "Reemplaza la lista completa de g\u00E9neros declarados (slugs, 1 a 10)."
+          },
+          "showProfileToOthers": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "description": "Apagado: nadie m\u00E1s ve mi perfil ni puede reaccionarle, y mis reacciones dejan de mostrarse."
           }
         },
         "description": "PATCH: los campos null no cambian. Bio vac\u00EDa (\u0022\u0022) la borra."

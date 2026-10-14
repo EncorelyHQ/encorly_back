@@ -15,6 +15,11 @@ public sealed class User
     public string? PasswordHash { get; set; }
     /// <summary>Id de usuario de Spotify vinculado (login con Spotify). Único.</summary>
     public string? SpotifyId { get; set; }
+    /// <summary>
+    /// Interruptor del perfil público. Solo tiene efecto con el consentimiento de esa finalidad aceptado
+    /// (<c>ProfileService.PublicProfileConsentSince</c>); sin él, el perfil no se muestra aunque esté en true.
+    /// </summary>
+    public bool ShowProfileToOthers { get; set; } = true;
     public required string DisplayName { get; set; }
     public DateOnly? BirthDate { get; set; }
     public string? City { get; set; }

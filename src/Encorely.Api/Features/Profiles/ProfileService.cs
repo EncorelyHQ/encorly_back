@@ -1,5 +1,3 @@
-using Encorely.Api.Features.Events;
-using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Configuration;
@@ -19,9 +17,17 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
     private const int MaxArtists = 12;
     private static readonly TimeSpan ColombiaOffset = TimeSpan.FromHours(-5);
 
-    // Fuente de los artistas del perfil (pendiente de confirmar con Camilo). false: solo el top importado de Spotify.
-    // true: además, los artistas de las canciones con "Me gusta", para que el perfil no quede vacío sin Spotify.
-    private static readonly bool IncludeLikedSongArtists = false;
+    // Fuente de los artistas del perfil. true (decisión de Camilo): el top de Spotify primero y luego los artistas de las
+    // canciones con "Me gusta", para que el perfil no quede vacío sin Spotify. false: solo Spotify.
+    private static readonly bool IncludeLikedSongArtists = true;
+    private const int MaxReceivedPage = 50;
+
+    /// <summary>
+    /// Versión del consentimiento que agregó la finalidad "perfil público" (Ley 1581: consentimiento previo, expreso e
+    /// informado). Quien no ha aceptado esa versión o una posterior no se muestra a otros ni recibe reacciones.
+    /// Las versiones son fechas ISO: se comparan como texto.
+    /// </summary>
+    public const string PublicProfileConsentSince = "2026-10-14";
 
     private sealed record Artist(string Key, string Name, string? ImageUrl);
 
@@ -37,27 +43,15 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
     }
 
     /// <summary>
-    /// Quién puede ver el perfil de otra persona (pendiente de confirmar con Camilo). Propuesta vigente: un match activo
-    /// o un evento próximo en común (el mismo corte del radar y del like). Suspensión o bloqueo en cualquier sentido: no.
+    /// Quién puede ver el perfil de otra persona: cualquier usuario autenticado (decisión de Camilo, 2026-10-14), salvo
+    /// bloqueo en cualquier sentido o cuenta suspendida. La contención es bloquear y reportar.
     /// </summary>
     private async Task<bool> CanViewAsync(Guid viewerId, Guid targetId, CancellationToken ct)
     {
         if (viewerId == targetId) return true;
-        if (!await db.Users.AnyAsync(u => u.Id == targetId && u.Status == UserStatus.Active, ct)) return false;
-        if (await db.Blocks.AnyAsync(b => (b.BlockerId == viewerId && b.BlockedId == targetId) || (b.BlockerId == targetId && b.BlockedId == viewerId), ct))
-            return false;
-
-        if (await db.Matches.AnyAsync(m => m.Status == MatchStatus.Active
-                && ((m.UserAId == viewerId && m.UserBId == targetId) || (m.UserAId == targetId && m.UserBId == viewerId)), ct))
-            return true;
-
-        var cutoff = EventWindow.Cutoff(clock.GetUtcNow());
-        return await (
-            from mine in db.EventAttendances
-            join theirs in db.EventAttendances on mine.EventId equals theirs.EventId
-            join e in db.Events on mine.EventId equals e.Id
-            where mine.UserId == viewerId && theirs.UserId == targetId && e.IsPublished && e.StartsAt > cutoff
-            select e.Id).AnyAsync(ct);
+        // Perfil apagado o sin el consentimiento de la finalidad: el mismo 404 que con bloqueo, sin revelar que existe.
+        if (!await VisibleUsers().AnyAsync(u => u.Id == targetId, ct)) return false;
+        return !await db.Blocks.AnyAsync(b => (b.BlockerId == viewerId && b.BlockedId == targetId) || (b.BlockerId == targetId && b.BlockedId == viewerId), ct);
     }
 
     public async Task<PublicProfileDto> GetAsync(Guid viewerId, Guid targetId, CancellationToken ct)
@@ -105,24 +99,76 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
         var genres = await db.Genres.AsNoTracking().ToDictionaryAsync(g => g.Id, ct);
         var snapshot = await SnapshotAsync(userId, genres, ct);
 
-        // Solo de cuentas activas y sin bloqueo de por medio; los objetivos que ya no están en el perfil no se cuentan.
-        var received = await (
-            from r in db.ProfileReactions
-            join u in db.Users on r.FromUserId equals u.Id
-            where r.ToUserId == userId && u.Status == UserStatus.Active
-                && !db.Blocks.Any(b => (b.BlockerId == userId && b.BlockedId == r.FromUserId) || (b.BlockerId == r.FromUserId && b.BlockedId == userId))
-            group r by new { r.TargetKind, r.TargetKey, r.Reaction } into g
-            select new { g.Key.TargetKind, g.Key.TargetKey, g.Key.Reaction, Count = g.Count() }).ToListAsync(ct);
+        var received = await ReceivedQuery(userId)
+            .GroupBy(r => new { r.TargetKind, r.TargetKey, r.Reaction })
+            .Select(g => new { g.Key.TargetKind, g.Key.TargetKey, g.Key.Reaction, TargetName = g.Max(r => r.TargetName), Count = g.Count() })
+            .ToListAsync(ct);
 
         return new OwnProfile(
             snapshot.Artists.Select(a => new ProfileArtistDto(a.Key, a.Name, a.ImageUrl, false)).ToList(),
             await StatsAsync(userId, ct),
             received
-                .Where(r => snapshot.Contains(r.TargetKind, r.TargetKey))
-                .Select(r => new ReceivedReactionDto(r.TargetKind, r.TargetKey, snapshot.NameOf(r.TargetKind, r.TargetKey)!, r.Reaction, r.Count))
+                .Select(r => new ReceivedReactionDto(r.TargetKind, r.TargetKey, r.TargetName!, r.Reaction, r.Count))
                 .OrderByDescending(r => r.Count).ThenBy(r => r.TargetKind).ThenBy(r => r.TargetKey).ThenBy(r => r.Reaction)
                 .ToList());
     }
+
+    /// <summary>
+    /// Quién reaccionó a mi perfil, de la más reciente a la más vieja (decisión de Camilo: se ve quién). Paginado por
+    /// clave con un cursor opaco: las reacciones nuevas no desplazan ni repiten las páginas ya leídas.
+    /// </summary>
+    public async Task<ReceivedReactionPage> ListReceivedAsync(Guid userId, string? before, int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > MaxReceivedPage)
+            throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 50.");
+
+        var query = ReceivedQuery(userId);
+        if (before is not null)
+        {
+            var c = ReactionCursor.Parse(before)
+                ?? throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "Revisa los datos enviados.", "before: cursor inválido.");
+            // Orden total (fecha, quién, tipo de objetivo, objetivo), descendente.
+            query = query.Where(r => r.UpdatedAt < c.At
+                || (r.UpdatedAt == c.At && (r.FromUserId.CompareTo(c.From) < 0
+                    || (r.FromUserId == c.From && (r.TargetKind < c.Kind
+                        || (r.TargetKind == c.Kind && string.Compare(r.TargetKey, c.Key) < 0))))));
+        }
+
+        var rows = await query
+            .OrderByDescending(r => r.UpdatedAt).ThenByDescending(r => r.FromUserId).ThenByDescending(r => r.TargetKind).ThenByDescending(r => r.TargetKey)
+            .Take(limit + 1)
+            .Join(db.Users, r => r.FromUserId, u => u.Id, (r, u) => new { r, u.DisplayName })
+            .ToListAsync(ct);
+        // El Join tras el Take no garantiza el orden: se reordena en memoria con la misma clave.
+        rows = rows.OrderByDescending(x => x.r.UpdatedAt).ThenByDescending(x => x.r.FromUserId).ThenByDescending(x => x.r.TargetKind)
+            .ThenByDescending(x => x.r.TargetKey, StringComparer.Ordinal).ToList();
+
+        var page = rows.Take(limit).ToList();
+        var last = page.LastOrDefault()?.r;
+        return new ReceivedReactionPage(
+            page.Select(x => new ReceivedReactionItemDto(
+                new ReactionFromDto(x.r.FromUserId, x.DisplayName), x.r.TargetKind, x.r.TargetKey, x.r.TargetName, x.r.Reaction, x.r.UpdatedAt)).ToList(),
+            rows.Count > limit && last is not null ? ReactionCursor.Format(last) : null);
+    }
+
+    /// <summary>
+    /// Reacciones recibidas que se muestran: el dueño con el perfil público activo, y de quien reaccionó, también con su
+    /// perfil público activo (la reacción muestra su nombre) y sin bloqueo en ningún sentido. Las demás se conservan.
+    /// </summary>
+    private IQueryable<ProfileReaction> ReceivedQuery(Guid userId)
+        => from r in db.ProfileReactions.AsNoTracking()
+           join u in VisibleUsers() on r.FromUserId equals u.Id
+           where r.ToUserId == userId && VisibleUsers().Any(owner => owner.Id == userId)
+               && !db.Blocks.Any(b => (b.BlockerId == userId && b.BlockedId == r.FromUserId) || (b.BlockerId == r.FromUserId && b.BlockedId == userId))
+           select r;
+
+    /// <summary>Cuentas cuyo perfil público se muestra: activas, con el interruptor encendido y la finalidad consentida.</summary>
+    private IQueryable<User> VisibleUsers()
+        => db.Users.Where(u => u.Status == UserStatus.Active && u.ShowProfileToOthers
+            && db.UserConsents.Any(c => c.UserId == u.Id && string.Compare(c.Version, PublicProfileConsentSince) >= 0));
+
+    /// <summary>true si el perfil del usuario se muestra a otros (para <c>/me</c>).</summary>
+    public Task<bool> IsVisibleAsync(Guid userId, CancellationToken ct) => VisibleUsers().AnyAsync(u => u.Id == userId, ct);
 
     public async Task SetReactionAsync(Guid userId, Guid targetId, ReactionRequest request, CancellationToken ct)
     {
@@ -132,18 +178,19 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
 
         var key = request.TargetKey.Trim().ToLowerInvariant();
         var genres = await db.Genres.AsNoTracking().ToDictionaryAsync(g => g.Id, ct);
-        if (!(await SnapshotAsync(targetId, genres, ct)).Contains(request.TargetKind, key))
-            throw ApiException.BadRequest(ErrorCodes.ReactionTargetNotFound, "Eso ya no está en su perfil.");
+        // El nombre se guarda con la reacción: quien la recibe la ve aunque ese objetivo ya no esté en su perfil.
+        var name = (await SnapshotAsync(targetId, genres, ct)).NameOf(request.TargetKind, key)
+            ?? throw ApiException.BadRequest(ErrorCodes.ReactionTargetNotFound, "Eso ya no está en su perfil.");
 
         var now = clock.GetUtcNow();
         var kind = request.TargetKind.ToString();
         var reaction = request.Reaction.ToString();
         // Upsert: dos PUT en paralelo al mismo objetivo no chocan con la PK; gana el último tipo.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO profile_reactions (from_user_id, to_user_id, target_kind, target_key, reaction, created_at, updated_at)
-            VALUES ({userId}, {targetId}, {kind}, {key}, {reaction}, {now}, {now})
+            INSERT INTO profile_reactions (from_user_id, to_user_id, target_kind, target_key, target_name, reaction, created_at, updated_at)
+            VALUES ({userId}, {targetId}, {kind}, {key}, {name}, {reaction}, {now}, {now})
             ON CONFLICT (from_user_id, to_user_id, target_kind, target_key)
-            DO UPDATE SET reaction = EXCLUDED.reaction, updated_at = EXCLUDED.updated_at
+            DO UPDATE SET reaction = EXCLUDED.reaction, target_name = EXCLUDED.target_name, updated_at = EXCLUDED.updated_at
             """, ct);
     }
 

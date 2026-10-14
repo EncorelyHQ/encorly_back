@@ -19,7 +19,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, ProfileServi
             ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
         var accepted = await db.UserConsents.AsNoTracking().Where(c => c.UserId == userId)
             .OrderByDescending(c => c.AcceptedAt).ThenByDescending(c => c.Id).Select(c => c.Version).FirstOrDefaultAsync(ct);
-        return ToMe(user, accepted, await profiles.GetOwnAsync(userId, ct));
+        return ToMe(user, accepted, await profiles.GetOwnAsync(userId, ct), await profiles.IsVisibleAsync(userId, ct));
     }
 
     public async Task<MeResponse> UpdateAsync(Guid userId, UpdateMeRequest request, CancellationToken ct)
@@ -64,6 +64,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, ProfileServi
         }
 
         if (request.Genres is not null) await ReplaceGenresAsync(user, request.Genres, ct);
+        if (request.ShowProfileToOthers is { } show) user.ShowProfileToOthers = show;
 
         user.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
@@ -156,7 +157,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, ProfileServi
         foreach (var id in found.Where(id => !kept.Contains(id))) user.Genres.Add(new UserGenre { UserId = user.Id, GenreId = id });
     }
 
-    private MeResponse ToMe(User user, string? acceptedConsent, OwnProfile social) => new(
+    private MeResponse ToMe(User user, string? acceptedConsent, OwnProfile social, bool visible) => new(
         user.Id, user.Email, user.DisplayName, user.BirthDate,
         user.BirthDate is { } b ? User.AgeOn(b, Today()) : null,
         user.City, user.Bio,
@@ -164,7 +165,8 @@ public sealed class UserService(AppDbContext db, Notifier notifier, ProfileServi
         user.OnboardingCompleted, user.Role, user.CreatedAt,
         acceptedConsent, acceptedConsent == legal.Value.ConsentVersion,
         user.SpotifyId is not null, user.HasPassword,
-        social.Artists, social.Stats, social.ReactionsReceived);
+        social.Artists, social.Stats, social.ReactionsReceived,
+        user.ShowProfileToOthers, visible);
 
     private DateOnly Today() => DateOnly.FromDateTime(clock.GetUtcNow().ToOffset(ColombiaOffset).DateTime);
 

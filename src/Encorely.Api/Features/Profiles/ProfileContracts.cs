@@ -44,6 +44,16 @@ public sealed record ReactionRequest(
     [Required(ErrorMessage = Msg.Required), MaxLength(100, ErrorMessage = Msg.MaxLength)] string TargetKey,
     ReactionType Reaction);
 
-/// <summary>Reacciones recibidas, agregadas: nunca dicen quién.</summary>
+/// <summary>Resumen de reacciones recibidas, agregado por objetivo y tipo. El detalle con quién está en <c>/me/reactions/received</c>.</summary>
 /// <param name="TargetName">Nombre del artista o del género, para mostrarlo sin otra consulta.</param>
 public sealed record ReceivedReactionDto(ReactionTargetKind TargetKind, string TargetKey, string TargetName, ReactionType Reaction, int Count);
+
+public sealed record ReactionFromDto(Guid UserId, string DisplayName);
+
+/// <param name="TargetName">Nombre del artista o género cuando se reaccionó (puede ya no estar en mi perfil).</param>
+/// <param name="ReactedAt">Cuándo se puso o se cambió por última vez.</param>
+public sealed record ReceivedReactionItemDto(
+    ReactionFromDto From, ReactionTargetKind TargetKind, string TargetKey, string TargetName, ReactionType Reaction, DateTimeOffset ReactedAt);
+
+/// <param name="NextCursor">Pasarlo como <c>?before</c> para la página siguiente; null si no hay más.</param>
+public sealed record ReceivedReactionPage(IReadOnlyList<ReceivedReactionItemDto> Items, string? NextCursor);

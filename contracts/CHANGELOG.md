@@ -3,6 +3,32 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
+Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).
+- **Consentimiento nuevo:** `GET /legal/current` pasa a `consentVersion: "2026-10-14"`. `/legal/privacidad` gana la finalidad
+  "perfil público": qué se muestra (nombre, edad, ciudad, bio, géneros, artistas, estadísticas y el nombre junto a las reacciones),
+  a quién (cualquier usuario) y cómo apagarlo. También suma a los datos los artistas de Spotify y las reacciones. **Todos** quedan
+  con `consentUpToDate: false` hasta aceptar con `POST /me/consents`. Registro y login con Spotify ya exigen la versión vigente.
+- **Interruptor:** `PATCH /me { showProfileToOthers: boolean }`. `/me` (y `profile` de `/me/export`) ganan `showProfileToOthers`
+  (el interruptor, encendido por defecto) y `profileVisible` (si otros me ven ahora: interruptor encendido **y** la versión
+  `2026-10-14` o posterior aceptada).
+  - Sin `profileVisible`: `GET /users/{id}/profile` y `PUT /users/{id}/reactions` hacia esa persona dan **404 `user_not_found`**,
+    igual que con bloqueo. El dueño siempre puede pedir su propio perfil.
+  - Las reacciones se conservan, pero solo se muestran si el dueño **y** quien reaccionó tienen `profileVisible` (la reacción
+    muestra el nombre de quien reaccionó).
+  - Radar y matches no cambian.
+- **Rompe (comportamiento):** `GET /users/{id}/profile` lo ve **cualquier usuario autenticado**, ya sin match ni evento en común.
+  Siguen dando 404 el bloqueo en cualquier sentido, una cuenta suspendida o inexistente, y ahora también un perfil no visible.
+  La contención es bloquear (`POST /blocks`) y reportar (`POST /reports`, `reason: "harassment"`): los dos funcionan sin relación previa.
+- **Artistas:** primero el top de Spotify y después los de las canciones con "Me gusta" (sin imagen), con tope de 12.
+- **Nuevo: quién reaccionó.** `GET /me/reactions/received?before=&limit=` (`limit` 1–50, 20 por defecto) →
+  `{ items: [{ from: { userId, displayName }, targetKind, targetKey, targetName, reaction, reactedAt }], nextCursor }`, de la
+  más reciente a la más vieja. `nextCursor` es opaco: se pasa como `?before`. Un cursor inválido da 400. `targetName` es el nombre
+  al reaccionar, así que la reacción se sigue viendo aunque ese objetivo ya no esté en el perfil.
+- **Cambio:** `reactionsReceived` de `/me` sigue siendo el resumen agregado, pero ya no descarta los objetivos que salieron del
+  perfil (usa el nombre guardado).
+- **Umbral de afinidad:** `AFFINITY_MIN_SWIPES` por defecto **25** (o Spotify importado).
+
 ## 2026-10-14 · v1.0.0-draft.10 (perfil social)
 Pedido del front en `reportes/10-pedidos-back-perfil-social.md`. Enums en camelCase como el resto del contrato: `meToo`,
 `letsGo`, `sendOne` (no `me_too`).

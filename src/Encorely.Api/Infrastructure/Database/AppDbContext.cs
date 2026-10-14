@@ -52,6 +52,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.PasswordHash).HasMaxLength(100);
             e.Property(x => x.SpotifyId).HasMaxLength(128);
             e.HasIndex(x => x.SpotifyId).IsUnique();
+            e.Property(x => x.ShowProfileToOthers).HasDefaultValue(true);
             e.Property(x => x.DisplayName).HasMaxLength(50);
             e.Property(x => x.City).HasMaxLength(80);
             e.Property(x => x.Bio).HasMaxLength(300);
@@ -125,7 +126,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         {
             e.HasKey(x => new { x.FromUserId, x.ToUserId, x.TargetKind, x.TargetKey });
             e.Property(x => x.TargetKey).HasMaxLength(100);
-            e.HasIndex(x => x.ToUserId);
+            e.Property(x => x.TargetName).HasMaxLength(200);
+            e.HasIndex(x => new { x.ToUserId, x.UpdatedAt });
             e.HasOne<User>().WithMany().HasForeignKey(x => x.FromUserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ToUserId).OnDelete(DeleteBehavior.Cascade);
         });

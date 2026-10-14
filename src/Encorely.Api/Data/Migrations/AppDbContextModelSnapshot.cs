@@ -813,6 +813,12 @@ namespace Encorely.Api.Data.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("reaction");
 
+                    b.Property<string>("TargetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("target_name");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -820,8 +826,8 @@ namespace Encorely.Api.Data.Migrations
                     b.HasKey("FromUserId", "ToUserId", "TargetKind", "TargetKey")
                         .HasName("pk_profile_reactions");
 
-                    b.HasIndex("ToUserId")
-                        .HasDatabaseName("ix_profile_reactions_to_user_id");
+                    b.HasIndex("ToUserId", "UpdatedAt")
+                        .HasDatabaseName("ix_profile_reactions_to_user_id_updated_at");
 
                     b.ToTable("profile_reactions", (string)null);
                 });
@@ -973,6 +979,12 @@ namespace Encorely.Api.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
                         .HasColumnName("role");
+
+                    b.Property<bool>("ShowProfileToOthers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("show_profile_to_others");
 
                     b.Property<string>("SpotifyId")
                         .HasMaxLength(128)
