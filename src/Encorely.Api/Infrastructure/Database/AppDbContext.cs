@@ -5,6 +5,7 @@ using Encorely.Api.Features.Events;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Sync;
 using Encorely.Api.Features.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -182,6 +183,19 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ReportedUserId).OnDelete(DeleteBehavior.SetNull);
             e.HasOne<Match>().WithMany().HasForeignKey(x => x.MatchId).OnDelete(DeleteBehavior.SetNull);
             e.OwnsMany(x => x.Evidence, ev => ev.ToJson());
+        });
+
+        b.Entity<EncryptedBackup>(e =>
+        {
+            e.HasKey(x => x.UserId);
+            e.Property(x => x.KdfAlgorithm).HasMaxLength(20);
+            e.HasOne<User>().WithOne().HasForeignKey<EncryptedBackup>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<DeviceLinkRequest>(e =>
+        {
+            e.HasIndex(x => new { x.UserId, x.ExpiresAt });
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<DevicePushToken>(e =>

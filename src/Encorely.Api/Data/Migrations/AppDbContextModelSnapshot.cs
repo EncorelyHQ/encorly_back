@@ -674,6 +674,106 @@ namespace Encorely.Api.Data.Migrations
                     b.ToTable("user_genre_scores", (string)null);
                 });
 
+            modelBuilder.Entity("Encorely.Api.Features.Sync.DeviceLinkRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<byte[]>("Ciphertext")
+                        .HasColumnType("bytea")
+                        .HasColumnName("ciphertext");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<byte[]>("NewDeviceEphemeralKey")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("new_device_ephemeral_key");
+
+                    b.Property<byte[]>("Nonce")
+                        .HasColumnType("bytea")
+                        .HasColumnName("nonce");
+
+                    b.Property<byte[]>("SenderEphemeralKey")
+                        .HasColumnType("bytea")
+                        .HasColumnName("sender_ephemeral_key");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_device_link_request");
+
+                    b.HasIndex("UserId", "ExpiresAt")
+                        .HasDatabaseName("ix_device_link_request_user_id_expires_at");
+
+                    b.ToTable("device_link_request", (string)null);
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Sync.EncryptedBackup", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<byte[]>("Ciphertext")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("ciphertext");
+
+                    b.Property<string>("KdfAlgorithm")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kdf_algorithm");
+
+                    b.Property<long>("KdfMemLimit")
+                        .HasColumnType("bigint")
+                        .HasColumnName("kdf_mem_limit");
+
+                    b.Property<long>("KdfOpsLimit")
+                        .HasColumnType("bigint")
+                        .HasColumnName("kdf_ops_limit");
+
+                    b.Property<byte[]>("Nonce")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("nonce");
+
+                    b.Property<byte[]>("Salt")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("salt");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("UserId")
+                        .HasName("pk_encrypted_backup");
+
+                    b.ToTable("encrypted_backup", (string)null);
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1033,6 +1133,26 @@ namespace Encorely.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_genre_scores_users_user_id");
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Sync.DeviceLinkRequest", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_link_request_users_user_id");
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Sync.EncryptedBackup", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithOne()
+                        .HasForeignKey("Encorely.Api.Features.Sync.EncryptedBackup", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_encrypted_backup_users_user_id");
                 });
 
             modelBuilder.Entity("Encorely.Api.Features.Users.UserConsent", b =>

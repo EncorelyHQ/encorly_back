@@ -46,15 +46,15 @@ public static class Problems
                 pd.Title = "Revisa los datos enviados.";
                 pd.Extensions.TryAdd("code", ErrorCodes.ValidationFailed);
             }
-            else if (pd.Title is null || pd.Title.All(c => c < 128))
+            else if (IsFrameworkTitle(pd.Title, status))
             {
-                // Los títulos por defecto del framework vienen en inglés.
+                // Los títulos por defecto del framework vienen en inglés; los de ApiException se respetan.
                 pd.Title = SpanishTitles.GetValueOrDefault(status, pd.Title ?? "Error");
             }
 
             pd.Type = null;
             pd.Instance = null;
-            if (pd.Detail is not null && pd.Detail.All(c => c < 128) && status >= 500) pd.Detail = null;
+            if (status >= 500 && ctx.Exception is not ApiException) pd.Detail = null;
             if (DefaultCodes.TryGetValue(status, out var code)) pd.Extensions.TryAdd("code", code);
             pd.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
             pd.Extensions.Remove("exception");
@@ -62,6 +62,11 @@ public static class Problems
         services.AddExceptionHandler<ApiExceptionHandler>();
         return services;
     }
+
+    private static bool IsFrameworkTitle(string? title, int status) => title is null
+        || title == Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status)
+        || title.StartsWith("One or more validation errors", StringComparison.Ordinal)
+        || title.StartsWith("An error occurred", StringComparison.Ordinal);
 
     private static string CamelPath(string path) => string.Join('.', path.Split('.')
         .Select(segment => segment.Length > 0 ? char.ToLowerInvariant(segment[0]) + segment[1..] : segment));

@@ -11,6 +11,8 @@ using Encorely.Api.Features.Legal;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Sessions;
+using Encorely.Api.Features.Sync;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure;
 using Encorely.Api.Infrastructure.Auth;
@@ -71,6 +73,9 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<DeviceService>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<SyncService>();
+builder.Services.AddSingleton<MaintenanceService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<MaintenanceService>());
 builder.Services.AddHttpClient<ITunesClient>(c =>
 {
     c.BaseAddress = new Uri(ITunesClient.BaseAddress);
@@ -141,6 +146,8 @@ api.MapMatching();
 api.MapChat();
 api.MapModeration();
 api.MapDevices();
+api.MapSync();
+api.MapSessions();
 api.MapAdmin();
 app.MapHub<ChatHub>(ChatHub.Path);
 app.MapAccountDeletionPage();
