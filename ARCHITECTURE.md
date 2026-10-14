@@ -106,7 +106,9 @@ Reglas que la BD garantiza (no solo el código):
   exclusivo al suspender, para que un ban concurrente no deje un match activo).
 - El contador de intentos fallidos se incrementa en un solo UPDATE (sin lost update); login y borrado web comparten
   `AuthService.VerifyCredentialsAsync`.
-- El access token lleva `sid` (familia del refresh): los push tokens se ligan a esa sesión y se borran al cerrarla.
+- El access token lleva `sid` (familia del refresh): los push tokens se ligan a esa sesión y se borran al cerrarla. Cada
+  request autenticada comprueba en la misma consulta del estado de la cuenta que esa sesión siga abierta, así que cerrarla
+  (`SessionRevoker`: logout, `/me/sessions`, reuso de refresh, ban) corta el access token y el hub en el acto.
 - Borrar un usuario borra en cascada swipes, likes, matches, mensajes, llaves, sesiones y respaldos. Los reportes quedan
   con la referencia en `NULL`: son evidencia de moderación.
 - Enums guardados como texto (legibles y sin CHECKs numéricos que den 500).
@@ -163,6 +165,8 @@ sequenceDiagram
 - El advisory lock por par serializa likes cruzados, unmatch y bloqueo: dos likes simultáneos crean exactamente un match
   (hay test con 20 rondas concurrentes), y un bloqueo concurrente no puede resucitar un match.
 - Unmatch y bloqueo cierran el match y borran los likes del par; volver a hacer match exige dos likes nuevos.
+- Suspender una cuenta cierra sus matches y borra todos sus likes (dados y recibidos). Reactivarla no restaura matches:
+  rehacer cualquiera exige otra vez dos likes nuevos.
 
 ## 5. Chat cifrado de extremo a extremo
 

@@ -152,6 +152,9 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
                     m.ClosedAt = now;
                     m.ClosedByUserId = adminId;
                 }
+                // Como en unmatch y bloqueo: si se reactiva, volver a hacer match exige dos likes nuevos (un like viejo de
+                // quien lo reportó no debe bastar para rehacer el contacto).
+                await db.UserLikes.Where(l => l.FromUserId == userId || l.ToUserId == userId).ExecuteDeleteAsync(ct);
                 // Sesiones y avisos push del suspendido terminan con su acceso. El corte del hub de RevokeAllAsync puede
                 // adelantarse al commit (y reconectar con la cuenta aún activa): por eso se repite el Disconnect tras el commit.
                 await sessions.RevokeAllAsync(userId, ct);

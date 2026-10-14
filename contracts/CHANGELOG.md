@@ -20,6 +20,8 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   duplicado. Si es el mismo mensaje (mismo remitente y `frankingTag`) → **409 `message_already_delivered`**: el cliente lo da
   por entregado. Si el contenido o el remitente cambian → **409 `message_id_conflict`**. Antes se aceptaba con un `seq` nuevo y
   la evidencia de ese contenido no verificaba al reportarlo.
+- Cambio de comportamiento (no cambia el esquema): suspender una cuenta borra todos sus likes, dados y recibidos. Si se
+  reactiva, no recupera matches: volver a hacer match exige dos likes nuevos, igual que tras un unmatch o un bloqueo.
 
 ## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
 Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.
