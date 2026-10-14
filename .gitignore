@@ -22,3 +22,9 @@ Thumbs.db
 .venv-doc/
 docs/.matplotlib-cache/
 docs/pdf_build/
+
+# Runbook local de la skill napkin, no compartir
+.claude/napkin.md
+
+# Certificado autofirmado para Postgres local (SSL Mode=Require)
+db/certs/
