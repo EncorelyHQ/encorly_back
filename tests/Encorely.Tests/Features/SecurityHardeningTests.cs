@@ -174,6 +174,33 @@ public sealed class SecurityHardeningTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.TooManyRequests, (await LoginsWithForwardedForAsync(untrusted.CreateClient(), 3))[2]);
     }
 
+    [Fact]
+    public async Task El_bloqueo_por_intentos_es_por_IP_y_un_tercero_no_bloquea_a_la_victima()
+    {
+        var (_, _, email) = await RegisterAsync();
+        var max = api.Service<IOptions<RateLimitOptions>>().Value.MaxFailedLogins;
+        var config = new Dictionary<string, string?> { ["Proxy:TrustedNetworks"] = "10.0.0.0/8" };
+        await using var behindProxy = Factory(config, b => b.ConfigureTestServices(s => s.AddSingleton<IStartupFilter>(new RemoteIpFilter("10.1.2.3"))));
+        var client = behindProxy.CreateClient();
+
+        Task<HttpResponseMessage> LoginFrom(string ip, string password)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/login")
+            {
+                Content = JsonContent.Create(new { email, password }, options: Http.Json),
+            };
+            request.Headers.Add("X-Forwarded-For", ip);
+            return client.SendAsync(request, Ct);
+        }
+
+        for (var i = 0; i < max; i++)
+            await LoginFrom("203.0.113.66", "contraseña-incorrecta-1").ExpectProblem(HttpStatusCode.Unauthorized, "invalid_credentials");
+        await LoginFrom("203.0.113.66", Password).ExpectProblem(HttpStatusCode.TooManyRequests, "account_locked");
+
+        // La víctima, desde su IP, sigue entrando.
+        await LoginFrom("198.51.100.7", Password).Expect(HttpStatusCode.OK);
+    }
+
     private sealed class RemoteIpFilter(string ip) : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
