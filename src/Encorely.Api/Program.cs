@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Encorely.Api.Data;
+using Encorely.Api.Features.Admin;
 using Encorely.Api.Features.Auth;
 using Encorely.Api.Features.Chat;
 using Encorely.Api.Features.Devices;
@@ -69,6 +70,12 @@ builder.Services.AddScoped<KeyService>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<ModerationService>();
 builder.Services.AddScoped<DeviceService>();
+builder.Services.AddScoped<AdminService>();
+builder.Services.AddHttpClient<ITunesClient>(c =>
+{
+    c.BaseAddress = new Uri(ITunesClient.BaseAddress);
+    c.Timeout = TimeSpan.FromSeconds(10);
+});
 builder.Services.AddScoped<Seeder>();
 
 builder.Services.AddRateLimiter(o =>
@@ -134,6 +141,7 @@ api.MapMatching();
 api.MapChat();
 api.MapModeration();
 api.MapDevices();
+api.MapAdmin();
 app.MapHub<ChatHub>(ChatHub.Path);
 app.MapAccountDeletionPage();
 
