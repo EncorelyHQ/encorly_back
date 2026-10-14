@@ -1,10 +1,12 @@
-using Encorely.Api.Infrastructure.Configuration;
-using Microsoft.Extensions.Options;
-
 namespace Encorely.Api.Infrastructure.Push;
 
-/// <summary>Envía push sin contenido vía Expo Push API (que entrega por FCM/APNs).</summary>
-public sealed class ExpoPushSender(IServiceScopeFactory scopes, IHttpClientFactory http, IOptions<PushOptions> options, ILogger<ExpoPushSender> logger) : IPushSender
+/// <summary>Encola push sin contenido; el envío real (Expo → FCM/APNs) lo hace <see cref="PushDispatcher"/> fuera de la request.</summary>
+public sealed class ExpoPushSender(PushQueue queue, ILogger<ExpoPushSender> logger) : IPushSender
 {
-    public Task SendAsync(Guid userId, PushNotification notification, CancellationToken ct = default) => throw new NotImplementedException();
+    public Task SendAsync(Guid userId, PushNotification notification, CancellationToken ct = default)
+    {
+        if (!queue.TryEnqueue(new QueuedPush(userId, notification)))
+            logger.LogWarning("Cola de push no disponible; se omite un aviso para el usuario {UserId}", userId);
+        return Task.CompletedTask;
+    }
 }
