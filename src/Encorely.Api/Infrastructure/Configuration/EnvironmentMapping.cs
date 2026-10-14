@@ -31,6 +31,7 @@ public static class EnvironmentMapping
         ("CORS_ORIGINS", "Cors:Origins"),
         ("FORWARDED_TRUSTED_NETWORKS", "Proxy:TrustedNetworks"),
         ("PUBLIC_BASE_URL", "Legal:PublicBaseUrl"),
+        ("PRIVACY_CONTACT_EMAIL", "Legal:PrivacyContactEmail"),
     ];
 
     public static IConfigurationBuilder AddEncorelyEnvironment(this IConfigurationBuilder builder)

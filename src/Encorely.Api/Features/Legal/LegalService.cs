@@ -7,11 +7,13 @@ namespace Encorely.Api.Features.Legal;
 
 public sealed class LegalService(AuthService auth, UserService users, IOptions<LegalOptions> options)
 {
-    public LegalResponse Current()
+    public LegalResponse Current(HttpRequest request)
     {
         var o = options.Value;
-        var baseUrl = o.PublicBaseUrl.TrimEnd('/');
-        return new LegalResponse(o.ConsentVersion, o.EffectiveDate, $"{baseUrl}/legal/terminos", $"{baseUrl}/legal/privacidad", $"{baseUrl}/cuenta/eliminar");
+        // Sin base configurada se usa la que el cliente ya alcanzó (p. ej. http://10.0.2.2:5000 desde el emulador).
+        var baseUrl = string.IsNullOrWhiteSpace(o.PublicBaseUrl) ? $"{request.Scheme}://{request.Host}" : o.PublicBaseUrl.TrimEnd('/');
+        return new LegalResponse(o.ConsentVersion, o.EffectiveDate, $"{baseUrl}/legal/terminos", $"{baseUrl}/legal/privacidad", $"{baseUrl}/cuenta/eliminar",
+            string.IsNullOrWhiteSpace(o.PrivacyContactEmail) ? null : o.PrivacyContactEmail);
     }
 
     public async Task DeleteAccountAsync(AccountDeletionRequest request, CancellationToken ct)

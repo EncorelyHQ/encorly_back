@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Encorely.Api.Features.Sessions;
 
 /// <summary>Una sesión = una familia de refresh tokens (un dispositivo con sesión iniciada).</summary>
-public sealed record SessionDto(Guid Id, DateTimeOffset CreatedAt, DateTimeOffset LastUsedAt, DateTimeOffset ExpiresAt);
+public sealed record SessionDto(Guid Id, DateTimeOffset CreatedAt, DateTimeOffset LastUsedAt, DateTimeOffset ExpiresAt, bool Current);
 
 public static class SessionEndpoints
 {
@@ -24,6 +24,7 @@ public static class SessionEndpoints
     private static async Task<Ok<IReadOnlyList<SessionDto>>> List(ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
     {
         var userId = user.UserId();
+        var currentSession = user.SessionId();
         var now = clock.GetUtcNow();
         var active = await db.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > now)
@@ -34,7 +35,7 @@ public static class SessionEndpoints
         var startedAt = await db.RefreshTokens.Where(t => familyIds.Contains(t.FamilyId))
             .GroupBy(t => t.FamilyId).Select(g => new { g.Key, Started = g.Min(t => t.CreatedAt) })
             .ToDictionaryAsync(x => x.Key, x => x.Started, ct);
-        var sessions = active.Select(t => new SessionDto(t.FamilyId, startedAt[t.FamilyId], t.CreatedAt, t.ExpiresAt)).ToList();
+        var sessions = active.Select(t => new SessionDto(t.FamilyId, startedAt[t.FamilyId], t.CreatedAt, t.ExpiresAt, t.FamilyId == currentSession)).ToList();
         return TypedResults.Ok<IReadOnlyList<SessionDto>>(sessions);
     }
 

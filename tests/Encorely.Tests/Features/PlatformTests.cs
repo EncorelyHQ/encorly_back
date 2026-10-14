@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json;
 using Encorely.Tests.Infrastructure;
@@ -166,5 +167,41 @@ public sealed class SeedTests(ApiFixture api)
         var count = await api.WithDbAsync(db => Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
             .CountAsync(db.Users, u => u.Email.EndsWith("@encorely.demo"), TestContext.Current.CancellationToken));
         Assert.Equal(16, count);
+    }
+
+    [Fact]
+    public async Task Sembrar_dos_veces_deja_un_solo_match_activo_del_revisor_con_likes_reciprocos()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await api.WithDbAsync(async db =>
+        {
+            var seeder = new Encorely.Api.Data.Seeder(db,
+                api.Service<Encorely.Api.Infrastructure.Auth.PasswordHasher>(),
+                Microsoft.Extensions.Options.Options.Create(new Encorely.Api.Infrastructure.Configuration.SeedOptions { DemoUserPassword = "contrasena-de-prueba-demo" }),
+                Microsoft.Extensions.Options.Options.Create(new Encorely.Api.Infrastructure.Configuration.LegalOptions()),
+                TimeProvider.System,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<Encorely.Api.Data.Seeder>.Instance);
+            await seeder.SeedAsync(ct);
+            await seeder.SeedAsync(ct);
+        });
+
+        await api.WithDbAsync(async db =>
+        {
+            var reviewer = await db.Users.SingleAsync(u => u.Email == "revisor@encorely.demo", ct);
+            var matches = await db.Matches.Where(m => m.Status == Encorely.Api.Features.Matching.MatchStatus.Active && (m.UserAId == reviewer.Id || m.UserBId == reviewer.Id)).ToListAsync(ct);
+            var match = Assert.Single(matches);
+            Assert.True(match.UserAId.CompareTo(match.UserBId) < 0);
+
+            var peer = await db.Users.SingleAsync(u => u.Id == match.PeerOf(reviewer.Id), ct);
+            Assert.Equal(Encorely.Api.Features.Users.UserRole.User, peer.Role);
+            Assert.EndsWith("@encorely.demo", peer.Email);
+
+            Assert.NotNull(match.EventId);
+            var attends = db.EventAttendances.Where(x => x.EventId == match.EventId);
+            Assert.True(await attends.AnyAsync(x => x.UserId == reviewer.Id, ct));
+            Assert.True(await attends.AnyAsync(x => x.UserId == peer.Id, ct));
+
+            Assert.Equal(2, await db.UserLikes.CountAsync(l => (l.FromUserId == reviewer.Id && l.ToUserId == peer.Id) || (l.FromUserId == peer.Id && l.ToUserId == reviewer.Id), ct));
+        });
     }
 }

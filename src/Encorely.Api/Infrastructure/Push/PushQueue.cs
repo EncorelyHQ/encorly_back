@@ -23,8 +23,10 @@ public static class PushServiceCollectionExtensions
     public static IServiceCollection AddExpoPush(this IServiceCollection services)
     {
         services.AddSingleton<PushQueue>();
+        services.AddSingleton<PushReceiptTracker>();
         services.AddHttpClient(HttpClientName);
         services.AddHostedService<PushDispatcher>();
+        services.AddHostedService<PushReceiptChecker>();
         return services;
     }
 }

@@ -149,6 +149,14 @@ public static class AccountDeletionPage
     private static string VersionLine(LegalOptions o)
         => $"<p class=\"meta\">Versión {WebUtility.HtmlEncode(o.ConsentVersion)} · Vigente desde {o.EffectiveDate:yyyy-MM-dd}</p>";
 
+    private static string ContactSentence(LegalOptions o)
+    {
+        if (string.IsNullOrWhiteSpace(o.PrivacyContactEmail))
+            return "Para consultas o reclamos usa el contacto publicado en la ficha de la aplicación.";
+        var email = WebUtility.HtmlEncode(o.PrivacyContactEmail);
+        return $"Para consultas y reclamos sobre tus datos escribe a <a href=\"mailto:{email}\">{email}</a>.";
+    }
+
     private static string TermsPage(LegalOptions o) => Layout("Términos y condiciones", $$"""
         <h1>Términos y condiciones</h1>
         {{VersionLine(o)}}
@@ -178,7 +186,7 @@ public static class AccountDeletionPage
         {{VersionLine(o)}}
         <p>Esta política se expide en cumplimiento de la Ley 1581 de 2012 y sus decretos reglamentarios (régimen de protección de datos personales de Colombia). Encorely es un <strong>proyecto académico</strong>.</p>
         <h2>1. Responsable del tratamiento</h2>
-        <p>El equipo del proyecto Encorely, responsable de la aplicación y de este servicio. Para consultas o reclamos usa el contacto publicado en la ficha de la aplicación.</p>
+        <p>El equipo del proyecto Encorely, responsable de la aplicación y de este servicio. {{ContactSentence(o)}}</p>
         <h2>2. Datos que tratamos</h2>
         <ul>
           <li>Cuenta: correo electrónico, nombre para mostrar y contraseña (guardada únicamente como hash, nunca en claro).</li>

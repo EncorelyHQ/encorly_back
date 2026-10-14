@@ -4561,7 +4561,8 @@
           "effectiveDate",
           "termsUrl",
           "privacyUrl",
-          "accountDeletionUrl"
+          "accountDeletionUrl",
+          "privacyContactEmail"
         ],
         "type": "object",
         "properties": {
@@ -4580,6 +4581,12 @@
           },
           "accountDeletionUrl": {
             "type": "string"
+          },
+          "privacyContactEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4775,7 +4782,9 @@
           "genres",
           "onboardingCompleted",
           "role",
-          "createdAt"
+          "createdAt",
+          "acceptedConsentVersion",
+          "consentUpToDate"
         ],
         "type": "object",
         "properties": {
@@ -4832,6 +4841,17 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "acceptedConsentVersion": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Versi\u00F3n m\u00E1s reciente aceptada por la persona; null si no consta ninguna."
+          },
+          "consentUpToDate": {
+            "type": "boolean",
+            "description": "true si \u0060AcceptedConsentVersion\u0060 es la vigente (\u0060GET /legal/current\u0060); false: pedir aceptar de nuevo."
           }
         }
       },
@@ -5338,7 +5358,8 @@
           "id",
           "createdAt",
           "lastUsedAt",
-          "expiresAt"
+          "expiresAt",
+          "current"
         ],
         "type": "object",
         "properties": {
@@ -5357,6 +5378,9 @@
           "expiresAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "current": {
+            "type": "boolean"
           }
         },
         "description": "Una sesi\u00F3n = una familia de refresh tokens (un dispositivo con sesi\u00F3n iniciada)."

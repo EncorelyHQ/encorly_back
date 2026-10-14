@@ -3,6 +3,20 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
+Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.
+- `GET /legal/current`: si el servidor no tiene `PUBLIC_BASE_URL`, `termsUrl`, `privacyUrl` y `accountDeletionUrl` se arman con el
+  scheme y host de la request (desde el emulador: `http://10.0.2.2:5000/...`). Con `PUBLIC_BASE_URL` se usa tal cual. Ya no hay default `localhost`.
+- `GET /legal/current` gana `privacyContactEmail` (string|null): correo de consultas y reclamos (`PRIVACY_CONTACT_EMAIL`).
+  La página `/legal/privacidad` lo muestra como canal si está configurado.
+- `GET /me` (y `PATCH /me`, y `profile` de `/me/export`) ganan `acceptedConsentVersion` (string|null, la versión más reciente aceptada)
+  y `consentUpToDate` (bool, true si es la vigente de `/legal/current`). Si es false: pedir aceptar y `POST /me/consents`.
+- `GET /me/sessions`: cada sesión gana `current` (bool): true en la sesión del access token con que se llama (claim `sid`).
+- Push (payload hacia Expo): `channelId: "messages"` (la app debe crear ese canal Android), `data.t` = `"chat"` | `"match"` en lugar de
+  `data.type` (`newMessage`/`newMatch`, **eliminado**), `data.matchId` igual. El servidor ahora consulta los receipts de Expo y borra
+  los tokens `DeviceNotRegistered`: si la app deja de recibir avisos, debe volver a registrar el token al abrirse.
+- Seed demo: `revisor@encorely.demo` ya tiene un match activo con `valentina.rojas@encorely.demo` (evento compartido), con chat listo.
+
 ## 2026-10-14 · v1.0.0-draft.5 (endurecimiento de seguridad)
 - Nuevo (no rompe): `POST /auth/register` responde **403 `account_banned`** ("No puedes crear una cuenta con este correo.")
   si el correo perteneció a una cuenta suspendida y luego borrada. Un correo con cuenta viva sigue dando 409 `email_taken`.

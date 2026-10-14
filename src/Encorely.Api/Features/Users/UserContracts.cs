@@ -5,6 +5,8 @@ namespace Encorely.Api.Features.Users;
 
 /// <param name="Genres">Slugs de los géneros declarados.</param>
 /// <param name="OnboardingCompleted">true cuando hay fecha de nacimiento, ciudad y al menos un género.</param>
+/// <param name="AcceptedConsentVersion">Versión más reciente aceptada por la persona; null si no consta ninguna.</param>
+/// <param name="ConsentUpToDate">true si <c>AcceptedConsentVersion</c> es la vigente (<c>GET /legal/current</c>); false: pedir aceptar de nuevo.</param>
 public sealed record MeResponse(
     Guid Id,
     string Email,
@@ -16,7 +18,9 @@ public sealed record MeResponse(
     IReadOnlyList<string> Genres,
     bool OnboardingCompleted,
     UserRole Role,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string? AcceptedConsentVersion,
+    bool ConsentUpToDate);
 
 /// <summary>PATCH: los campos null no cambian. Bio vacía ("") la borra.</summary>
 /// <param name="BirthDate">yyyy-MM-dd; 18 años o más.</param>

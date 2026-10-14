@@ -126,6 +126,8 @@ public sealed class PushOptions
     public bool Enabled { get; set; }
     public string? ExpoAccessToken { get; set; }
     public string ExpoEndpoint { get; set; } = "https://exp.host/--/api/v2/push/send";
+    /// <summary>Cada cuánto se consultan los receipts de Expo (limpian tokens muertos que el ticket aún no delataba).</summary>
+    public TimeSpan ReceiptCheckInterval { get; set; } = TimeSpan.FromMinutes(15);
 }
 
 public sealed class LegalOptions
@@ -135,5 +137,22 @@ public sealed class LegalOptions
     /// <summary>Versión vigente de términos + política de tratamiento de datos (Ley 1581).</summary>
     [Required] public string ConsentVersion { get; set; } = "2026-10-13";
     public DateOnly EffectiveDate { get; set; } = new(2026, 10, 13);
-    public string PublicBaseUrl { get; set; } = "http://localhost:5000";
+    /// <summary>Base de las URLs públicas. Sin valor: se deriva del scheme y host de cada request (sirve desde el emulador, 10.0.2.2).</summary>
+    public string? PublicBaseUrl { get; set; }
+    /// <summary>Canal de consultas y reclamos de datos personales (Ley 1581). Opcional; si viene, debe ser un email válido.</summary>
+    public string? PrivacyContactEmail { get; set; }
+}
+
+public sealed class LegalOptionsValidator : IValidateOptions<LegalOptions>
+{
+    public ValidateOptionsResult Validate(string? name, LegalOptions options)
+    {
+        var email = options.PrivacyContactEmail;
+        if (string.IsNullOrWhiteSpace(email)) return ValidateOptionsResult.Success;
+        // EmailAddress admite espacios internos y comillas; el correo termina en HTML y en un mailto:, así que se exige simple.
+        var valid = email.Length <= 254 && email.All(c => !char.IsWhiteSpace(c) && !char.IsControl(c) && c is not ('<' or '>' or '"' or '\\' or '\''))
+            && new EmailAddressAttribute().IsValid(email);
+        return valid ? ValidateOptionsResult.Success
+            : ValidateOptionsResult.Fail("PRIVACY_CONTACT_EMAIL no es un email válido.");
+    }
 }

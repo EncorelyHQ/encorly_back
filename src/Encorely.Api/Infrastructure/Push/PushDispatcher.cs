@@ -11,7 +11,7 @@ namespace Encorely.Api.Infrastructure.Push;
 /// <summary>
 /// Consume la cola y llama a la Expo Push API. Nunca registra tokens ni contenido; solo ids y códigos de estado.
 /// </summary>
-public sealed class PushDispatcher(PushQueue queue, IServiceScopeFactory scopes, IHttpClientFactory http, IOptions<PushOptions> options, ILogger<PushDispatcher> logger) : BackgroundService
+public sealed class PushDispatcher(PushQueue queue, PushReceiptTracker receipts, IServiceScopeFactory scopes, IHttpClientFactory http, IOptions<PushOptions> options, TimeProvider clock, ILogger<PushDispatcher> logger) : BackgroundService
 {
     private const int ExpoBatchLimit = 100;
 
@@ -45,10 +45,12 @@ public sealed class PushDispatcher(PushQueue queue, IServiceScopeFactory scopes,
             {
                 to,
                 title = "Encorely",
+                // Debe coincidir con el canal que crea la app; sin él Android 8+ usa uno por defecto sin prioridad alta.
+                channelId = "messages",
                 body = item.Notification.Kind == PushKind.NewMatch ? "Tienes un match nuevo" : "Tienes mensajes nuevos",
                 data = new
                 {
-                    type = item.Notification.Kind == PushKind.NewMatch ? "newMatch" : "newMessage",
+                    t = item.Notification.Kind == PushKind.NewMatch ? "match" : "chat",
                     matchId = item.Notification.MatchId,
                 },
                 sound = "default",
@@ -90,6 +92,9 @@ public sealed class PushDispatcher(PushQueue queue, IServiceScopeFactory scopes,
         {
             if (i >= batch.Length) break;
             var token = batch[i++];
+            if (ticket.TryGetProperty("status", out var ok) && ok.GetString() == "ok"
+                && ticket.TryGetProperty("id", out var id) && id.GetString() is { Length: > 0 } ticketId)
+                receipts.Add(ticketId, token, clock.GetUtcNow());
             if (ticket.TryGetProperty("status", out var status) && status.GetString() == "error"
                 && ticket.TryGetProperty("details", out var details) && details.ValueKind == JsonValueKind.Object
                 && details.TryGetProperty("error", out var error) && error.GetString() == "DeviceNotRegistered")
