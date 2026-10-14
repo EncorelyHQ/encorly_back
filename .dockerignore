@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+.artifacts/
+.git/
+.github/
+.claude/
+.env
+.env.*
+db/
+tests/
+contracts/
+*.md

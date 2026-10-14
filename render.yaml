@@ -1,0 +1,43 @@
+# Preparación de despliegue (D15: no se publica). Con esto, publicar en Render es un paso:
+# conectar el repo, crear el Blueprint y completar los secretos marcados con sync: false.
+services:
+  - type: web
+    name: encorely-api
+    runtime: docker
+    plan: starter            # sin "sleep": el chat en tiempo real necesita la instancia despierta
+    healthCheckPath: /health/live
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: "8080"
+      - key: DB_HOST
+        fromDatabase: { name: encorely-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: encorely-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: encorely-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: encorely-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: encorely-db, property: password }
+      - key: DB_SSL_MODE
+        value: Require
+      # Una sola instancia: migrar al arrancar es seguro. Con varias, mover a un paso previo (efbundle).
+      - key: DB_MIGRATE_ON_STARTUP
+        value: "true"
+      - key: SEED_CATALOG
+        value: "true"
+      - key: JWT_SIGNING_KEY
+        generateValue: true
+      - key: PUSH_ENABLED
+        value: "true"
+      - key: EXPO_PUSH_ACCESS_TOKEN
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+
+databases:
+  - name: encorely-db
+    plan: basic-256mb
+    postgresMajorVersion: "16"

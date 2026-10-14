@@ -1,4 +1,7 @@
-# Infra local. Uso: cp .env.example .env (completa DB_PASSWORD y JWT_SIGNING_KEY) && docker compose up -d
+# Infra local.
+#   Solo BD (desarrollo con `dotnet run`):  docker compose up -d
+#   BD + API en contenedor (sin SDK):        docker compose --profile full up -d --build
+# Antes: cp .env.example .env y completa DB_PASSWORD, JWT_SIGNING_KEY y (opcional) DEMO_USER_PASSWORD.
 name: encorely
 
 services:
@@ -17,6 +20,22 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 3s
       retries: 20
+
+  api:
+    profiles: [full]
+    build: .
+    container_name: encorely-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_MIGRATE_ON_STARTUP: "true"
+      ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      - "5000:8080"
 
 volumes:
   encorely_pg:
