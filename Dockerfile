@@ -1,38 +1,17 @@
-# ============================================================
-# Tarea 81: Multi-stage Docker build for production optimization
-# Build stage: compile + publish
-# Runtime stage: minimal ASP.NET runtime (no SDK bloat)
-# ============================================================
-
-# --- Stage 1: Build ---
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# Imagen de producción de la API. No contiene secretos: todo llega por variables de entorno.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
+COPY global.json Directory.Build.props Directory.Packages.props ./
+COPY src/Encorely.Api/Encorely.Api.csproj src/Encorely.Api/
+RUN dotnet restore src/Encorely.Api/Encorely.Api.csproj
+COPY src/ src/
+RUN dotnet publish src/Encorely.Api/Encorely.Api.csproj -c Release -o /app --no-restore /p:UseAppHost=false
 
-COPY *.sln ./
-COPY EncorelyDomain/ EncorelyDomain/
-COPY EncorelyApplication/ EncorelyApplication/
-COPY EncorelyInfrastructure/ EncorelyInfrastructure/
-COPY EncorelyApi/ EncorelyApi/
-COPY EncorelyWorker/ EncorelyWorker/
-COPY Encorely.Tests/ Encorely.Tests/
-
-RUN dotnet restore
-
-WORKDIR /src/EncorelyApi
-RUN dotnet publish -c Release -o /app/publish --no-restore
-
-# --- Stage 2: Runtime ---
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-
-# Non-root user for security
-RUN addgroup --system encorely && adduser --system --ingroup encorely encorely
-USER encorely
-
-COPY --from=build /app/publish .
-
+COPY --from=build /app ./
+ENV ASPNETCORE_HTTP_PORTS=8080 \
+    DOTNET_RUNNING_IN_CONTAINER=true
 EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-ENV DOTNET_ENVIRONMENT=Production
-
-ENTRYPOINT ["dotnet", "EncorelyApi.dll"]
+USER $APP_UID
+ENTRYPOINT ["dotnet", "Encorely.Api.dll"]

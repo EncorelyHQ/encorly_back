@@ -1,0 +1,17 @@
+[
+  { "slug": "reggaeton", "name": "Reguetón" },
+  { "slug": "trap-latino", "name": "Trap latino" },
+  { "slug": "pop-latino", "name": "Pop latino" },
+  { "slug": "vallenato", "name": "Vallenato" },
+  { "slug": "salsa", "name": "Salsa" },
+  { "slug": "cumbia", "name": "Cumbia" },
+  { "slug": "champeta", "name": "Champeta" },
+  { "slug": "bachata", "name": "Bachata" },
+  { "slug": "rock-en-espanol", "name": "Rock en español" },
+  { "slug": "indie-alternativo", "name": "Indie y alternativo" },
+  { "slug": "electronica", "name": "Electrónica" },
+  { "slug": "hip-hop", "name": "Hip hop" },
+  { "slug": "musica-del-pacifico", "name": "Música del Pacífico" },
+  { "slug": "popular", "name": "Música popular" },
+  { "slug": "regional-mexicano", "name": "Regional mexicano" }
+]

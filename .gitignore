@@ -1,22 +1,28 @@
-# .gitignore for .NET
+# .NET
 [Bb]in/
 [Oo]bj/
-[Tt]mp/
+.artifacts/
 .vs/
 .vscode/
+.idea/
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
+TestResults/
 
-# Secrets
+# Secretos y config local
 .env
-appsettings.json
-!appsettings.Development.json
-
-# Docker
-.dockerignore
+.env.*
+!.env.example
+appsettings.Local.json
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude
+.claude/napkin.md
+.claude/worktrees/
+
+# Certificados locales
+db/certs/
+.playwright-mcp/

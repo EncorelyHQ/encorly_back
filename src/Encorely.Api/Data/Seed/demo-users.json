@@ -1,0 +1,357 @@
+[
+  {
+    "email": "admin@encorely.demo",
+    "displayName": "Administrador Encorely",
+    "birthDate": "1992-03-14",
+    "city": "Bogotá",
+    "bio": "Cuenta de administración de la demo.",
+    "genres": [
+      "pop-latino",
+      "salsa"
+    ],
+    "likes": {
+      "pop-latino": 6,
+      "salsa": 4
+    },
+    "attends": [
+      "Pop Latino en El Campín",
+      "Noche de Salsa en el Royal",
+      "Reguetón Capital Bogotá"
+    ],
+    "admin": true
+  },
+  {
+    "email": "revisor@encorely.demo",
+    "displayName": "Revisor de Tiendas",
+    "birthDate": "1994-07-02",
+    "city": "Bogotá",
+    "bio": "Cuenta de demostración para revisores de las tiendas de aplicaciones.",
+    "genres": [
+      "reggaeton",
+      "pop-latino"
+    ],
+    "likes": {
+      "reggaeton": 6,
+      "pop-latino": 4
+    },
+    "attends": [
+      "Reguetón Capital Bogotá",
+      "Gran Concierto Urbano Medellín",
+      "Pop Latino en El Campín"
+    ],
+    "admin": false
+  },
+  {
+    "email": "valentina.rojas@encorely.demo",
+    "displayName": "Valentina Rojas",
+    "birthDate": "2001-05-12",
+    "city": "Bogotá",
+    "bio": "Perreo hasta abajo y playlist de Feid en bucle.",
+    "genres": [
+      "reggaeton",
+      "trap-latino"
+    ],
+    "likes": {
+      "reggaeton": 9,
+      "trap-latino": 4
+    },
+    "attends": [
+      "Reguetón Capital Bogotá",
+      "Trap Latino Night",
+      "Gran Concierto Urbano Medellín",
+      "Corrida de Reguetón La Macarena"
+    ],
+    "admin": false
+  },
+  {
+    "email": "santiago.mejia@encorely.demo",
+    "displayName": "Santiago Mejía",
+    "birthDate": "1998-11-03",
+    "city": "Medellín",
+    "bio": "Paisa, parcero y reguetonero.",
+    "genres": [
+      "reggaeton",
+      "hip-hop"
+    ],
+    "likes": {
+      "reggaeton": 8,
+      "hip-hop": 5
+    },
+    "attends": [
+      "Reguetón Capital Bogotá",
+      "Trap Latino Night",
+      "Corrida de Reguetón La Macarena",
+      "Reguetón Old School"
+    ],
+    "admin": false
+  },
+  {
+    "email": "camila.ortiz@encorely.demo",
+    "displayName": "Camila Ortiz",
+    "birthDate": "2003-02-25",
+    "city": "Medellín",
+    "bio": "Trap, reguetón y planes de última hora.",
+    "genres": [
+      "trap-latino",
+      "reggaeton"
+    ],
+    "likes": {
+      "trap-latino": 8,
+      "reggaeton": 5
+    },
+    "attends": [
+      "Trap Latino Night",
+      "Gran Concierto Urbano Medellín",
+      "Corrida de Reguetón La Macarena",
+      "Reguetón Old School"
+    ],
+    "admin": false
+  },
+  {
+    "email": "juan.pablo.herrera@encorely.demo",
+    "displayName": "Juan Pablo Herrera",
+    "birthDate": "1997-08-19",
+    "city": "Bogotá",
+    "bio": "Rapero de garaje, fan del hip hop colombiano.",
+    "genres": [
+      "hip-hop",
+      "trap-latino"
+    ],
+    "likes": {
+      "hip-hop": 9,
+      "trap-latino": 3
+    },
+    "attends": [
+      "Trap Latino Night",
+      "Reguetón Capital Bogotá",
+      "Hip Hop Tributo"
+    ],
+    "admin": false
+  },
+  {
+    "email": "laura.cardenas@encorely.demo",
+    "displayName": "Laura Cárdenas",
+    "birthDate": "1995-04-08",
+    "city": "Bogotá",
+    "bio": "Salsera de corazón, los domingos se baila.",
+    "genres": [
+      "salsa",
+      "bachata"
+    ],
+    "likes": {
+      "salsa": 9,
+      "bachata": 4
+    },
+    "attends": [
+      "Noche de Salsa en el Royal",
+      "Salsa Paisa",
+      "Cumbia Sin Fronteras",
+      "Bachata y Boleros"
+    ],
+    "admin": false
+  },
+  {
+    "email": "andres.beltran@encorely.demo",
+    "displayName": "Andrés Beltrán",
+    "birthDate": "1993-10-30",
+    "city": "Medellín",
+    "bio": "Vallenato y trago, no necesariamente en ese orden.",
+    "genres": [
+      "vallenato",
+      "popular"
+    ],
+    "likes": {
+      "vallenato": 9,
+      "popular": 4
+    },
+    "attends": [
+      "Vallenato Legendario",
+      "Vallenato Paisa",
+      "Salsa Paisa",
+      "Noche Popular Colombiana"
+    ],
+    "admin": false
+  },
+  {
+    "email": "daniela.perea@encorely.demo",
+    "displayName": "Daniela Perea",
+    "birthDate": "2000-01-17",
+    "city": "Medellín",
+    "bio": "Champeta, cumbia y mucha costa en la sangre.",
+    "genres": [
+      "champeta",
+      "cumbia"
+    ],
+    "likes": {
+      "champeta": 8,
+      "cumbia": 6
+    },
+    "attends": [
+      "Champeta Fest",
+      "Cumbia Sin Fronteras",
+      "Salsa Paisa",
+      "Vallenato Paisa"
+    ],
+    "admin": false
+  },
+  {
+    "email": "miguel.angel.torres@encorely.demo",
+    "displayName": "Miguel Ángel Torres",
+    "birthDate": "1993-06-05",
+    "city": "Bogotá",
+    "bio": "Cumbia, salsa y bailes de barrio.",
+    "genres": [
+      "cumbia",
+      "salsa",
+      "vallenato"
+    ],
+    "likes": {
+      "cumbia": 7,
+      "salsa": 5,
+      "vallenato": 3
+    },
+    "attends": [
+      "Noche de Salsa en el Royal",
+      "Cumbia Sin Fronteras",
+      "Vallenato Legendario",
+      "Salsa Paisa"
+    ],
+    "admin": false
+  },
+  {
+    "email": "sofia.londono@encorely.demo",
+    "displayName": "Sofía Londoño",
+    "birthDate": "1998-09-21",
+    "city": "Medellín",
+    "bio": "Indie, café de especialidad y conciertos pequeños.",
+    "genres": [
+      "indie-alternativo",
+      "electronica"
+    ],
+    "likes": {
+      "indie-alternativo": 9,
+      "electronica": 4
+    },
+    "attends": [
+      "Indie en el Chamorro",
+      "Electrónica Bajo las Estrellas",
+      "Estéreo Demo Festival",
+      "Indie Medellín Open Air"
+    ],
+    "admin": false
+  },
+  {
+    "email": "nicolas.quintero@encorely.demo",
+    "displayName": "Nicolás Quintero",
+    "birthDate": "1996-12-01",
+    "city": "Bogotá",
+    "bio": "Rock en español desde el colegio.",
+    "genres": [
+      "rock-en-espanol",
+      "indie-alternativo"
+    ],
+    "likes": {
+      "rock-en-espanol": 9,
+      "indie-alternativo": 4
+    },
+    "attends": [
+      "Rock en Español Bajo la Lluvia",
+      "Indie en el Chamorro",
+      "Estéreo Demo Festival",
+      "Rock en Español Clásico"
+    ],
+    "admin": false
+  },
+  {
+    "email": "isabella.guzman@encorely.demo",
+    "displayName": "Isabella Guzmán",
+    "birthDate": "2002-03-09",
+    "city": "Bogotá",
+    "bio": "Electrónica, techno y after hasta el amanecer.",
+    "genres": [
+      "electronica",
+      "indie-alternativo"
+    ],
+    "likes": {
+      "electronica": 9,
+      "indie-alternativo": 3
+    },
+    "attends": [
+      "Electrónica Bajo las Estrellas",
+      "Electro Warehouse",
+      "Indie en el Chamorro",
+      "Estéreo Demo Festival"
+    ],
+    "admin": false
+  },
+  {
+    "email": "tomas.arango@encorely.demo",
+    "displayName": "Tomás Arango",
+    "birthDate": "1993-07-27",
+    "city": "Medellín",
+    "bio": "Música para el carro: rock, indie y algo de electro.",
+    "genres": [
+      "rock-en-espanol",
+      "electronica",
+      "indie-alternativo"
+    ],
+    "likes": {
+      "rock-en-espanol": 6,
+      "electronica": 4,
+      "indie-alternativo": 4
+    },
+    "attends": [
+      "Electrónica Bajo las Estrellas",
+      "Estéreo Demo Festival",
+      "Indie Medellín Open Air",
+      "Rock en Español Bajo la Lluvia"
+    ],
+    "admin": false
+  },
+  {
+    "email": "mariana.valencia@encorely.demo",
+    "displayName": "Mariana Valencia",
+    "birthDate": "1999-02-14",
+    "city": "Medellín",
+    "bio": "Pop latino, bachata y mucha música del Pacífico.",
+    "genres": [
+      "pop-latino",
+      "musica-del-pacifico",
+      "bachata"
+    ],
+    "likes": {
+      "pop-latino": 7,
+      "musica-del-pacifico": 5,
+      "bachata": 3
+    },
+    "attends": [
+      "Pop Latino en El Campín",
+      "Encuentro de Música del Pacífico",
+      "Bachata y Boleros",
+      "Gran Concierto Urbano Medellín"
+    ],
+    "admin": false
+  },
+  {
+    "email": "esteban.ramirez@encorely.demo",
+    "displayName": "Esteban Ramírez",
+    "birthDate": "1994-05-23",
+    "city": "Bogotá",
+    "bio": "Música popular, regional mexicano y carrilera.",
+    "genres": [
+      "popular",
+      "regional-mexicano"
+    ],
+    "likes": {
+      "popular": 9,
+      "regional-mexicano": 4
+    },
+    "attends": [
+      "Noche Popular Colombiana",
+      "Regional Mexicano en Vivo",
+      "Pop Latino en El Campín",
+      "Bachata y Boleros"
+    ],
+    "admin": false
+  }
+]
