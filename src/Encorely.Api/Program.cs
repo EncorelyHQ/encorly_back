@@ -57,6 +57,7 @@ builder.Services.AddSignalR().AddJsonProtocol(o => ConfigureJson(o.PayloadSerial
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddScoped<Notifier>();
 builder.Services.AddHttpClient();
+builder.Services.AddExpoPush();
 builder.Services.AddSingleton<IPushSender>(sp => sp.GetRequiredService<IOptions<PushOptions>>().Value.Enabled
     ? ActivatorUtilities.CreateInstance<ExpoPushSender>(sp)
     : new NoopPushSender());

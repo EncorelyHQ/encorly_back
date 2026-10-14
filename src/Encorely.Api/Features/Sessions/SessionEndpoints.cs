@@ -25,15 +25,16 @@ public static class SessionEndpoints
     {
         var userId = user.UserId();
         var now = clock.GetUtcNow();
-        var sessions = await db.RefreshTokens
+        var active = await db.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > now)
-            .Select(t => new SessionDto(
-                t.FamilyId,
-                db.RefreshTokens.Where(f => f.FamilyId == t.FamilyId).Min(f => f.CreatedAt),
-                t.CreatedAt,
-                t.ExpiresAt))
-            .OrderByDescending(s => s.LastUsedAt)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => new { t.FamilyId, t.CreatedAt, t.ExpiresAt })
             .ToListAsync(ct);
+        var familyIds = active.Select(t => t.FamilyId).ToList();
+        var startedAt = await db.RefreshTokens.Where(t => familyIds.Contains(t.FamilyId))
+            .GroupBy(t => t.FamilyId).Select(g => new { g.Key, Started = g.Min(t => t.CreatedAt) })
+            .ToDictionaryAsync(x => x.Key, x => x.Started, ct);
+        var sessions = active.Select(t => new SessionDto(t.FamilyId, startedAt[t.FamilyId], t.CreatedAt, t.ExpiresAt)).ToList();
         return TypedResults.Ok<IReadOnlyList<SessionDto>>(sessions);
     }
 

@@ -2111,6 +2111,544 @@
         ]
       }
     },
+    "/api/v1/me/backup": {
+      "put": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Sube (reemplaza) mi respaldo cifrado en el dispositivo",
+        "operationId": "PutBackup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutBackupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Descarga mi respaldo cifrado",
+        "operationId": "GetBackup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Borra mi respaldo",
+        "operationId": "DeleteBackup",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/backup/info": {
+      "get": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Tama\u00F1o y fecha de mi respaldo, sin descargarlo",
+        "operationId": "GetBackupInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/keys/link-requests": {
+      "post": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Dispositivo NUEVO: abre un buz\u00F3n de vinculaci\u00F3n (vence en 10 min)",
+        "operationId": "CreateLinkRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkRequestDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/keys/link-requests/{id}": {
+      "get": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Consulta el buz\u00F3n (el nuevo lo sondea hasta que est\u00E9 ready)",
+        "operationId": "GetLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Dispositivo VIEJO: deja el material de llaves cifrado hacia la llave ef\u00EDmera del nuevo (una sola vez)",
+        "operationId": "FulfillLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FulfillLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "El nuevo ya recogi\u00F3 el material: se destruye el buz\u00F3n",
+        "operationId": "DeleteLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/sessions": {
+      "get": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Mis sesiones abiertas (dispositivos con sesi\u00F3n)",
+        "operationId": "ListSessions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Cierra todas mis sesiones, incluida esta",
+        "operationId": "RevokeAllSessions",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/sessions/{id}": {
+      "delete": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Cierra una sesi\u00F3n (p. ej. un tel\u00E9fono perdido)",
+        "operationId": "RevokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/events": {
       "get": {
         "tags": [
@@ -3374,6 +3912,64 @@
           }
         }
       },
+      "BackupDto": {
+        "required": [
+          "version",
+          "ciphertext",
+          "nonce",
+          "salt",
+          "kdf",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ciphertext": {
+            "type": "string",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "byte"
+          },
+          "salt": {
+            "type": "string",
+            "format": "byte"
+          },
+          "kdf": {
+            "$ref": "#/components/schemas/KdfParams"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BackupInfoDto": {
+        "required": [
+          "version",
+          "sizeBytes",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "BlockRequest": {
         "required": [
           "userId"
@@ -3452,6 +4048,19 @@
         "properties": {
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "CreateLinkRequest": {
+        "required": [
+          "ephemeralKey"
+        ],
+        "type": "object",
+        "properties": {
+          "ephemeralKey": {
+            "type": "string",
+            "description": "X25519 p\u00FAblica ef\u00EDmera del dispositivo NUEVO (32 B). Va tambi\u00E9n en el QR para que el dispositivo viejo la verifique.",
+            "format": "byte"
           }
         }
       },
@@ -3735,6 +4344,29 @@
           }
         }
       },
+      "FulfillLinkRequest": {
+        "required": [
+          "senderEphemeralKey",
+          "nonce",
+          "ciphertext"
+        ],
+        "type": "object",
+        "properties": {
+          "senderEphemeralKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "Material de llaves cifrado hacia la llave ef\u00EDmera del nuevo. M\u00E1x. 64 KiB.",
+            "format": "byte"
+          }
+        }
+      },
       "GenreDto": {
         "required": [
           "id",
@@ -3793,6 +4425,28 @@
           }
         },
         "description": "Resultado de iTunes Search para dar de alta canciones con su preview."
+      },
+      "KdfParams": {
+        "required": [
+          "algorithm",
+          "opsLimit",
+          "memLimit"
+        ],
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "description": "argon2id (recomendado) | scrypt | pbkdf2-sha256."
+          },
+          "opsLimit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "memLimit": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "KeyBundleDto": {
         "required": [
@@ -3897,6 +4551,62 @@
             "format": "uuid"
           }
         }
+      },
+      "LinkRequestDto": {
+        "required": [
+          "id",
+          "status",
+          "newDeviceEphemeralKey",
+          "senderEphemeralKey",
+          "nonce",
+          "ciphertext",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LinkRequestStatus"
+          },
+          "newDeviceEphemeralKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "senderEphemeralKey": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "nonce": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LinkRequestStatus": {
+        "enum": [
+          "pending",
+          "ready"
+        ]
       },
       "LoginRequest": {
         "required": [
@@ -4260,6 +4970,40 @@
           }
         }
       },
+      "PutBackupRequest": {
+        "required": [
+          "version",
+          "ciphertext",
+          "nonce",
+          "salt",
+          "kdf"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "M\u00E1x. 10 MiB. Cifrado en el dispositivo con una llave derivada de la passphrase.",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "24 B.",
+            "format": "byte"
+          },
+          "salt": {
+            "type": "string",
+            "description": "16 a 64 B.",
+            "format": "byte"
+          },
+          "kdf": {
+            "$ref": "#/components/schemas/KdfParams"
+          }
+        }
+      },
       "RadarEntryDto": {
         "required": [
           "userId",
@@ -4519,6 +5263,34 @@
           }
         }
       },
+      "SessionDto": {
+        "required": [
+          "id",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Una sesi\u00F3n = una familia de refresh tokens (un dispositivo con sesi\u00F3n iniciada)."
+      },
       "SongDto": {
         "required": [
           "id",
@@ -4769,6 +5541,15 @@
     },
     {
       "name": "Push"
+    },
+    {
+      "name": "Respaldo cifrado"
+    },
+    {
+      "name": "Vincular dispositivo"
+    },
+    {
+      "name": "Sesiones"
     },
     {
       "name": "Administraci\u00F3n"
