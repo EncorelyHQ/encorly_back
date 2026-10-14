@@ -27,7 +27,8 @@ public sealed class LegalTests(ApiFixture api)
     {
         var legal = await api.Anonymous().GetAsync("/api/v1/legal/current", Ct).Expect<LegalResponse>(HttpStatusCode.OK);
         var options = api.Service<IOptions<LegalOptions>>().Value;
-        var baseUrl = options.PublicBaseUrl.TrimEnd('/');
+        // Sin PublicBaseUrl la base sale del host de la request (el cliente de pruebas apunta a http://localhost).
+        var baseUrl = "http://localhost";
 
         Assert.Equal(options.ConsentVersion, legal.ConsentVersion);
         Assert.Equal(options.EffectiveDate, legal.EffectiveDate);

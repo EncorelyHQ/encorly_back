@@ -16,7 +16,7 @@ public static class LegalEndpoints
             .RequireRateLimiting(AuthEndpoints.RateLimitPolicy).Problems(400, 401, 429);
     }
 
-    private static Ok<LegalResponse> GetCurrent(LegalService legal) => TypedResults.Ok(legal.Current());
+    private static Ok<LegalResponse> GetCurrent(LegalService legal, HttpRequest request) => TypedResults.Ok(legal.Current(request));
 
     private static async Task<NoContent> DeleteAccount(AccountDeletionRequest request, LegalService legal, CancellationToken ct)
     {

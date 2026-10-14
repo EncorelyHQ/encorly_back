@@ -57,6 +57,7 @@ builder.Services.AddOptions<ChatOptions>().BindConfiguration(ChatOptions.Section
 builder.Services.AddOptions<SeedOptions>().BindConfiguration(SeedOptions.Section);
 builder.Services.AddOptions<PushOptions>().BindConfiguration(PushOptions.Section);
 builder.Services.AddOptions<LegalOptions>().BindConfiguration(LegalOptions.Section).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<LegalOptions>, LegalOptionsValidator>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddDbContext<AppDbContext>((sp, o) => o

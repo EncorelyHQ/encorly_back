@@ -89,10 +89,15 @@ public sealed class DevicesPushTests(ApiFixture api)
         }
     }
 
-    private PushDispatcher NewDispatcher(PushQueue queue, FakeExpo expo, string? accessToken = null)
-        => new(queue, api.Service<IServiceScopeFactory>(), new FakeFactory(expo),
+    private PushDispatcher NewDispatcher(PushQueue queue, FakeExpo expo, string? accessToken = null, PushReceiptTracker? tracker = null)
+        => new(queue, tracker ?? new PushReceiptTracker(), api.Service<IServiceScopeFactory>(), new FakeFactory(expo),
             Options.Create(new PushOptions { Enabled = true, ExpoAccessToken = accessToken, ExpoEndpoint = "https://expo.invalid/push" }),
-            NullLogger<PushDispatcher>.Instance);
+            TimeProvider.System, NullLogger<PushDispatcher>.Instance);
+
+    private PushReceiptChecker NewChecker(PushReceiptTracker tracker, FakeExpo expo)
+        => new(tracker, api.Service<IServiceScopeFactory>(), new FakeFactory(expo),
+            Options.Create(new PushOptions { Enabled = true, ExpoEndpoint = "https://expo.invalid/--/api/v2/push/send" }),
+            TimeProvider.System, NullLogger<PushReceiptChecker>.Instance);
 
     private static HttpResponseMessage Tickets(params string?[] errors)
     {
@@ -136,7 +141,9 @@ public sealed class DevicesPushTests(ApiFixture api)
             {
                 Assert.Equal("Encorely", m.GetProperty("title").GetString());
                 Assert.Equal("Tienes mensajes nuevos", m.GetProperty("body").GetString());
-                Assert.Equal("newMessage", m.GetProperty("data").GetProperty("type").GetString());
+                Assert.Equal("chat", m.GetProperty("data").GetProperty("t").GetString());
+                Assert.False(m.GetProperty("data").TryGetProperty("type", out _));
+                Assert.Equal("messages", m.GetProperty("channelId").GetString());
                 Assert.Equal(matchId, m.GetProperty("data").GetProperty("matchId").GetGuid());
                 Assert.Equal("default", m.GetProperty("sound").GetString());
                 Assert.Equal("high", m.GetProperty("priority").GetString());
@@ -164,6 +171,92 @@ public sealed class DevicesPushTests(ApiFixture api)
         Assert.Null(call.Auth);
         Assert.Equal("https://expo.invalid/push", call.Uri?.ToString());
         Assert.Contains("Tienes un match nuevo", call.Body);
+        var message = JsonDocument.Parse(call.Body).RootElement[0];
+        Assert.Equal("match", message.GetProperty("data").GetProperty("t").GetString());
+        Assert.Equal("messages", message.GetProperty("channelId").GetString());
+    }
+
+    [Fact]
+    public async Task Receipt_DeviceNotRegistered_borra_el_token_y_los_pendientes_se_conservan()
+    {
+        var target = await api.CreateUserAsync();
+        var dead = NewToken();
+        var alive = NewToken();
+        var waiting = NewToken();
+        foreach (var t in new[] { dead, alive, waiting })
+            await target.Client.PutJson("/api/v1/devices/push-token", new { token = t, platform = "android" }).Expect(HttpStatusCode.NoContent);
+
+        var ids = new Dictionary<string, string> { [dead] = $"id-{Guid.NewGuid():N}", [alive] = $"id-{Guid.NewGuid():N}", [waiting] = $"id-{Guid.NewGuid():N}" };
+        var tracker = new PushReceiptTracker();
+        foreach (var (token, id) in ids) tracker.Add(id, token, DateTimeOffset.UtcNow);
+
+        var expo = new FakeExpo(body =>
+        {
+            var asked = JsonDocument.Parse(body).RootElement.GetProperty("ids").EnumerateArray().Select(i => i.GetString()!).ToHashSet();
+            Assert.Equal(ids.Values.ToHashSet(), asked);
+            // "waiting" aún no tiene receipt: Expo simplemente no lo incluye.
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent(new Dictionary<string, object>
+                {
+                    ["data"] = new Dictionary<string, object>
+                    {
+                        [ids[dead]] = new { status = "error", message = "x", details = new { error = "DeviceNotRegistered" } },
+                        [ids[alive]] = new { status = "ok" },
+                    },
+                }),
+            };
+        });
+
+        await NewChecker(tracker, expo).CheckAsync(Ct);
+
+        var call = Assert.Single(expo.Calls);
+        Assert.Equal("https://expo.invalid/--/api/v2/push/getReceipts", call.Uri?.ToString());
+        Assert.Null(await OwnerOf(dead));
+        Assert.Equal(target.Id.ToString(), await OwnerOf(alive));
+        Assert.Equal(target.Id.ToString(), await OwnerOf(waiting));
+        Assert.Equal(ids[waiting], Assert.Single(tracker.Snapshot(DateTimeOffset.UtcNow)).TicketId);
+    }
+
+    [Fact]
+    public async Task Los_tickets_ok_del_envio_quedan_pendientes_de_receipt()
+    {
+        var target = await api.CreateUserAsync();
+        var token = NewToken();
+        await target.Client.PutJson("/api/v1/devices/push-token", new { token, platform = "ios" }).Expect(HttpStatusCode.NoContent);
+        var tracker = new PushReceiptTracker();
+
+        await NewDispatcher(new PushQueue(), new FakeExpo(_ => Tickets((string?)null)), tracker: tracker)
+            .ProcessAsync(new QueuedPush(target.Id, new PushNotification(PushKind.NewMessage, Guid.NewGuid())), Ct);
+
+        Assert.Equal(token, Assert.Single(tracker.Snapshot(DateTimeOffset.UtcNow)).Token);
+    }
+
+    [Fact]
+    public async Task Receipts_se_consultan_en_lotes_de_mil_y_un_error_de_Expo_no_pierde_los_tickets()
+    {
+        var tracker = new PushReceiptTracker();
+        for (var i = 0; i < 1500; i++) tracker.Add($"id-{i}", $"ExponentPushToken[{i}]", DateTimeOffset.UtcNow);
+        var expo = new FakeExpo(_ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+
+        await NewChecker(tracker, expo).CheckAsync(Ct);
+
+        Assert.Equal([1000, 500], expo.Calls.Select(c => JsonDocument.Parse(c.Body).RootElement.GetProperty("ids").GetArrayLength()).ToArray());
+        Assert.Equal(1500, tracker.Count);
+    }
+
+    [Fact]
+    public void Tracker_descarta_tickets_de_mas_de_24_horas_y_se_acota_a_10000()
+    {
+        var tracker = new PushReceiptTracker();
+        var now = DateTimeOffset.UtcNow;
+        tracker.Add("viejo", "t1", now - TimeSpan.FromHours(25));
+        tracker.Add("reciente", "t2", now - TimeSpan.FromHours(1));
+
+        Assert.Equal("reciente", Assert.Single(tracker.Snapshot(now)).TicketId);
+
+        for (var i = 0; i < PushReceiptTracker.MaxPending + 5; i++) tracker.Add($"id-{i}", "t", now);
+        Assert.Equal(PushReceiptTracker.MaxPending, tracker.Count);
     }
 
     [Fact]

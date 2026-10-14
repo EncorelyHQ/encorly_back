@@ -3,7 +3,7 @@ using Encorely.Api.Infrastructure.Http;
 
 namespace Encorely.Api.Features.Legal;
 
-public sealed record LegalResponse(string ConsentVersion, DateOnly EffectiveDate, string TermsUrl, string PrivacyUrl, string AccountDeletionUrl);
+public sealed record LegalResponse(string ConsentVersion, DateOnly EffectiveDate, string TermsUrl, string PrivacyUrl, string AccountDeletionUrl, string? PrivacyContactEmail);
 
 /// <summary>Borrado de cuenta desde la web (requisito de Google Play), sin la app.</summary>
 public sealed record AccountDeletionRequest(

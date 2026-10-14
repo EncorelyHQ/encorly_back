@@ -16,7 +16,9 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
     {
         var user = await db.Users.AsNoTracking().Include(u => u.Genres).ThenInclude(g => g.Genre).FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
-        return ToMe(user);
+        var accepted = await db.UserConsents.AsNoTracking().Where(c => c.UserId == userId)
+            .OrderByDescending(c => c.AcceptedAt).ThenByDescending(c => c.Id).Select(c => c.Version).FirstOrDefaultAsync(ct);
+        return ToMe(user, accepted);
     }
 
     public async Task<MeResponse> UpdateAsync(Guid userId, UpdateMeRequest request, CancellationToken ct)
@@ -148,12 +150,13 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
         foreach (var id in found.Where(id => !kept.Contains(id))) user.Genres.Add(new UserGenre { UserId = user.Id, GenreId = id });
     }
 
-    private MeResponse ToMe(User user) => new(
+    private MeResponse ToMe(User user, string? acceptedConsent) => new(
         user.Id, user.Email, user.DisplayName, user.BirthDate,
         user.BirthDate is { } b ? User.AgeOn(b, Today()) : null,
         user.City, user.Bio,
         user.Genres.Select(g => g.Genre!.Slug).Order().ToList(),
-        user.OnboardingCompleted, user.Role, user.CreatedAt);
+        user.OnboardingCompleted, user.Role, user.CreatedAt,
+        acceptedConsent, acceptedConsent == legal.Value.ConsentVersion);
 
     private DateOnly Today() => DateOnly.FromDateTime(clock.GetUtcNow().ToOffset(ColombiaOffset).DateTime);
 

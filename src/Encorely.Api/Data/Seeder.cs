@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Encorely.Api.Features.Events;
+using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Auth;
@@ -24,6 +25,9 @@ public sealed class Seeder(
     ILogger<Seeder> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private const string ReviewerEmail = "revisor@encorely.demo";
+    // No admin y comparte con el revisor "Reguetón Capital Bogotá" y "Gran Concierto Urbano Medellín" (ver demo-users.json).
+    private const string ReviewerPeerEmail = "valentina.rojas@encorely.demo";
     private static readonly TimeSpan ColombiaOffset = TimeSpan.FromHours(-5);
 
     public async Task SeedAsync(CancellationToken ct = default)
@@ -36,7 +40,39 @@ public sealed class Seeder(
             await SeedEventsAsync(ct);
         }
         if (!string.IsNullOrWhiteSpace(o.DemoUserPassword))
+        {
             await SeedDemoUsersAsync(o.DemoUserPassword, ct);
+            await EnsureReviewerMatchAsync(ct);
+        }
+    }
+
+    /// <summary>
+    /// El revisor de la tienda debe encontrar un chat listo al entrar: un match activo con una cuenta demo
+    /// que comparta evento con él, con los likes recíprocos que lo explican. Idempotente.
+    /// </summary>
+    private async Task EnsureReviewerMatchAsync(CancellationToken ct)
+    {
+        var ids = await db.Users.Where(u => u.Email == ReviewerEmail || u.Email == ReviewerPeerEmail)
+            .ToDictionaryAsync(u => u.Email, u => u.Id, ct);
+        if (!ids.TryGetValue(ReviewerEmail, out var reviewer) || !ids.TryGetValue(ReviewerPeerEmail, out var peer)) return;
+
+        var (a, b) = Match.OrderPair(reviewer, peer);
+        if (await db.Matches.AnyAsync(m => m.UserAId == a && m.UserBId == b && m.Status == MatchStatus.Active, ct)) return;
+        // Si alguno bloqueó al otro no se fuerza un match por encima de la decisión de moderación.
+        if (await db.Blocks.AnyAsync(x => (x.BlockerId == reviewer && x.BlockedId == peer) || (x.BlockerId == peer && x.BlockedId == reviewer), ct)) return;
+
+        var mine = db.EventAttendances.Where(x => x.UserId == reviewer).Select(x => x.EventId);
+        var eventId = await db.EventAttendances.Where(x => x.UserId == peer && mine.Contains(x.EventId))
+            .Join(db.Events, x => x.EventId, e => e.Id, (x, e) => new { e.Id, e.Name })
+            .OrderBy(e => e.Name).Select(e => (Guid?)e.Id).FirstOrDefaultAsync(ct);
+
+        var now = clock.GetUtcNow();
+        foreach (var (from, to) in new[] { (reviewer, peer), (peer, reviewer) })
+            if (!await db.UserLikes.AnyAsync(l => l.FromUserId == from && l.ToUserId == to, ct))
+                db.UserLikes.Add(new UserLike { FromUserId = from, ToUserId = to, EventId = eventId, CreatedAt = now });
+        db.Matches.Add(new Match { UserAId = a, UserBId = b, EventId = eventId, CreatedAt = now });
+        await db.SaveChangesAsync(ct);
+        logger.LogInformation("Seed: match demo del revisor");
     }
 
     private async Task SeedGenresAsync(CancellationToken ct)
