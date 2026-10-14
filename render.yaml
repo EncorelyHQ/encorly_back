@@ -24,7 +24,7 @@ services:
       # Fuera de desarrollo la API exige Require, VerifyCA o VerifyFull (VerifyFull si el certificado es verificable).
       - key: DB_SSL_MODE
         value: Require
-      # Redes CIDR del proxy de Render, separadas por coma. Complétalo con la red interna de Render: vacío, el rate limit
+      # Obligatorio (la API no arranca sin él): redes CIDR del proxy de Render, separadas por coma. Vacío, el rate limit
       # por IP vería la IP del balanceador (todos los clientes juntos); con valor, se confía en X-Forwarded-For solo desde ahí.
       - key: FORWARDED_TRUSTED_NETWORKS
         sync: false
@@ -39,6 +39,7 @@ services:
         value: "true"
       - key: EXPO_PUSH_ACCESS_TOKEN
         sync: false
+      # Obligatorio (la API no arranca sin él): URL https pública de la API, base de los enlaces legales.
       - key: PUBLIC_BASE_URL
         sync: false
       - key: PRIVACY_CONTACT_EMAIL

@@ -573,12 +573,25 @@ public sealed class SecurityHardeningTests(ApiFixture api)
 
     // ---------- 14 y 16. Entorno de producción ----------
 
-    private TestFactory Production(string sslMode)
+    private TestFactory Production(string sslMode, string proxy = "10.0.0.0/8", string publicBaseUrl = "https://api.encorely.test")
         => api.Factory.WithWebHostBuilder(b =>
         {
             b.UseEnvironment("Production");
-            b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["Database:SslMode"] = sslMode }));
+            b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Database:SslMode"] = sslMode,
+                ["Proxy:TrustedNetworks"] = proxy,
+                ["Legal:PublicBaseUrl"] = publicBaseUrl,
+            }));
         });
+
+    private static List<string> Messages(Exception ex)
+    {
+        var messages = new List<string>();
+        for (var e = ex; e is not null; e = e.InnerException) messages.Add(e.Message);
+        if (ex is AggregateException agg) messages.AddRange(agg.InnerExceptions.Select(e => e.Message));
+        return messages;
+    }
 
     [Fact]
     public async Task Openapi_no_se_publica_en_produccion()
@@ -598,10 +611,17 @@ public sealed class SecurityHardeningTests(ApiFixture api)
         using var factory = Production(sslMode);
 
         var ex = Assert.ThrowsAny<Exception>(() => factory.CreateClient());
+        Assert.Contains(Messages(ex), m => m.Contains("DB_SSL_MODE", StringComparison.Ordinal));
+    }
 
-        var messages = new List<string>();
-        for (var e = ex; e is not null; e = e.InnerException) messages.Add(e.Message);
-        Assert.Contains(messages, m => m.Contains("DB_SSL_MODE", StringComparison.Ordinal));
+    [Fact]
+    public void Produccion_sin_proxy_de_confianza_ni_url_publica_no_arranca()
+    {
+        using var factory = Production("Require", proxy: "", publicBaseUrl: "");
+
+        var messages = Messages(Assert.ThrowsAny<Exception>(() => factory.CreateClient()));
+        Assert.Contains(messages, m => m.Contains("FORWARDED_TRUSTED_NETWORKS", StringComparison.Ordinal));
+        Assert.Contains(messages, m => m.Contains("PUBLIC_BASE_URL", StringComparison.Ordinal));
     }
 
     [Theory]

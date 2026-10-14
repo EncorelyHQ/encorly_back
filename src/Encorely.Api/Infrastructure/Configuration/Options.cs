@@ -63,6 +63,28 @@ public sealed class ProxyOptions
     }
 }
 
+/// <summary>
+/// Fuera de Development/Testing la API corre detrás de un proxy (Render): sin sus redes, el rate limit por IP agrupa a
+/// todos los clientes en la IP del balanceador (un atacante bloquea el login de todos) y HSTS no se emite.
+/// </summary>
+public sealed class ProxyOptionsValidator(IHostEnvironment environment) : IValidateOptions<ProxyOptions>
+{
+    public ValidateOptionsResult Validate(string? name, ProxyOptions options)
+    {
+        int count;
+        try
+        {
+            count = options.ParseNetworks().Count;
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ValidateOptionsResult.Fail(ex.Message);
+        }
+        if (environment.IsDevelopment() || environment.IsEnvironment("Testing") || count > 0) return ValidateOptionsResult.Success;
+        return ValidateOptionsResult.Fail("FORWARDED_TRUSTED_NETWORKS es obligatorio fuera de desarrollo: sin él, el rate limit ve a todos los clientes como la IP del proxy.");
+    }
+}
+
 public sealed class JwtOptions
 {
     public const string Section = "Jwt";
@@ -160,10 +182,15 @@ public sealed class LegalOptions
     public string? PrivacyContactEmail { get; set; }
 }
 
-public sealed class LegalOptionsValidator : IValidateOptions<LegalOptions>
+public sealed class LegalOptionsValidator(IHostEnvironment environment) : IValidateOptions<LegalOptions>
 {
     public ValidateOptionsResult Validate(string? name, LegalOptions options)
     {
+        // Sin base fija, los enlaces legales salen de la cabecera Host, que el cliente controla (AllowedHosts es "*").
+        if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing")
+            && !(Uri.TryCreate(options.PublicBaseUrl, UriKind.Absolute, out var baseUrl) && baseUrl.Scheme == Uri.UriSchemeHttps))
+            return ValidateOptionsResult.Fail("PUBLIC_BASE_URL es obligatorio fuera de desarrollo y debe ser una URL https absoluta.");
+
         var email = options.PrivacyContactEmail;
         if (string.IsNullOrWhiteSpace(email)) return ValidateOptionsResult.Success;
         // EmailAddress admite espacios internos y comillas; el correo termina en HTML y en un mailto:, así que se exige simple.
