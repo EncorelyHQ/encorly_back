@@ -117,6 +117,23 @@ public sealed class SeedOptions
     public bool Catalog { get; set; }
     /// <summary>Si tiene valor, crea los usuarios demo con esta contraseña. Nunca se versiona.</summary>
     public string? DemoUserPassword { get; set; }
+    /// <summary>Siembra solo el revisor de tiendas y su par (sin admin). Obligatorio para sembrar usuarios fuera de desarrollo.</summary>
+    public bool ReviewerOnly { get; set; }
+}
+
+/// <summary>
+/// Fuera de Development/Testing no se siembran las 16 cuentas demo: comparten contraseña, y la del revisor se entrega a
+/// terceros en las consolas de las tiendas, así que con ella se entraría al admin. El admin de producción se crea a mano.
+/// </summary>
+public sealed class SeedOptionsValidator(IHostEnvironment environment) : IValidateOptions<SeedOptions>
+{
+    public ValidateOptionsResult Validate(string? name, SeedOptions options)
+    {
+        if (environment.IsDevelopment() || environment.IsEnvironment("Testing")) return ValidateOptionsResult.Success;
+        return string.IsNullOrWhiteSpace(options.DemoUserPassword) || options.ReviewerOnly
+            ? ValidateOptionsResult.Success
+            : ValidateOptionsResult.Fail("DEMO_USER_PASSWORD fuera de desarrollo exige SEED_REVIEWER_ONLY=true (solo el revisor de tiendas y su par, sin admin).");
+    }
 }
 
 public sealed class PushOptions

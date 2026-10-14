@@ -14,7 +14,8 @@ namespace Encorely.Api.Data;
 
 /// <summary>
 /// Seed curado e idempotente: géneros, canciones (previews de iTunes) y eventos se insertan si faltan.
-/// Los usuarios demo solo se crean si hay DEMO_USER_PASSWORD; la contraseña nunca está en el repo.
+/// Los usuarios demo solo se crean si hay DEMO_USER_PASSWORD; la contraseña nunca está en el repo. Fuera de desarrollo
+/// solo se permite con SEED_REVIEWER_ONLY (revisor de tiendas y su par, nunca el admin): ver <see cref="SeedOptionsValidator"/>.
 /// </summary>
 public sealed class Seeder(
     AppDbContext db,
@@ -125,9 +126,18 @@ public sealed class Seeder(
         if (added.Count > 0) logger.LogInformation("Seed: {Count} eventos", added.Count);
     }
 
-    private async Task SeedDemoUsersAsync(string password, CancellationToken ct)
+    /// <summary>Correos demo a sembrar: todos, o solo el revisor y su par (ninguno admin) con <see cref="SeedOptions.ReviewerOnly"/>.</summary>
+    internal static IReadOnlyList<string> DemoEmails(bool reviewerOnly) => DemoUsers(reviewerOnly).Select(d => d.Email).ToList();
+
+    private static List<SeedUser> DemoUsers(bool reviewerOnly)
     {
         var demo = Read<SeedUser>("demo-users.json");
+        return reviewerOnly ? demo.Where(d => !d.Admin && d.Email is ReviewerEmail or ReviewerPeerEmail).ToList() : demo;
+    }
+
+    private async Task SeedDemoUsersAsync(string password, CancellationToken ct)
+    {
+        var demo = DemoUsers(options.Value.ReviewerOnly);
         var emails = demo.Select(d => d.Email).ToList();
         var existing = await db.Users.Where(u => emails.Contains(u.Email)).Select(u => u.Email).ToHashSetAsync(ct);
         var pending = demo.Where(d => !existing.Contains(d.Email)).ToList();
