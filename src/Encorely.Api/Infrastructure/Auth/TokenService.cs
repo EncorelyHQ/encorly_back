@@ -18,7 +18,7 @@ public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider cloc
     public static SymmetricSecurityKey SigningKey(JwtOptions jwt) => new(Encoding.UTF8.GetBytes(jwt.SigningKey));
 
     /// <param name="sessionId">Familia del refresh token: el claim <c>sid</c> liga el access token (y sus push tokens) a una sesión.</param>
-    public (string Token, int ExpiresInSeconds) CreateAccessToken(User user, Guid? sessionId = null)
+    public (string Token, int ExpiresInSeconds) CreateAccessToken(User user, Guid sessionId)
     {
         var now = clock.GetUtcNow();
         var lifetime = TimeSpan.FromMinutes(_jwt.AccessTokenMinutes);
@@ -27,8 +27,8 @@ public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider cloc
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
             new("role", user.Role.ToString().ToLowerInvariant()),
+            new(SessionClaim, sessionId.ToString()),
         };
-        if (sessionId is { } sid) claims.Add(new Claim(SessionClaim, sid.ToString()));
         var descriptor = new SecurityTokenDescriptor
         {
             Issuer = _jwt.Issuer,

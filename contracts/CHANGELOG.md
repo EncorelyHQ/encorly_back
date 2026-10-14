@@ -7,6 +7,11 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
 - Arreglo (no rompe): `GET /admin/reports?status=open|resolved|dismissed` respondía 400 con los valores en minúsculas que
   anunciaba el contrato. Ahora el parámetro es un `string` con `enum` explícito (`open`, `resolved`, `dismissed`; por defecto `open`).
   Cualquier otro valor (`Open`, `1`, `closed`) da **400**.
+- Cambio de comportamiento (no cambia el esquema): cerrar una sesión (`DELETE /me/sessions/{id}`, `DELETE /me/sessions`,
+  `POST /auth/logout` o el reuso de un refresh token) invalida **en el acto** el access token de esa sesión (claim `sid`):
+  cualquier llamada con él responde **401 `unauthorized`**, y su conexión al hub se corta. Antes seguía sirviendo hasta 15 min.
+  Las demás sesiones del mismo usuario no se ven afectadas. Un 401 tras refrescar con éxito ya no debería darse: si el refresh
+  también da 401, la sesión se cerró desde otro dispositivo y hay que volver al login.
 
 ## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
 Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.

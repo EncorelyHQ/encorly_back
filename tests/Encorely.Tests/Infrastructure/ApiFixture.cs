@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Encorely.Api.Data;
+using Encorely.Api.Features.Auth;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Auth;
 using Encorely.Api.Infrastructure.Configuration;
@@ -97,10 +98,30 @@ public sealed class ApiFixture : IAsyncLifetime
         db.Users.Add(user);
         await db.SaveChangesAsync();
 
-        var (token, _) = scope.ServiceProvider.GetRequiredService<TokenService>().CreateAccessToken(user);
+        var (_, token, client) = await OpenSessionAsync(user.Id);
+        return new TestUser(user.Id, user.Email, user.DisplayName, token, client);
+    }
+
+    /// <summary>
+    /// Abre otra sesión (familia de refresh) del usuario, como un segundo dispositivo, y devuelve su JWT con el claim sid.
+    /// El access token solo sirve mientras esa sesión siga abierta.
+    /// </summary>
+    public async Task<(Guid SessionId, string AccessToken, HttpClient Client)> OpenSessionAsync(Guid userId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var session = new RefreshToken
+        {
+            UserId = userId, FamilyId = Guid.NewGuid(), TokenHash = TokenService.CreateRefreshToken().Hash, ExpiresAt = DateTimeOffset.UtcNow.AddDays(30),
+        };
+        db.RefreshTokens.Add(session);
+        await db.SaveChangesAsync();
+
+        var user = await db.Users.SingleAsync(u => u.Id == userId);
+        var (token, _) = scope.ServiceProvider.GetRequiredService<TokenService>().CreateAccessToken(user, session.FamilyId);
         var client = Factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return new TestUser(user.Id, user.Email, user.DisplayName, token, client);
+        return (session.FamilyId, token, client);
     }
 
     /// <summary>Acceso directo a la BD para preparar o verificar estado.</summary>

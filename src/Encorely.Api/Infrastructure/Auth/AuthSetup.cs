@@ -18,6 +18,7 @@ public static class AuthSetup
     {
         services.AddSingleton<PasswordHasher>();
         services.AddSingleton<TokenService>();
+        services.AddScoped<SessionRevoker>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
@@ -56,18 +57,27 @@ public static class AuthSetup
     }
 
     /// <summary>
-    /// Un JWT vigente no basta: la cuenta debe seguir existiendo y no estar suspendida
-    /// (borrar la cuenta o suspenderla corta el acceso de inmediato, sin esperar a que venza el token).
+    /// Un JWT vigente no basta: la cuenta debe seguir existiendo y no estar suspendida, y la sesión de su <c>sid</c> debe
+    /// seguir abierta (borrar o suspender la cuenta, o cerrar la sesión, corta el acceso de inmediato, sin esperar a que venza el token).
     /// </summary>
     public static IApplicationBuilder UseActiveUserCheck(this IApplicationBuilder app) => app.Use(async (ctx, next) =>
     {
         if (ctx.User.Identity?.IsAuthenticated == true && ctx.User.TryUserId() is { } userId)
         {
             var db = ctx.RequestServices.GetRequiredService<AppDbContext>();
-            var status = await db.Users.Where(u => u.Id == userId).Select(u => (UserStatus?)u.Status).FirstOrDefaultAsync(ctx.RequestAborted);
-            if (status is null || status == UserStatus.Banned)
+            var now = ctx.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow();
+            var sid = ctx.User.SessionId();
+            // Una sola consulta: sin sid (tokens anteriores al claim) la sesión cuenta como cerrada.
+            var state = await db.Users.Where(u => u.Id == userId)
+                .Select(u => new
+                {
+                    u.Status,
+                    SessionOpen = db.RefreshTokens.Any(t => t.FamilyId == sid && t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > now),
+                })
+                .FirstOrDefaultAsync(ctx.RequestAborted);
+            if (state is null || state.Status == UserStatus.Banned || !state.SessionOpen)
             {
-                var (code, statusCode, title) = status is null
+                var (code, statusCode, title) = state is null || state.Status != UserStatus.Banned
                     ? (ErrorCodes.Unauthorized, 401, "Tu sesión ya no es válida.")
                     : (ErrorCodes.AccountBanned, 403, "Tu cuenta está suspendida.");
                 ctx.Response.StatusCode = statusCode;

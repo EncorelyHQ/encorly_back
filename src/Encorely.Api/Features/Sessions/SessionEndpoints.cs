@@ -39,27 +39,16 @@ public static class SessionEndpoints
         return TypedResults.Ok<IReadOnlyList<SessionDto>>(sessions);
     }
 
-    private static async Task<NoContent> Revoke(Guid id, ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
+    private static async Task<NoContent> Revoke(Guid id, ClaimsPrincipal user, SessionRevoker sessions, CancellationToken ct)
     {
-        var userId = user.UserId();
-        var revoked = await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == userId && t.FamilyId == id), clock, ct);
-        if (revoked == 0) throw ApiException.NotFound("session_not_found", "Esa sesión no existe o ya está cerrada.");
-        // Sin esto el teléfono "cerrado" seguiría recibiendo avisos de mensajes y matches.
-        await db.DevicePushTokens.Where(t => t.UserId == userId && t.SessionId == id).ExecuteDeleteAsync(ct);
+        if (await sessions.RevokeAsync(user.UserId(), id, ct) == 0)
+            throw ApiException.NotFound("session_not_found", "Esa sesión no existe o ya está cerrada.");
         return TypedResults.NoContent();
     }
 
-    private static async Task<NoContent> RevokeAll(ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
+    private static async Task<NoContent> RevokeAll(ClaimsPrincipal user, SessionRevoker sessions, CancellationToken ct)
     {
-        var userId = user.UserId();
-        await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == userId), clock, ct);
-        await db.DevicePushTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
+        await sessions.RevokeAllAsync(user.UserId(), ct);
         return TypedResults.NoContent();
-    }
-
-    private static Task<int> RevokeWhere(IQueryable<RefreshToken> tokens, TimeProvider clock, CancellationToken ct)
-    {
-        var now = clock.GetUtcNow();
-        return tokens.Where(t => t.RevokedAt == null).ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), ct);
     }
 }

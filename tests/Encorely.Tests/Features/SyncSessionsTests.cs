@@ -98,27 +98,43 @@ public sealed class SyncSessionsTests(ApiFixture api)
     {
         var a = await api.CreateUserAsync();
         var b = await api.CreateUserAsync();
-        var families = new[] { Guid.NewGuid(), Guid.NewGuid() };
-        await api.WithDbAsync(async db =>
-        {
-            foreach (var family in families)
-                db.RefreshTokens.Add(new RefreshToken
-                {
-                    UserId = a.Id, FamilyId = family, TokenHash = TokenService.CreateRefreshToken().Hash, ExpiresAt = DateTimeOffset.UtcNow.AddDays(10),
-                });
-            await db.SaveChangesAsync(Ct);
-        });
+        var (otherSession, _, otherDevice) = await api.OpenSessionAsync(a.Id);
 
         var sessions = await a.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK);
         Assert.Equal(2, sessions.Count);
-        Assert.Empty(await b.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK));
+        Assert.Single(sessions, s => s.Current);
+        Assert.Single(await b.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK));
 
-        await b.Client.DeleteAsync($"/api/v1/me/sessions/{families[0]}", Ct).ExpectProblem(HttpStatusCode.NotFound, "session_not_found");
-        await a.Client.DeleteAsync($"/api/v1/me/sessions/{families[0]}", Ct).Expect(HttpStatusCode.NoContent);
+        await b.Client.DeleteAsync($"/api/v1/me/sessions/{otherSession}", Ct).ExpectProblem(HttpStatusCode.NotFound, "session_not_found");
+        await a.Client.DeleteAsync($"/api/v1/me/sessions/{otherSession}", Ct).Expect(HttpStatusCode.NoContent);
         Assert.Single(await a.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK));
 
         await a.Client.DeleteAsync("/api/v1/me/sessions", Ct).Expect(HttpStatusCode.NoContent);
-        Assert.Empty(await a.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK));
+        Assert.Empty(await api.WithDbAsync(db => db.RefreshTokens.Where(t => t.UserId == a.Id && t.RevokedAt == null).ToListAsync(Ct)));
+    }
+
+    [Fact]
+    public async Task Cerrar_una_sesion_invalida_su_access_token_y_su_hub_al_instante()
+    {
+        var user = await api.CreateUserAsync();
+        var (lostPhone, lostToken, lostClient) = await api.OpenSessionAsync(user.Id);
+        await using var lostHub = ChatKit.Hub(api, lostToken);
+        await using var ownHub = ChatKit.Hub(api, user.AccessToken);
+        var lostClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        lostHub.Closed += _ => { lostClosed.TrySetResult(); return Task.CompletedTask; };
+        await lostHub.StartAsync(Ct);
+        await ownHub.StartAsync(Ct);
+        await lostClient.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
+
+        await user.Client.DeleteAsync($"/api/v1/me/sessions/{lostPhone}", Ct).Expect(HttpStatusCode.NoContent);
+
+        await lostClosed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
+        foreach (var path in new[] { "/api/v1/me", "/api/v1/me/export", "/api/v1/me/backup" })
+            await lostClient.GetAsync(path, Ct).ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
+        await lostClient.DeleteAsync("/api/v1/me", Ct).ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
+        // La otra sesión del mismo usuario sigue viva.
+        Assert.Equal(Microsoft.AspNetCore.SignalR.Client.HubConnectionState.Connected, ownHub.State);
+        await user.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
     }
 }
 

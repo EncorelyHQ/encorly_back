@@ -236,6 +236,10 @@ public sealed class AuthTests(ApiFixture api)
 
         await api.Anonymous().PostJson("/api/v1/auth/logout", new { refreshToken = second.RefreshToken }).Expect(HttpStatusCode.NoContent);
         await RefreshAsync(second.RefreshToken).ExpectProblem(HttpStatusCode.Unauthorized, "invalid_refresh_token");
+        // El access token de la sesión cerrada tampoco sirve, aunque no haya vencido.
+        var client = api.Anonymous();
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", second.AccessToken);
+        await client.GetAsync("/api/v1/me", Ct).ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
         await api.Anonymous().PostJson("/api/v1/auth/logout", new { refreshToken = second.RefreshToken }).Expect(HttpStatusCode.NoContent);
         await api.Anonymous().PostJson("/api/v1/auth/logout", new { refreshToken = "no-existe" }).Expect(HttpStatusCode.NoContent);
     }

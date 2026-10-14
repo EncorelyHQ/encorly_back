@@ -13,6 +13,7 @@ public sealed class AuthService(
     AppDbContext db,
     PasswordHasher hasher,
     TokenService tokens,
+    SessionRevoker sessions,
     IOptions<JwtOptions> jwt,
     IOptions<RateLimitOptions> limits,
     IOptions<LegalOptions> legal,
@@ -108,7 +109,7 @@ public sealed class AuthService(
 
         if (current.RevokedAt is not null || current.ReplacedByTokenId is not null)
         {
-            await RevokeFamilyAsync(current.FamilyId, now, ct);
+            await sessions.RevokeAsync(current.UserId, current.FamilyId, ct);
             throw InvalidRefresh();
         }
 
@@ -124,7 +125,7 @@ public sealed class AuthService(
         if (rotated != 1)
         {
             await tx.RollbackAsync(ct);
-            await RevokeFamilyAsync(current.FamilyId, now, ct);
+            await sessions.RevokeAsync(current.UserId, current.FamilyId, ct);
             throw InvalidRefresh();
         }
 
@@ -138,8 +139,8 @@ public sealed class AuthService(
     public async Task LogoutAsync(LogoutRequest request, CancellationToken ct)
     {
         var hash = TokenService.HashRefreshToken(request.RefreshToken);
-        var familyId = await db.RefreshTokens.Where(t => t.TokenHash == hash).Select(t => (Guid?)t.FamilyId).FirstOrDefaultAsync(ct);
-        if (familyId is { } id) await RevokeFamilyAsync(id, clock.GetUtcNow(), ct);
+        var session = await db.RefreshTokens.Where(t => t.TokenHash == hash).Select(t => new { t.UserId, t.FamilyId }).FirstOrDefaultAsync(ct);
+        if (session is not null) await sessions.RevokeAsync(session.UserId, session.FamilyId, ct);
     }
 
     /// <summary>
@@ -156,15 +157,6 @@ public sealed class AuthService(
                 failed_login_attempts = CASE WHEN failed_login_attempts + 1 >= {max} THEN 0 ELSE failed_login_attempts + 1 END
             WHERE id = {userId}
             """, ct);
-    }
-
-    /// <summary>Cierra la sesión: revoca la familia y borra los push tokens que se registraron con ella.</summary>
-    private async Task<int> RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken ct)
-    {
-        var revoked = await db.RefreshTokens.Where(t => t.FamilyId == familyId && t.RevokedAt == null)
-            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), ct);
-        await db.DevicePushTokens.Where(t => t.SessionId == familyId).ExecuteDeleteAsync(ct);
-        return revoked;
     }
 
     private (string Token, RefreshToken Entity) NewRefreshToken(Guid userId, Guid familyId, DateTimeOffset now)
