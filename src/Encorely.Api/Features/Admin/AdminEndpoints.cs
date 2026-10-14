@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Infrastructure.Auth;
@@ -25,7 +26,7 @@ public static class AdminEndpoints
         g.MapPut("/songs/{id:guid}", UpdateSong).WithName("AdminUpdateSong").WithSummary("Edita una canción (isActive=false la saca del feed)").Problems(400, 401, 403, 404, 409);
         g.MapGet("/itunes/search", SearchITunes).WithName("AdminSearchITunes").WithSummary("Busca en iTunes Search para dar de alta canciones con preview").Problems(400, 401, 403, 502);
 
-        g.MapGet("/reports", ListReports).WithName("AdminListReports").WithSummary("Reportes, los más antiguos primero").Problems(401, 403);
+        g.MapGet("/reports", ListReports).WithName("AdminListReports").WithSummary("Reportes, los más antiguos primero").Problems(400, 401, 403);
         g.MapPost("/reports/{id:guid}/resolve", ResolveReport).WithName("AdminResolveReport")
             .WithSummary("Resuelve un reporte; ban suspende al reportado, cierra sus matches y revoca sus sesiones").Problems(400, 401, 403, 404);
         g.MapPut("/users/{id:guid}/status", SetUserStatus).WithName("AdminSetUserStatus").WithSummary("Suspende o reactiva una cuenta").Problems(400, 401, 403, 404);
@@ -69,9 +70,11 @@ public static class AdminEndpoints
         [Description("Artista y/o título")] string term = "")
         => TypedResults.Ok(await itunes.SearchAsync(term, ct));
 
+    // string y no ReportStatus: el binder de query usa Enum.TryParse sensible a mayúsculas (no el converter camelCase del body)
+    // y aceptaba "Open" o "1" pero rechazaba el "open" que anuncia el contrato.
     private static async Task<Ok<IReadOnlyList<AdminReportDto>>> ListReports(AdminService admin, CancellationToken ct,
-        [Description("Filtra por estado; por defecto open")] ReportStatus status = ReportStatus.Open)
-        => TypedResults.Ok(await admin.ListReportsAsync(status, ct));
+        [Description("Filtra por estado; por defecto open")][AllowedValues("open", "resolved", "dismissed")] string status = "open")
+        => TypedResults.Ok(await admin.ListReportsAsync(Enum.Parse<ReportStatus>(status, ignoreCase: true), ct));
 
     private static async Task<Ok<AdminReportDto>> ResolveReport(Guid id, ResolveReportRequest request, ClaimsPrincipal user, AdminService admin, CancellationToken ct)
         => TypedResults.Ok(await admin.ResolveReportAsync(user.UserId(), id, request, ct));

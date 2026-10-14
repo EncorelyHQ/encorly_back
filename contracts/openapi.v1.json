@@ -3339,8 +3339,13 @@
             "in": "query",
             "description": "Filtra por estado; por defecto open",
             "schema": {
-              "default": "open",
-              "$ref": "#/components/schemas/ReportStatus"
+              "enum": [
+                "open",
+                "resolved",
+                "dismissed"
+              ],
+              "type": "string",
+              "default": "open"
             }
           }
         ],
@@ -3354,6 +3359,16 @@
                   "items": {
                     "$ref": "#/components/schemas/AdminReportDto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }

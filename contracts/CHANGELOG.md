@@ -3,6 +3,11 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.7 (conciliación del back)
+- Arreglo (no rompe): `GET /admin/reports?status=open|resolved|dismissed` respondía 400 con los valores en minúsculas que
+  anunciaba el contrato. Ahora el parámetro es un `string` con `enum` explícito (`open`, `resolved`, `dismissed`; por defecto `open`).
+  Cualquier otro valor (`Open`, `1`, `closed`) da **400**.
+
 ## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
 Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.
 - `GET /legal/current`: si el servidor no tiene `PUBLIC_BASE_URL`, `termsUrl`, `privacyUrl` y `accountDeletionUrl` se arman con el
