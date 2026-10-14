@@ -747,6 +747,224 @@
         ]
       }
     },
+    "/api/v1/users/{id}/profile": {
+      "get": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Perfil de otra persona (match activo o evento pr\u00F3ximo en com\u00FAn); 404 si no se puede ver",
+        "operationId": "GetUserProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}/reactions": {
+      "put": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Reacciona a un artista o g\u00E9nero de su perfil (reemplaza la reacci\u00F3n anterior a ese objetivo)",
+        "operationId": "SetProfileReaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReactionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Quita mi reacci\u00F3n a ese objetivo (204 aunque no hubiera)",
+        "operationId": "RemoveProfileReaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "targetKind",
+            "in": "query",
+            "description": "artist o genre",
+            "required": true,
+            "schema": {
+              "enum": [
+                "artist",
+                "genre"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetKey",
+            "in": "query",
+            "description": "Slug del g\u00E9nero o key del artista",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/genres": {
       "get": {
         "tags": [
@@ -4414,6 +4632,7 @@
           "matches",
           "blocks",
           "consents",
+          "reactions",
           "pushDevices",
           "generatedAt"
         ],
@@ -4450,6 +4669,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ExportConsent"
+            }
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportReaction"
             }
           },
           "pushDevices": {
@@ -4683,6 +4908,35 @@
             "format": "int32"
           }
         }
+      },
+      "ExportReaction": {
+        "required": [
+          "peerDisplayName",
+          "targetKind",
+          "targetKey",
+          "reaction",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "peerDisplayName": {
+            "type": "string"
+          },
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Reacci\u00F3n que dej\u00E9 en el perfil de otra persona."
       },
       "ExportSwipe": {
         "required": [
@@ -5080,7 +5334,10 @@
           "acceptedConsentVersion",
           "consentUpToDate",
           "spotifyLinked",
-          "hasPassword"
+          "hasPassword",
+          "artists",
+          "stats",
+          "reactionsReceived"
         ],
         "type": "object",
         "properties": {
@@ -5156,6 +5413,23 @@
           "hasPassword": {
             "type": "boolean",
             "description": "false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify."
+          },
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileArtistDto"
+            },
+            "description": "Mi top de artistas importado de Spotify (m\u00E1x. 12), como lo ven los dem\u00E1s."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/ProfileStatsDto"
+          },
+          "reactionsReceived": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedReactionDto"
+            },
+            "description": "Reacciones a mi perfil, agregadas por objetivo y tipo; nunca dicen qui\u00E9n."
           }
         }
       },
@@ -5264,6 +5538,25 @@
           }
         }
       },
+      "MyReactionDto": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "reaction"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          }
+        }
+      },
       "PeerDto": {
         "required": [
           "id",
@@ -5347,6 +5640,178 @@
             "description": "Solo en validaci\u00F3n: campo \u2192 mensajes en espa\u00F1ol."
           }
         }
+      },
+      "ProfileArtistDto": {
+        "required": [
+          "key",
+          "name",
+          "imageUrl",
+          "shared"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Nombre normalizado (\u0022bad-bunny\u0022): identifica al artista al reaccionar y al cruzar perfiles."
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Imagen de Spotify (https://i.scdn.co/\u2026); null si no vino."
+          },
+          "shared": {
+            "type": "boolean",
+            "description": "true si el artista tambi\u00E9n est\u00E1 en el perfil de quien mira (en \u0060/me\u0060 siempre false)."
+          }
+        }
+      },
+      "ProfileCommonDto": {
+        "required": [
+          "affinity",
+          "sharedGenres",
+          "sharedArtists"
+        ],
+        "type": "object",
+        "properties": {
+          "affinity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "0\u2013100, o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify).",
+            "format": "int32"
+          },
+          "sharedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Slugs de g\u00E9neros con peso en ambos (m\u00E1x. 3)."
+          },
+          "sharedArtists": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keys de artistas que est\u00E1n en ambos perfiles."
+          }
+        }
+      },
+      "ProfileGenreDto": {
+        "required": [
+          "slug",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ProfileStatsDto": {
+        "required": [
+          "swipeCount",
+          "genresExplored",
+          "eventsMarked"
+        ],
+        "type": "object",
+        "properties": {
+          "swipeCount": {
+            "type": "integer",
+            "description": "Canciones calificadas.",
+            "format": "int32"
+          },
+          "genresExplored": {
+            "type": "integer",
+            "description": "G\u00E9neros distintos entre las canciones calificadas.",
+            "format": "int32"
+          },
+          "eventsMarked": {
+            "type": "integer",
+            "description": "Eventos con asistencia marcada (no implica que haya ido).",
+            "format": "int32"
+          }
+        }
+      },
+      "PublicProfileDto": {
+        "required": [
+          "id",
+          "displayName",
+          "age",
+          "city",
+          "bio",
+          "genres",
+          "artists",
+          "stats",
+          "common",
+          "myReactions"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "age": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileGenreDto"
+            },
+            "description": "G\u00E9neros con m\u00E1s peso en su ADN (m\u00E1x. 8)."
+          },
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileArtistDto"
+            },
+            "description": "Su top de artistas (m\u00E1x. 12)."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/ProfileStatsDto"
+          },
+          "common": {
+            "$ref": "#/components/schemas/ProfileCommonDto"
+          },
+          "myReactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyReactionDto"
+            },
+            "description": "Las reacciones que quien llama dej\u00F3 en este perfil."
+          }
+        },
+        "description": "Perfil de otra persona visto por quien llama."
       },
       "PushTokenRequest": {
         "required": [
@@ -5432,8 +5897,11 @@
             ]
           },
           "affinity": {
-            "type": "integer",
-            "description": "Afinidad real 0\u2013100 (coseno entre vectores de g\u00E9neros).",
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Afinidad 0\u2013100 (coseno entre vectores de g\u00E9neros), o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify).",
             "format": "int32"
           },
           "sharedGenres": {
@@ -5450,6 +5918,70 @@
             "type": "boolean"
           }
         }
+      },
+      "ReactionRequest": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "reaction"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string",
+            "description": "Slug del g\u00E9nero o key del artista; debe estar en el perfil de esa persona."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          }
+        }
+      },
+      "ReactionTargetKind": {
+        "enum": [
+          "artist",
+          "genre"
+        ]
+      },
+      "ReactionType": {
+        "enum": [
+          "meToo",
+          "letsGo",
+          "sendOne"
+        ],
+        "description": "\u0022Yo tambi\u00E9n\u0022, \u0022Vamos a verlo\u0022, \u0022P\u00E1same una\u0022."
+      },
+      "ReceivedReactionDto": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "targetName",
+          "reaction",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "targetName": {
+            "type": "string",
+            "description": "Nombre del artista o del g\u00E9nero, para mostrarlo sin otra consulta."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Reacciones recibidas, agregadas: nunca dicen qui\u00E9n."
       },
       "RefreshRequest": {
         "required": [
@@ -5745,6 +6277,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Opcional: \u0060images[0].url\u0060 de Spotify. Solo se guarda si es https de i.scdn.co; si no, se ignora."
           }
         }
       },
@@ -6005,6 +6544,9 @@
     },
     {
       "name": "Perfil"
+    },
+    {
+      "name": "Perfil social"
     },
     {
       "name": "M\u00FAsica"

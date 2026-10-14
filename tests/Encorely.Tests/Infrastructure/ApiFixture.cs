@@ -57,6 +57,8 @@ public sealed class ApiFixture : IAsyncLifetime
                 ["RateLimit:UserWritesPerMinute"] = "100000",
                 ["Push:Enabled"] = "false",
                 ["Matching:RadarMinSwipes"] = "3",
+                // Todos con señal: los tests de afinidad arman el ADN directo en la BD, sin swipes. El umbral se prueba aparte.
+                ["Matching:AffinityMinSwipes"] = "0",
                 ["Spotify:ClientId"] = FakeSpotify.ClientId,
                 ["Spotify:AllowedRedirects"] = FakeSpotify.RedirectUri,
             }));

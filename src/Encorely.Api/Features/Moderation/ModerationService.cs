@@ -43,6 +43,7 @@ public sealed class ModerationService(AppDbContext db, Notifier notifier, TimePr
         }
         await db.SaveChangesAsync(ct);
         await db.UserLikes.Where(l => (l.FromUserId == a && l.ToUserId == b) || (l.FromUserId == b && l.ToUserId == a)).ExecuteDeleteAsync(ct);
+        await db.ProfileReactions.Where(r => (r.FromUserId == a && r.ToUserId == b) || (r.FromUserId == b && r.ToUserId == a)).ExecuteDeleteAsync(ct);
         await tx.CommitAsync(ct);
 
         if (match is not null) await notifier.MatchClosedAsync(match.Id, a, b);

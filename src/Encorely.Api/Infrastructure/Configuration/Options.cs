@@ -103,7 +103,12 @@ public sealed class MatchingOptions
 
     /// <summary>Swipes mínimos para desbloquear el radar. Lo sirve la API (/me/dna); el front no lo duplica.</summary>
     [Range(0, 500)] public int RadarMinSwipes { get; set; } = 15;
-    /// <summary>Afinidad mínima (0–100) para aparecer en el radar.</summary>
+    /// <summary>
+    /// Swipes con los que una persona tiene señal propia para calcular afinidad (o haber importado Spotify). Sin señal en
+    /// alguna de las dos, la afinidad es null: con pocos swipes el coseno lo deciden los géneros declarados en el onboarding.
+    /// </summary>
+    [Range(0, 1000)] public int AffinityMinSwipes { get; set; } = 40;
+    /// <summary>Afinidad mínima (0–100) para aparecer en el radar. Las entradas sin afinidad (null) no se filtran.</summary>
     [Range(0, 100)] public int RadarMinAffinity { get; set; }
 }
 

@@ -11,6 +11,7 @@ using Encorely.Api.Features.Legal;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Profiles;
 using Encorely.Api.Features.Sessions;
 using Encorely.Api.Features.Sync;
 using Encorely.Api.Features.Users;
@@ -85,6 +86,7 @@ builder.Services.AddSingleton<IPushSender>(sp => sp.GetRequiredService<IOptions<
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<LegalService>();
 builder.Services.AddScoped<MusicService>();
 builder.Services.AddScoped<EventService>();
@@ -180,6 +182,7 @@ var api = app.MapGroup("/api/v1");
 api.MapAuth();
 api.MapLegal();
 api.MapUsers();
+api.MapProfiles();
 api.MapMusic();
 api.MapEvents();
 api.MapMatching();

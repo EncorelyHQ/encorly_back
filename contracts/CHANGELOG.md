@@ -3,6 +3,36 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.10 (perfil social)
+Pedido del front en `reportes/10-pedidos-back-perfil-social.md`. Enums en camelCase como el resto del contrato: `meToo`,
+`letsGo`, `sendOne` (no `me_too`).
+- **Rompe (tipo):** `RadarEntryDto.affinity` pasa a `int | null`. Es `null` si quien mira o la otra persona no tiene señal propia:
+  menos de `AFFINITY_MIN_SWIPES` swipes (por defecto 40) y sin Spotify importado. El radar ordena primero las que tienen
+  afinidad, de mayor a menor, y luego las `null` por nombre. `RADAR_MIN_AFFINITY` no descarta las `null`.
+- Nuevo (no rompe): `SpotifyArtist` gana `imageUrl?` (`images[0].url` de Spotify). Solo se guarda si es `https://i.scdn.co/…`;
+  cualquier otra URL se ignora sin error. `POST /me/spotify/import` ahora **guarda** el top de artistas (antes solo los convertía en
+  géneros); cada importación reemplaza la lista. Cada artista se identifica por `key`, el nombre normalizado (`"Bad Bunny"` →
+  `"bad-bunny"`); los repetidos conservan el mejor puesto.
+- Nuevo: `GET /users/{id}/profile` → `PublicProfileDto` `{ id, displayName, age, city, bio, genres: [{ slug, name }] (máx. 8),
+  artists: [{ key, name, imageUrl, shared }] (máx. 12), stats: { swipeCount, genresExplored, eventsMarked },
+  common: { affinity: int|null, sharedGenres, sharedArtists }, myReactions: [{ targetKind, targetKey, reaction }] }`.
+  Se ve con un match activo o un evento próximo en común (el corte del radar). En cualquier otro caso, o con bloqueo en
+  cualquier sentido o cuenta suspendida, **404 `user_not_found`** (nunca 403). El propio perfil también se puede pedir.
+- Nuevo: `PUT /users/{id}/reactions` `{ targetKind: "artist"|"genre", targetKey, reaction: "meToo"|"letsGo"|"sendOne" }` → **204**.
+  Una reacción por objetivo y por par; repetir reemplaza el tipo. `targetKey` es el `slug` del género o la `key` del artista y
+  debe estar en ese perfil ahora: si no, **400 `reaction_target_not_found`**. A uno mismo → **400 `cannot_react_self`**. Sin
+  relación o con bloqueo → **404 `user_not_found`**. Rate limit por usuario (429).
+- Nuevo: `DELETE /users/{id}/reactions?targetKind=&targetKey=` → **204** siempre (también si no había nada); `targetKind` fuera de
+  `artist|genre` → 400.
+- Nuevo (no rompe): `GET /me` (y `PATCH /me`, y `profile` de `/me/export`) ganan `artists` (con `shared: false`), `stats` y
+  `reactionsReceived: [{ targetKind, targetKey, targetName, reaction, count }]`. Esta última viene agregada y sin identidades, y
+  solo cuenta las reacciones de cuentas activas y sin bloqueo, sobre objetivos que siguen en el perfil.
+- Nuevo (no rompe): `/me/export` gana `reactions` (las que dejé: `peerDisplayName`, `targetKind`, `targetKey`, `reaction`, `updatedAt`).
+- Comportamiento: las reacciones no cuentan para el match ni mandan push. Bloquear borra las del par y suspender una cuenta
+  borra las suyas, dadas y recibidas.
+- Sin decidir, y aislado en `ProfileService` para cambiarlo con una línea: quién puede ver un perfil (`CanViewAsync`) y si los
+  artistas incluyen los de canciones con "Me gusta" (`IncludeLikedSongArtists`, hoy `false`: solo Spotify).
+
 ## 2026-10-14 · v1.0.0-draft.9 (bloqueo por intentos)
 - Cambio de comportamiento (no cambia el esquema): el **429 `account_locked`** de `POST /auth/login`, `POST /account-deletion`
   y `DELETE /me` con contraseña ahora es por **correo + IP**: tras 5 contraseñas fallidas desde una IP contra un correo, ese

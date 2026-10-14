@@ -126,9 +126,35 @@ public sealed class MusicService(AppDbContext db, IOptions<MatchingOptions> matc
                 ON CONFLICT (user_id, genre_id) DO UPDATE SET imported_weight = EXCLUDED.imported_weight
                 """, ct);
         }
+        await ReplaceArtistsAsync(userId, request.TopArtists, ct);
         await tx.CommitAsync(ct);
 
         return await GetDnaAsync(userId, ct);
+    }
+
+    private async Task ReplaceArtistsAsync(Guid userId, IReadOnlyList<SpotifyArtist> artists, CancellationToken ct)
+    {
+        await db.UserArtists.Where(a => a.UserId == userId).ExecuteDeleteAsync(ct);
+        var now = clock.GetUtcNow();
+        var seen = new HashSet<string>();
+        for (var rank = 0; rank < artists.Count; rank++)
+        {
+            var artist = artists[rank];
+            var key = ArtistKey.Of(artist.Name);
+            // Un nombre sin letras ni dígitos no se puede cruzar ni reaccionar; un repetido conserva el mejor puesto.
+            if (key.Length == 0 || !seen.Add(key)) continue;
+            db.UserArtists.Add(new UserArtist
+            {
+                UserId = userId,
+                Key = key,
+                Name = artist.Name.Trim(),
+                Rank = rank,
+                ImageUrl = ArtistKey.SafeImageUrl(artist.ImageUrl),
+                Genres = artist.Genres.ToList(),
+                ImportedAt = now,
+            });
+        }
+        await db.SaveChangesAsync(ct);
     }
 
     private async Task<Dictionary<int, double>> LoadVectorAsync(Guid userId, CancellationToken ct)

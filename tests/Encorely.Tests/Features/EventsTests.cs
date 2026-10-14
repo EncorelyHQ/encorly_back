@@ -334,7 +334,7 @@ public sealed class EventsTests(ApiFixture api)
 
         Assert.Equal([same.Id, similar.Id, opposite.Id], radar.Select(r => r.UserId));
         Assert.Equal(100, radar[0].Affinity);
-        Assert.InRange(radar[1].Affinity, 1, 99);
+        Assert.InRange(radar[1].Affinity!.Value, 1, 99);
         Assert.Equal(0, radar[2].Affinity);
         Assert.Equal(3, radar.Select(r => r.Affinity).Distinct().Count());
         Assert.Equal(["reggaeton"], radar[0].SharedGenres);
@@ -366,7 +366,7 @@ public sealed class EventsTests(ApiFixture api)
         var radar = await GetRadar(me, id).Expect<List<RadarEntryDto>>(HttpStatusCode.OK);
         var entry = Assert.Single(radar);
         Assert.Equal(expectedAffinity, entry.Affinity);
-        Assert.InRange(entry.Affinity, 1, 99);
+        Assert.InRange(entry.Affinity!.Value, 1, 99);
         Assert.Equal(expectedShared, entry.SharedGenres);
         Assert.Equal(["reggaeton", "salsa"], entry.SharedGenres.Order());
     }

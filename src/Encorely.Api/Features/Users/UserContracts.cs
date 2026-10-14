@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Encorely.Api.Features.Auth;
+using Encorely.Api.Features.Profiles;
 using Encorely.Api.Infrastructure.Http;
 
 namespace Encorely.Api.Features.Users;
@@ -10,6 +11,8 @@ namespace Encorely.Api.Features.Users;
 /// <param name="ConsentUpToDate">true si <c>AcceptedConsentVersion</c> es la vigente (<c>GET /legal/current</c>); false: pedir aceptar de nuevo.</param>
 /// <param name="SpotifyLinked">true si hay una cuenta de Spotify vinculada (sirve para entrar).</param>
 /// <param name="HasPassword">false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify.</param>
+/// <param name="Artists">Mi top de artistas importado de Spotify (máx. 12), como lo ven los demás.</param>
+/// <param name="ReactionsReceived">Reacciones a mi perfil, agregadas por objetivo y tipo; nunca dicen quién.</param>
 public sealed record MeResponse(
     Guid Id,
     string Email,
@@ -25,7 +28,10 @@ public sealed record MeResponse(
     string? AcceptedConsentVersion,
     bool ConsentUpToDate,
     bool SpotifyLinked,
-    bool HasPassword);
+    bool HasPassword,
+    IReadOnlyList<ProfileArtistDto> Artists,
+    ProfileStatsDto Stats,
+    IReadOnlyList<ReceivedReactionDto> ReactionsReceived);
 
 /// <summary>PATCH: los campos null no cambian. Bio vacía ("") la borra.</summary>
 /// <param name="BirthDate">yyyy-MM-dd; 18 años o más.</param>
@@ -53,6 +59,7 @@ public sealed record DataExportResponse(
     IReadOnlyList<ExportMatch> Matches,
     IReadOnlyList<ExportBlock> Blocks,
     IReadOnlyList<ExportConsent> Consents,
+    IReadOnlyList<ExportReaction> Reactions,
     int PushDevices,
     DateTimeOffset GeneratedAt);
 
@@ -61,3 +68,5 @@ public sealed record ExportEvent(string Name, DateTimeOffset StartsAt);
 public sealed record ExportMatch(string PeerDisplayName, string Status, DateTimeOffset CreatedAt, int MessagesSent);
 public sealed record ExportBlock(string DisplayName, DateTimeOffset CreatedAt);
 public sealed record ExportConsent(string Version, DateTimeOffset AcceptedAt);
+/// <summary>Reacción que dejé en el perfil de otra persona.</summary>
+public sealed record ExportReaction(string PeerDisplayName, ReactionTargetKind TargetKind, string TargetKey, ReactionType Reaction, DateTimeOffset UpdatedAt);
