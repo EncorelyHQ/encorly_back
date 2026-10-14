@@ -14,6 +14,7 @@ public sealed class AuthService(
     PasswordHasher hasher,
     TokenService tokens,
     SessionRevoker sessions,
+    SpotifyClient spotify,
     IOptions<JwtOptions> jwt,
     IOptions<RateLimitOptions> limits,
     IOptions<LegalOptions> legal,
@@ -31,9 +32,7 @@ public sealed class AuthService(
 
         if (await db.Users.AnyAsync(u => u.Email == email, ct)) throw EmailTaken();
         // Después del 409: un correo con cuenta (aunque suspendida) sigue respondiendo igual que antes, sin revelar el ban.
-        var emailHash = BannedEmail.HashOf(email);
-        if (await db.BannedEmails.AnyAsync(b => b.EmailHash == emailHash, ct))
-            throw ApiException.Forbidden(ErrorCodes.AccountBanned, "No puedes crear una cuenta con este correo.");
+        await EnsureEmailNotBannedAsync(email, ct);
 
         var now = clock.GetUtcNow();
         var user = new User
@@ -75,6 +74,133 @@ public sealed class AuthService(
     }
 
     /// <summary>
+    /// Entra con Spotify: si el id de Spotify ya está vinculado, inicia sesión; si no, crea una cuenta sin contraseña con
+    /// el correo de Spotify. Nunca vincula por correo: Spotify no garantiza que esté verificado, y vincular por él
+    /// entregaría una cuenta existente a quien registre ese correo en Spotify.
+    /// </summary>
+    public async Task<SpotifyAuthResponse> SpotifyLoginAsync(SpotifyLoginRequest request, CancellationToken ct)
+    {
+        var identity = await spotify.IdentifyAsync(request.ToGrant(), ct);
+
+        var linked = await FindBySpotifyIdAsync(identity.Id, ct);
+        if (linked is not null) return await IssueSpotifySessionAsync(linked, isNewUser: false, ct);
+
+        if (!request.AcceptTerms || request.ConsentVersion != legal.Value.ConsentVersion)
+            throw ApiException.BadRequest(ErrorCodes.ConsentRequired, "Debes aceptar los términos y la política de datos vigentes.");
+        if (identity.Email is null)
+            throw ApiException.BadRequest(ErrorCodes.SpotifyEmailMissing, "Tu cuenta de Spotify no tiene un correo. Crea tu cuenta con correo y contraseña.");
+
+        var email = Text.NormalizeEmail(identity.Email);
+        if (await db.Users.AnyAsync(u => u.Email == email, ct)) throw SpotifyEmailInUse();
+        await EnsureEmailNotBannedAsync(email, ct);
+
+        var now = clock.GetUtcNow();
+        var user = new User
+        {
+            Email = email,
+            SpotifyId = identity.Id,
+            DisplayName = SpotifyDisplayName(identity.DisplayName),
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
+        db.Users.Add(user);
+        db.UserConsents.Add(new UserConsent { UserId = user.Id, Version = legal.Value.ConsentVersion, AcceptedAt = now });
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            // Carrera: un login paralelo con la misma cuenta de Spotify ya la creó (entra a esa) o alguien tomó el correo.
+            db.ChangeTracker.Clear();
+            linked = await FindBySpotifyIdAsync(identity.Id, ct);
+            if (linked is null) throw SpotifyEmailInUse();
+            return await IssueSpotifySessionAsync(linked, isNewUser: false, ct);
+        }
+
+        return await IssueSpotifySessionAsync(user, isNewUser: true, ct);
+    }
+
+    private async Task<SpotifyAuthResponse> IssueSpotifySessionAsync(User user, bool isNewUser, CancellationToken ct)
+    {
+        if (user.Status == UserStatus.Banned) throw Banned();
+
+        var refresh = NewRefreshToken(user.Id, Guid.CreateVersion7(), clock.GetUtcNow());
+        db.RefreshTokens.Add(refresh.Entity);
+        await db.SaveChangesAsync(ct);
+
+        var auth = BuildResponse(user, refresh.Token, refresh.Entity.FamilyId);
+        return new SpotifyAuthResponse(auth.AccessToken, auth.RefreshToken, auth.ExpiresIn, auth.User, isNewUser);
+    }
+
+    /// <summary>Vincula la cuenta de Spotify del grant al usuario autenticado. Idempotente si ya es la misma.</summary>
+    public async Task LinkSpotifyAsync(Guid userId, SpotifyGrant grant, CancellationToken ct)
+    {
+        var identity = await spotify.IdentifyAsync(grant, ct);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
+        if (user.SpotifyId == identity.Id) return;
+        // Cambiar de cuenta de Spotify exige desvincular primero: así nunca se pierde el único método de entrada.
+        if (user.SpotifyId is not null || await db.Users.AnyAsync(u => u.SpotifyId == identity.Id, ct)) throw SpotifyAlreadyLinked();
+
+        user.SpotifyId = identity.Id;
+        user.UpdatedAt = clock.GetUtcNow();
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            throw SpotifyAlreadyLinked();
+        }
+    }
+
+    /// <summary>Desvincula Spotify. Una cuenta sin contraseña no puede: se quedaría sin forma de entrar.</summary>
+    public async Task UnlinkSpotifyAsync(Guid userId, CancellationToken ct)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
+        if (user.SpotifyId is null) return;
+        if (!user.HasPassword)
+            throw ApiException.Conflict(ErrorCodes.SpotifyLastLoginMethod, "Spotify es tu única forma de entrar: no puedes desvincularlo.");
+
+        user.SpotifyId = null;
+        user.UpdatedAt = clock.GetUtcNow();
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Reconfirma la identidad con Spotify para una operación sensible: el grant debe ser de la cuenta vinculada.
+    /// Como <see cref="VerifyPasswordAsync"/>, falla con 403 y no 401.
+    /// </summary>
+    public async Task VerifySpotifyAsync(Guid userId, SpotifyGrant grant, CancellationToken ct)
+    {
+        var identity = await spotify.IdentifyAsync(grant, ct);
+        var linkedId = await db.Users.Where(u => u.Id == userId).Select(u => u.SpotifyId).FirstOrDefaultAsync(ct);
+        if (linkedId != identity.Id)
+            throw ApiException.Forbidden(ErrorCodes.SpotifyAccountMismatch, "Esa cuenta de Spotify no es la vinculada a tu perfil.");
+    }
+
+    private Task<User?> FindBySpotifyIdAsync(string spotifyId, CancellationToken ct)
+        => db.Users.AsNoTracking().Include(u => u.Genres).FirstOrDefaultAsync(u => u.SpotifyId == spotifyId, ct);
+
+    private async Task EnsureEmailNotBannedAsync(string email, CancellationToken ct)
+    {
+        var emailHash = BannedEmail.HashOf(email);
+        if (await db.BannedEmails.AnyAsync(b => b.EmailHash == emailHash, ct))
+            throw ApiException.Forbidden(ErrorCodes.AccountBanned, "No puedes crear una cuenta con este correo.");
+    }
+
+    /// <summary>El nombre de Spotify es libre (o vacío): se recorta al largo del perfil y, si no sirve, queda uno genérico.</summary>
+    private static string SpotifyDisplayName(string? name)
+    {
+        name = name?.Trim();
+        if (name is null || name.Length < 2) return "Melómano";
+        return name.Length <= 50 ? name : name[..50].TrimEnd();
+    }
+
+    /// <summary>
     /// Única puerta para comprobar correo + contraseña (login y borrado web de cuenta): aplica el bloqueo por intentos
     /// (429), compara contra un hash ficticio si la cuenta no existe, cuenta el fallo de forma atómica y reinicia el
     /// contador al acertar. No mira el estado de la cuenta: un suspendido puede borrarla (Ley 1581).
@@ -106,7 +232,8 @@ public sealed class AuthService(
 
         if (!hasher.Verify(password, user?.PasswordHash))
         {
-            if (user is not null) await RegisterFailureAsync(user.Id, now, ct);
+            // Una cuenta sin contraseña (Spotify) responde como una inexistente y no acumula fallos: nada que adivinar.
+            if (user?.HasPassword == true) await RegisterFailureAsync(user.Id, now, ct);
             throw wrongPassword();
         }
 
@@ -195,6 +322,10 @@ public sealed class AuthService(
             new AuthUserDto(user.Id, user.Email, user.DisplayName, user.OnboardingCompleted, user.Role));
     }
 
+    private static ApiException SpotifyEmailInUse() => ApiException.Conflict(ErrorCodes.SpotifyEmailInUse,
+        "Ya hay una cuenta con el correo de tu Spotify. Entra con tu contraseña y vincula Spotify desde tu perfil.");
+    private static ApiException SpotifyAlreadyLinked() => ApiException.Conflict(ErrorCodes.SpotifyAlreadyLinked,
+        "Esa cuenta de Spotify ya está vinculada a otro perfil, o el tuyo ya tiene otra.");
     private static ApiException EmailTaken() => ApiException.Conflict(ErrorCodes.EmailTaken, "Ya existe una cuenta con ese correo.");
     private static ApiException InvalidRefresh() => ApiException.Unauthorized(ErrorCodes.InvalidRefreshToken, "Tu sesión expiró. Inicia sesión de nuevo.");
     private static ApiException Banned() => ApiException.Forbidden(ErrorCodes.AccountBanned, "Tu cuenta está suspendida.");

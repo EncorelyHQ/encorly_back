@@ -59,6 +59,7 @@ builder.Services.AddSingleton<IValidateOptions<SeedOptions>, SeedOptionsValidato
 builder.Services.AddOptions<PushOptions>().BindConfiguration(PushOptions.Section);
 builder.Services.AddOptions<LegalOptions>().BindConfiguration(LegalOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddSingleton<IValidateOptions<LegalOptions>, LegalOptionsValidator>();
+builder.Services.AddOptions<SpotifyOptions>().BindConfiguration(SpotifyOptions.Section);
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddDbContext<AppDbContext>((sp, o) => o
@@ -101,6 +102,7 @@ builder.Services.AddHttpClient<ITunesClient>(c =>
     c.BaseAddress = new Uri(ITunesClient.BaseAddress);
     c.Timeout = TimeSpan.FromSeconds(10);
 });
+builder.Services.AddHttpClient<SpotifyClient>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddScoped<Seeder>();
 
 builder.Services.AddRateLimiter(o =>

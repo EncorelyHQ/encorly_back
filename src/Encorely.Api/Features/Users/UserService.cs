@@ -156,7 +156,8 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
         user.City, user.Bio,
         user.Genres.Select(g => g.Genre!.Slug).Order().ToList(),
         user.OnboardingCompleted, user.Role, user.CreatedAt,
-        acceptedConsent, acceptedConsent == legal.Value.ConsentVersion);
+        acceptedConsent, acceptedConsent == legal.Value.ConsentVersion,
+        user.SpotifyId is not null, user.HasPassword);
 
     private DateOnly Today() => DateOnly.FromDateTime(clock.GetUtcNow().ToOffset(ColombiaOffset).DateTime);
 
