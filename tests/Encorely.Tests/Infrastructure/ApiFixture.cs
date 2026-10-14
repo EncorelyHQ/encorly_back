@@ -51,6 +51,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 ["Seed:DemoUserPassword"] = "",
                 ["Jwt:SigningKey"] = JwtKey,
                 ["RateLimit:AuthPermitPerMinute"] = "10000",
+                ["RateLimit:UserWritesPerMinute"] = "100000",
                 ["Push:Enabled"] = "false",
                 ["Matching:RadarMinSwipes"] = "3",
             }));

@@ -93,6 +93,15 @@ builder.Services.AddRateLimiter(o =>
             ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.AuthPermitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 });
     });
+    o.AddPolicy(EndpointExtensions.UserWritesPolicy, ctx =>
+    {
+        var limits = ctx.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+        var key = ctx.User.TryUserId()?.ToString() ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida";
+        return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = limits.UserWritesPerMinute, Window = TimeSpan.FromMinutes(1), SegmentsPerWindow = 6, QueueLimit = 0,
+        });
+    });
     o.OnRejected = async (ctx, ct) =>
     {
         ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;

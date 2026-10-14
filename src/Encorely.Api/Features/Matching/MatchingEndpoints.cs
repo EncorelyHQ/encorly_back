@@ -13,7 +13,7 @@ public static class MatchingEndpoints
 
         g.MapPost("/likes", Like).WithName("LikeUser")
             .WithSummary("Like a una persona con la que comparto un evento. Hay match solo si el like es recíproco (idempotente)")
-            .Problems(400, 401, 403, 404);
+            .Problems(400, 401, 403, 404).UserWrites();
         g.MapGet("/matches", List).WithName("ListMatches").WithSummary("Mis matches activos, el más reciente primero").Problems(401);
         g.MapGet("/matches/{id:guid}", Get).WithName("GetMatch").WithSummary("Un match mío").Problems(401, 404);
         g.MapDelete("/matches/{id:guid}", Unmatch).WithName("Unmatch").WithSummary("Deshace el match y cierra el chat").Problems(401, 404);

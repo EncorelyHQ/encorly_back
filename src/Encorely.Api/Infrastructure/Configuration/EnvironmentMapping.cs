@@ -23,6 +23,7 @@ public static class EnvironmentMapping
         ("JWT_ACCESS_TOKEN_MINUTES", "Jwt:AccessTokenMinutes"),
         ("JWT_REFRESH_TOKEN_DAYS", "Jwt:RefreshTokenDays"),
         ("RADAR_MIN_SWIPES", "Matching:RadarMinSwipes"),
+        ("RATE_LIMIT_USER_WRITES_PER_MINUTE", "RateLimit:UserWritesPerMinute"),
         ("RADAR_MIN_AFFINITY", "Matching:RadarMinAffinity"),
         ("PUSH_ENABLED", "Push:Enabled"),
         ("EXPO_PUSH_ACCESS_TOKEN", "Push:ExpoAccessToken"),

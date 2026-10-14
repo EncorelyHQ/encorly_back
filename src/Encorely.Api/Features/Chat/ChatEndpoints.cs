@@ -13,7 +13,7 @@ public static class ChatEndpoints
         var keys = api.MapGroup("").WithTags("Llaves E2EE");
         keys.MapPut("/keys/me", PutMyKeys).WithName("PutMyKeys")
             .WithSummary("Publica o rota mis llaves públicas. Si cambia la identidad, se avisa a mis matches (PeerKeyChanged)")
-            .Problems(400, 401, 409);
+            .Problems(400, 401, 409).UserWrites();
         keys.MapGet("/keys/me", GetMyKeys).WithName("GetMyKeys").WithSummary("Mis llaves públicas vigentes (para saber el último boxKeyId)").Problems(401, 404);
         keys.MapGet("/matches/{id:guid}/peer-keys", GetPeerKeys).WithName("GetPeerKeys")
             .WithSummary("Llaves públicas vigentes de la otra persona del match").Problems(401, 404);
@@ -24,7 +24,7 @@ public static class ChatEndpoints
         chat.MapPost("", Send).WithName("SendMessage")
             .WithSummary("Envía un mensaje cifrado. 201 al crearlo; 200 si el mismo id ya existía con el mismo contenido")
             .Produces<MessageAcceptedDto>(StatusCodes.Status200OK)
-            .Problems(400, 401, 403, 404, 409);
+            .Problems(400, 401, 403, 404, 409).UserWrites();
         chat.MapGet("", List).WithName("ListMessages")
             .WithSummary("Mensajes cifrados del match. ?before=seq pagina hacia atrás (desc); ?after=seq trae los nuevos (asc)")
             .Problems(400, 401, 404);

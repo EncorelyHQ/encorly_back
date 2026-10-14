@@ -14,6 +14,12 @@ public static class Msg
 
 public static class EndpointExtensions
 {
+    public const string UserWritesPolicy = "user-writes";
+
+    /// <summary>Límite por usuario (no por IP) para escrituras que se prestan a abuso.</summary>
+    public static RouteHandlerBuilder UserWrites(this RouteHandlerBuilder builder)
+        => builder.RequireRateLimiting(UserWritesPolicy).ProducesProblem(StatusCodes.Status429TooManyRequests);
+
     /// <summary>Documenta en el OpenAPI las respuestas ProblemDetails posibles.</summary>
     public static RouteHandlerBuilder Problems(this RouteHandlerBuilder builder, params int[] statuses)
     {

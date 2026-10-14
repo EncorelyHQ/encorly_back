@@ -17,7 +17,7 @@ public static class SyncEndpoints
 
         var link = api.MapGroup("/keys/link-requests").WithTags("Vincular dispositivo");
         link.MapPost("", Create).WithName("CreateLinkRequest")
-            .WithSummary("Dispositivo NUEVO: abre un buzón de vinculación (vence en 10 min)").Problems(400, 401, 429);
+            .WithSummary("Dispositivo NUEVO: abre un buzón de vinculación (vence en 10 min)").Problems(400, 401, 429).UserWrites();
         link.MapGet("/{id:guid}", Get).WithName("GetLinkRequest").WithSummary("Consulta el buzón (el nuevo lo sondea hasta que esté ready)").Problems(401, 404);
         link.MapPut("/{id:guid}", Fulfill).WithName("FulfillLinkRequest")
             .WithSummary("Dispositivo VIEJO: deja el material de llaves cifrado hacia la llave efímera del nuevo (una sola vez)").Problems(400, 401, 404, 409);

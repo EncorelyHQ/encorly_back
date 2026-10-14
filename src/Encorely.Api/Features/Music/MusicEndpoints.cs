@@ -16,7 +16,7 @@ public static class MusicEndpoints
         g.MapGet("/songs/feed", GetFeed).WithName("GetSongFeed")
             .WithSummary("Canciones aún no calificadas por mí, mezclando mis géneros y exploración").Problems(400, 401);
         g.MapPost("/swipes", PostSwipe).WithName("Swipe")
-            .WithSummary("Califica una canción (like/dislike). Repetir la misma canción no suma").Problems(400, 401, 404);
+            .WithSummary("Califica una canción (like/dislike). Repetir la misma canción no suma").Problems(400, 401, 404).UserWrites();
         g.MapGet("/me/dna", GetDna).WithName("GetMyDna").WithSummary("Mi ADN musical (vector de géneros) y estado del radar").Problems(401);
         g.MapPost("/me/spotify/import", ImportSpotify).WithName("ImportSpotify")
             .WithSummary("Importa top artistas de Spotify (leídos en el dispositivo) para enriquecer el ADN").Problems(400, 401);

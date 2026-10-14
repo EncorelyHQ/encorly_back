@@ -58,6 +58,8 @@ public sealed class RateLimitOptions
     /// <summary>Intentos fallidos seguidos antes de bloquear la cuenta temporalmente.</summary>
     [Range(1, 100)] public int MaxFailedLogins { get; set; } = 5;
     [Range(1, 1440)] public int LockoutMinutes { get; set; } = 15;
+    /// <summary>Escrituras por usuario y minuto en acciones que se prestan a spam (likes, mensajes, reportes…).</summary>
+    [Range(1, 100_000)] public int UserWritesPerMinute { get; set; } = 120;
 }
 
 public sealed class SeedOptions

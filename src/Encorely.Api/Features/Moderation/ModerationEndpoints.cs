@@ -13,10 +13,10 @@ public static class ModerationEndpoints
 
         g.MapPost("/blocks", BlockUser).WithName("BlockUser")
             .WithSummary("Bloquea a un usuario: cierra el match, desaparece del radar y no puede escribirme (idempotente)")
-            .Problems(400, 401, 404);
+            .Problems(400, 401, 404).UserWrites();
         g.MapGet("/blocks", ListBlocks).WithName("ListBlocks").WithSummary("Usuarios que bloqueé").Problems(401);
         g.MapDelete("/blocks/{userId:guid}", Unblock).WithName("UnblockUser").WithSummary("Desbloquea (no reabre el match)").Problems(401);
-        g.MapPost("/reports", ReportUser).WithName("ReportUser").WithSummary("Reporta a un usuario para revisión").Problems(400, 401, 404);
+        g.MapPost("/reports", ReportUser).WithName("ReportUser").WithSummary("Reporta a un usuario para revisión").Problems(400, 401, 404).UserWrites();
     }
 
     private static async Task<NoContent> BlockUser(BlockRequest request, ClaimsPrincipal user, ModerationService moderation, CancellationToken ct)

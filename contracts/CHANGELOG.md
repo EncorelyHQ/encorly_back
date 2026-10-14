@@ -3,6 +3,10 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.4
+- Nuevo (no rompe): límite por usuario (120/min por defecto) en swipes, likes, envío de mensajes, publicación de
+  llaves, bloqueos, reportes y vinculación. Al excederlo: 429 `rate_limited` con cabecera `Retry-After`.
+
 ## 2026-10-14 · v1.0.0-draft.3
 - Nuevo (v2, no rompe): respaldo cifrado `PUT/GET/DELETE /me/backup` y `GET /me/backup/info` (blob opaco cifrado en el
   dispositivo con passphrase; KDF argon2id|scrypt|pbkdf2-sha256; máx. 10 MiB).

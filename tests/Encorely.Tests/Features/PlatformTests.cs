@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Encorely.Tests.Infrastructure;
+using Microsoft.Extensions.Configuration;
 
 namespace Encorely.Tests.Features;
 
@@ -116,5 +117,31 @@ public sealed class OpenApiContractTests(ApiFixture api)
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Encorely.slnx"))) dir = dir.Parent;
         return dir?.FullName ?? throw new InvalidOperationException("No se encontró la raíz del repo (Encorely.slnx).");
+    }
+}
+
+public sealed class UserRateLimitTests(ApiFixture api)
+{
+    [Fact]
+    public async Task Escrituras_tienen_limite_por_usuario_no_por_ip()
+    {
+        await using var factory = api.Factory.WithWebHostBuilder(b => b.ConfigureAppConfiguration((_, c) =>
+            c.AddInMemoryCollection(new Dictionary<string, string?> { ["RateLimit:UserWritesPerMinute"] = "2" })));
+        var a = await api.CreateUserAsync();
+        var b = await api.CreateUserAsync();
+        HttpClient Client(TestUser u)
+        {
+            var c = factory.CreateClient();
+            c.DefaultRequestHeaders.Authorization = new("Bearer", u.AccessToken);
+            return c;
+        }
+
+        var ca = Client(a);
+        var body = new { userId = Guid.NewGuid() };
+        for (var i = 0; i < 2; i++)
+            Assert.NotEqual(HttpStatusCode.TooManyRequests, (await ca.PostJson("/api/v1/blocks", body)).StatusCode);
+        await ca.PostJson("/api/v1/blocks", body).ExpectProblem(HttpStatusCode.TooManyRequests, "rate_limited");
+        // Otro usuario desde la misma IP no comparte el cupo.
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, (await Client(b).PostJson("/api/v1/blocks", body)).StatusCode);
     }
 }
