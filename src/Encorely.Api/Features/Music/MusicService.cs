@@ -112,6 +112,8 @@ public sealed class MusicService(AppDbContext db, IOptions<MatchingOptions> matc
         var genreIds = await db.Genres.AsNoTracking().ToDictionaryAsync(g => g.Slug, g => g.Id, ct);
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Serializa las importaciones del mismo usuario: dos en paralelo no se veían entre sí y sus aportes se sumaban pasando el tope.
+        await AdvisoryLock.AcquireAsync(db, "dna-import", userId, ct);
         // La importación nueva reemplaza a la anterior: primero se limpia el aporte y luego se escribe el nuevo.
         await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE user_genre_scores SET imported_weight = 0 WHERE user_id = {userId}", ct);
         foreach (var (slug, raw) in slugWeights)

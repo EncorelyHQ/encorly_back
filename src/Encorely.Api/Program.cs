@@ -22,6 +22,8 @@ using Encorely.Api.Infrastructure.Http;
 using Encorely.Api.Infrastructure.Push;
 using Encorely.Api.Infrastructure.Realtime;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -35,6 +37,19 @@ builder.Configuration.AddEncorelyEnvironment();
 
 // Configuración validada al arrancar: si falta un secreto, la API no levanta (sin valores de respaldo).
 builder.Services.AddOptions<DatabaseOptions>().BindConfiguration(DatabaseOptions.Section).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidator>();
+builder.Services.AddOptions<ProxyOptions>().BindConfiguration(ProxyOptions.Section);
+builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<ProxyOptions>>((o, proxy) =>
+{
+    var networks = proxy.Value.ParseNetworks();
+    if (networks.Count == 0) return;
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 1;
+    // Por defecto el middleware confía en loopback: se reemplaza por exactamente las redes configuradas.
+    o.KnownProxies.Clear();
+    o.KnownIPNetworks.Clear();
+    foreach (var n in networks) o.KnownIPNetworks.Add(n);
+});
 builder.Services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<MatchingOptions>().BindConfiguration(MatchingOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.Section).ValidateDataAnnotations().ValidateOnStart();
@@ -124,6 +139,9 @@ builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false
 
 var app = builder.Build();
 
+// Primero: el rate limit y el log de acceso deben ver la IP real del cliente, y solo si el proxy es de confianza.
+if (!string.IsNullOrWhiteSpace(app.Configuration[$"{ProxyOptions.Section}:{nameof(ProxyOptions.TrustedNetworks)}"]))
+    app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSecurityHeaders();
@@ -135,7 +153,12 @@ app.UseActiveUserCheck();
 app.UseAuthorization();
 app.UseRateLimiter();
 
-app.MapOpenApi("/openapi/{documentName}.json").AllowAnonymous();
+// El contrato no se publica en producción (mapa completo de la superficie de ataque); Testing lo necesita para el test de contrato.
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+    app.MapOpenApi("/openapi/{documentName}.json").AllowAnonymous();
+else
+    // Sin ruta, la política por defecto respondería 401 y delataría que el recurso existe en otros entornos.
+    app.MapGet("/openapi/{**path}", () => Results.NotFound()).AllowAnonymous().ExcludeFromDescription();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI(o =>
@@ -175,6 +198,7 @@ static void ConfigureJson(JsonSerializerOptions o)
 {
     o.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     o.NumberHandling = JsonNumberHandling.Strict;
+    o.Converters.Add(new NoNulCharStringConverter());
     o.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
     // Campos obligatorios de verdad: faltar uno (o mandar null donde no se admite) es 400, no un default silencioso.
     o.RespectNullableAnnotations = true;

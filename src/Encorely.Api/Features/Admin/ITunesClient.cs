@@ -12,7 +12,8 @@ public sealed class ITunesClient(HttpClient http, ILogger<ITunesClient> logger)
     public async Task<IReadOnlyList<ITunesTrackDto>> SearchAsync(string term, CancellationToken ct)
     {
         term = term.Trim();
-        if (term.Length is < 2 or > 100)
+        // Se corta antes de salir a la red: U+0000 no es un término de búsqueda válido.
+        if (term.Length is < 2 or > 100 || term.Contains('\0'))
             throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "Escribe entre 2 y 100 caracteres para buscar.");
 
         try

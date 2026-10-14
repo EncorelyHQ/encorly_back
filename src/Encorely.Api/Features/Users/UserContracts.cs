@@ -26,7 +26,7 @@ public sealed record UpdateMeRequest(
     DateOnly? BirthDate = null,
     [StringLength(80, MinimumLength = 2, ErrorMessage = Msg.Length)] string? City = null,
     [MaxLength(300, ErrorMessage = Msg.MaxLength)] string? Bio = null,
-    [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems)] IReadOnlyList<string>? Genres = null);
+    [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string>? Genres = null);
 
 public sealed record ConsentRequest([Required(ErrorMessage = Msg.Required), MaxLength(32, ErrorMessage = Msg.MaxLength)] string Version);
 

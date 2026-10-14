@@ -7,6 +7,15 @@ public static class OpenApiSetup
 {
     public const string DocumentName = "v1";
 
+    private static void RestoreStringItems(IOpenApiSchema schema)
+    {
+        if (schema is not OpenApiSchema s) return;
+        if (s.Type is { } type && type.HasFlag(JsonSchemaType.Array) && s.Items is null)
+            s.Items = new OpenApiSchema { Type = JsonSchemaType.String };
+        foreach (var property in s.Properties?.Values ?? []) RestoreStringItems(property);
+        if (s.Items is not null) RestoreStringItems(s.Items);
+    }
+
     public static IServiceCollection AddEncorelyOpenApi(this IServiceCollection services) => services.AddOpenApi(DocumentName, o =>
     {
         o.AddDocumentTransformer((doc, _, _) =>
@@ -39,6 +48,26 @@ public static class OpenApiSetup
                 BearerFormat = "JWT",
                 Description = "Access token de /auth/login, /auth/register o /auth/refresh.",
             };
+            return Task.CompletedTask;
+        });
+
+        // Con un JsonConverter propio para string (NoNulCharStringConverter) el generador ya no sabe el tipo y emitiría {}:
+        // se restituye "string" (y null donde la propiedad lo admite) para que el contrato no cambie.
+        o.AddSchemaTransformer((schema, ctx, _) =>
+        {
+            if (ctx.JsonTypeInfo.Type != typeof(string) || schema.Type is not null) return Task.CompletedTask;
+            schema.Type = JsonSchemaType.String;
+            if (ctx.JsonPropertyInfo is { IsGetNullable: true } || ctx.ParameterDescription is { ModelMetadata.IsNullableValueType: true })
+                schema.Type |= JsonSchemaType.Null;
+            return Task.CompletedTask;
+        });
+
+        // Los elementos de las listas de string se pierden igual (el generador los deja sin esquema): todas nuestras listas
+        // sin items son IReadOnlyList<string>, el resto de elementos llegan como $ref.
+        o.AddDocumentTransformer((doc, _, _) =>
+        {
+            foreach (var schema in doc.Components?.Schemas?.Values ?? [])
+                RestoreStringItems(schema);
             return Task.CompletedTask;
         });
 

@@ -1,3 +1,4 @@
+using Encorely.Api.Features.Auth;
 using Encorely.Api.Features.Events;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
@@ -119,18 +120,31 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, TimeProvide
     public async Task SetUserStatusAsync(Guid adminId, Guid userId, UserStatus status, CancellationToken ct)
     {
         if (userId == adminId) throw ApiException.BadRequest("cannot_change_own_status", "No puedes cambiar el estado de tu propia cuenta.");
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
-            ?? throw ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos esa cuenta.");
-        if (user.Status == status) return;
-
         var now = clock.GetUtcNow();
         List<Match> closed = [];
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
+            // Exclusivo: un like en vuelo (que toma este mismo lock compartido) termina antes de suspender o ve la cuenta ya suspendida.
+            await AdvisoryLock.AcquireAsync(db, MatchingService.AccountStateScope, userId, ct);
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+                ?? throw ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos esa cuenta.");
+            if (user.Status == status) return;
+
             user.Status = status;
             user.UpdatedAt = now;
+            if (status == UserStatus.Active)
+            {
+                // Reactivar levanta también el veto de re-registro.
+                var hash = BannedEmail.HashOf(user.Email);
+                await db.BannedEmails.Where(b => b.EmailHash == hash).ExecuteDeleteAsync(ct);
+            }
             if (status == UserStatus.Banned)
             {
+                var emailHash = BannedEmail.HashOf(user.Email);
+                await db.Database.ExecuteSqlInterpolatedAsync(
+                    $"INSERT INTO banned_emails (email_hash, created_at) VALUES ({emailHash}, {now}) ON CONFLICT (email_hash) DO NOTHING", ct);
+                // Los avisos push del teléfono del suspendido terminan con su acceso.
+                await db.DevicePushTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
                 closed = await db.Matches.Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId)).ToListAsync(ct);
                 foreach (var m in closed)
                 {

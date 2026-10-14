@@ -13,7 +13,7 @@ public sealed record ReportRequest(
     ReportReason Reason,
     [MaxLength(1000, ErrorMessage = Msg.MaxLength)] string? Detail = null,
     Guid? MatchId = null,
-    [MaxLength(20, ErrorMessage = Msg.MaxItems)] IReadOnlyList<ReportEvidenceRequest>? Evidence = null);
+    [MaxLength(20, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<ReportEvidenceRequest>? Evidence = null);
 
 /// <param name="FrankingKey">32 B, la llave que venía dentro del mensaje descifrado.</param>
 public sealed record ReportEvidenceRequest(

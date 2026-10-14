@@ -29,6 +29,7 @@ public static class EnvironmentMapping
         ("PUSH_ENABLED", "Push:Enabled"),
         ("EXPO_PUSH_ACCESS_TOKEN", "Push:ExpoAccessToken"),
         ("CORS_ORIGINS", "Cors:Origins"),
+        ("FORWARDED_TRUSTED_NETWORKS", "Proxy:TrustedNetworks"),
         ("PUBLIC_BASE_URL", "Legal:PublicBaseUrl"),
     ];
 

@@ -99,7 +99,9 @@ public sealed class Seeder(
 
         var genres = await db.Genres.ToDictionaryAsync(g => g.Slug, g => g.Id, ct);
         var songs = await db.Songs.Where(s => s.IsActive).OrderBy(s => s.Title).Select(s => new { s.Id, s.GenreId }).ToListAsync(ct);
-        var events = await db.Events.ToDictionaryAsync(e => e.Name, e => e.Id, ct);
+        // El admin puede crear eventos con el mismo nombre: el diccionario no debe reventar por duplicados.
+        var events = (await db.Events.OrderBy(e => e.CreatedAt).Select(e => new { e.Name, e.Id }).ToListAsync(ct))
+            .GroupBy(e => e.Name).ToDictionary(g => g.Key, g => g.First().Id);
         var hash = hasher.Hash(password);
         var now = clock.GetUtcNow();
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Encorely.Api.Infrastructure.Configuration;
@@ -25,6 +26,41 @@ public sealed class DatabaseOptions
         Password = Password,
         SslMode = SslMode,
     }.ConnectionString;
+}
+
+/// <summary>Fuera de Development/Testing una conexión a Postgres sin TLS exigido no es aceptable.</summary>
+public sealed class DatabaseOptionsValidator(IHostEnvironment environment) : IValidateOptions<DatabaseOptions>
+{
+    public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
+    {
+        if (environment.IsDevelopment() || environment.IsEnvironment("Testing")) return ValidateOptionsResult.Success;
+        return options.SslMode is SslMode.Require or SslMode.VerifyCA or SslMode.VerifyFull
+            ? ValidateOptionsResult.Success
+            : ValidateOptionsResult.Fail($"DB_SSL_MODE debe ser Require, VerifyCA o VerifyFull fuera de desarrollo (actual: {options.SslMode}): la conexión a la base de datos no puede ir sin TLS.");
+    }
+}
+
+public sealed class ProxyOptions
+{
+    public const string Section = "Proxy";
+
+    /// <summary>
+    /// Redes CIDR (separadas por coma) de los proxies de confianza. Vacío = no se leen cabeceras X-Forwarded-*:
+    /// cualquiera podría falsear su IP y esquivar el rate limit por IP.
+    /// </summary>
+    public string? TrustedNetworks { get; set; }
+
+    public IReadOnlyList<System.Net.IPNetwork> ParseNetworks()
+    {
+        var networks = new List<System.Net.IPNetwork>();
+        foreach (var raw in (TrustedNetworks ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!System.Net.IPNetwork.TryParse(raw, out var network))
+                throw new InvalidOperationException($"FORWARDED_TRUSTED_NETWORKS: '{raw}' no es una red CIDR válida (ej. 10.0.0.0/8).");
+            networks.Add(network);
+        }
+        return networks;
+    }
 }
 
 public sealed class JwtOptions

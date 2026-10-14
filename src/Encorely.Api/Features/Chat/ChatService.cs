@@ -60,6 +60,15 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
                 CreatedAt = now,
             });
             await db.SaveChangesAsync(ct);
+            if (request.FrankingTag is { } tag)
+            {
+                // Misma transacción que el mensaje: el ack y la retención lo borran, el compromiso queda para verificar reportes.
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO message_franking_records (message_id, match_id, sender_id, recipient_id, franking_tag, created_at)
+                    VALUES ({request.Id}, {matchId}, {userId}, {peerId}, {tag}, {now})
+                    ON CONFLICT (message_id) DO NOTHING
+                    """, ct);
+            }
             await tx.CommitAsync(ct);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })

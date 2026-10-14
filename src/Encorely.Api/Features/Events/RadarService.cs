@@ -78,8 +78,11 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
 
     public async Task<IReadOnlyList<RadarEntryDto>> GetAsync(Guid userId, Guid eventId, CancellationToken ct)
     {
-        if (!await db.Events.AnyAsync(e => e.Id == eventId && e.IsPublished, ct))
-            throw ApiException.NotFound(ErrorCodes.EventNotFound, "No encontramos ese evento.");
+        var startsAt = await db.Events.Where(e => e.Id == eventId && e.IsPublished).Select(e => (DateTimeOffset?)e.StartsAt).FirstOrDefaultAsync(ct)
+            ?? throw ApiException.NotFound(ErrorCodes.EventNotFound, "No encontramos ese evento.");
+        // Mismo corte que el like: un radar donde nadie puede dar like es una vista muerta.
+        if (startsAt <= EventWindow.Cutoff(clock.GetUtcNow()))
+            throw ApiException.BadRequest(ErrorCodes.EventPast, "El evento ya pasó.");
 
         if (!await db.EventAttendances.AnyAsync(a => a.EventId == eventId && a.UserId == userId, ct))
             throw ApiException.Forbidden(ErrorCodes.NotAttending, "Marca que vas al evento para ver quién más va.");

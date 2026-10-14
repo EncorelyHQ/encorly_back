@@ -8,7 +8,7 @@ namespace Encorely.Api.Features.Admin;
 /// <param name="StartsAt">ISO-8601 con zona (Colombia es UTC-5).</param>
 public sealed record AdminEventRequest(
     [Required(ErrorMessage = Msg.Required), StringLength(200, MinimumLength = 3, ErrorMessage = Msg.Length)] string Name,
-    [Required(ErrorMessage = Msg.Required), MinLength(1, ErrorMessage = "Agrega al menos un artista."), MaxLength(30, ErrorMessage = Msg.MaxItems)] IReadOnlyList<string> ArtistLineup,
+    [Required(ErrorMessage = Msg.Required), MinLength(1, ErrorMessage = "Agrega al menos un artista."), MaxLength(30, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string> ArtistLineup,
     [Required(ErrorMessage = Msg.Required), StringLength(200, MinimumLength = 2, ErrorMessage = Msg.Length)] string Venue,
     [Required(ErrorMessage = Msg.Required), StringLength(80, MinimumLength = 2, ErrorMessage = Msg.Length)] string City,
     DateTimeOffset StartsAt,
