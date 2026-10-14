@@ -162,6 +162,8 @@ api.MapAdmin();
 app.MapHub<ChatHub>(ChatHub.Path);
 app.MapAccountDeletionPage();
 app.MapAdminPanel();
+// Los navegadores lo piden solos; sin esto la política por defecto respondería 401.
+app.MapGet("/favicon.ico", () => Results.NoContent()).AllowAnonymous().ExcludeFromDescription();
 
 await app.Services.PrepareDatabaseAsync();
 app.Run();
