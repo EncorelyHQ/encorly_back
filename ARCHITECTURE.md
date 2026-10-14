@@ -50,7 +50,7 @@ Cada feature tiene `*Endpoints.cs` (rutas y metadatos OpenAPI), `*Contracts.cs` 
 ## 2. Pipeline de una request
 
 ```
-ExceptionHandler → StatusCodePages → SecurityHeaders → log de acceso (sin query) → CORS
+[ForwardedHeaders: solo si FORWARDED_TRUSTED_NETWORKS] → ExceptionHandler → StatusCodePages → SecurityHeaders → log de acceso (sin query) → CORS
 → Authentication (JWT) → ActiveUserCheck → Authorization (fallback: autenticado) → RateLimiter
 → Validación (DataAnnotations, .NET 10) → handler → servicio → EF Core / Dapper
 ```
@@ -98,6 +98,15 @@ Reglas que la BD garantiza (no solo el código):
 - `matches`: `CHECK (user_a_id < user_b_id)` y un índice único **parcial** sobre el par cuando `status = 'Active'`: un solo
   match activo por par, con historial de matches cerrados.
 - `chat_messages (match_id, seq)` único; `id` lo genera el cliente (idempotencia).
+- `banned_emails` (hash SHA-256 del correo): suspender una cuenta veta su correo para registrarse aunque la borre; reactivar
+  lo levanta. `message_franking_records`: copia del compromiso de franking, con vida propia (el ack y la retención borran
+  el mensaje, no el compromiso; vence a los 180 días) para que un reporte pueda verificarse después.
+- Operaciones sin fila natural que bloquear se serializan por usuario con advisory locks de transacción
+  (`Infrastructure/Database/AdvisoryLock.cs`): `keys`, `profile`, `dna-import` y `account-state` (compartido en likes,
+  exclusivo al suspender, para que un ban concurrente no deje un match activo).
+- El contador de intentos fallidos se incrementa en un solo UPDATE (sin lost update); login y borrado web comparten
+  `AuthService.VerifyCredentialsAsync`.
+- El access token lleva `sid` (familia del refresh): los push tokens se ligan a esa sesión y se borran al cerrarla.
 - Borrar un usuario borra en cascada swipes, likes, matches, mensajes, llaves, sesiones y respaldos. Los reportes quedan
   con la referencia en `NULL`: son evidencia de moderación.
 - Enums guardados como texto (legibles y sin CHECKs numéricos que den 500).

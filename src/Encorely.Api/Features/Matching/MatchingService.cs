@@ -1,3 +1,4 @@
+using Encorely.Api.Features.Events;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Database;
@@ -9,6 +10,9 @@ namespace Encorely.Api.Features.Matching;
 
 public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProvider clock)
 {
+    /// <summary>Ámbito del advisory lock del estado de cuenta: compartido en likes, exclusivo al suspender o reactivar.</summary>
+    public const string AccountStateScope = "account-state";
+
     public async Task<LikeResponse> LikeAsync(Guid userId, LikeRequest request, CancellationToken ct)
     {
         var targetId = request.TargetUserId;
@@ -21,7 +25,7 @@ public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProv
             throw UserNotFound();
 
         var now = clock.GetUtcNow();
-        var cutoff = now.AddDays(-1);
+        var cutoff = EventWindow.Cutoff(now);
         var sharedEvents = await (
             from mine in db.EventAttendances
             join theirs in db.EventAttendances on mine.EventId equals theirs.EventId
@@ -33,9 +37,15 @@ public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProv
 
         var (a, b) = Match.OrderPair(userId, targetId);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Compartidos y antes del PairLock: conviven entre likes y solo esperan a un ban en curso (que los toma exclusivos).
+        await AdvisoryLock.AcquireSharedAsync(db, AccountStateScope, userId, ct);
+        await AdvisoryLock.AcquireSharedAsync(db, AccountStateScope, targetId, ct);
         await PairLock.AcquireAsync(db, userId, targetId, ct);
 
-        // Bajo el lock el bloqueo pudo aparecer entre la validación y aquí.
+        // Bajo los locks la suspensión o el bloqueo pudieron aparecer entre la validación y aquí: sin esto un like
+        // concurrente con el ban dejaba un match activo con el suspendido.
+        var activeCount = await db.Users.CountAsync(u => (u.Id == userId || u.Id == targetId) && u.Status == UserStatus.Active, ct);
+        if (activeCount != 2) throw UserNotFound();
         if (await IsBlockedAsync(userId, targetId, ct)) throw UserNotFound();
 
         var like = await db.UserLikes.FirstOrDefaultAsync(l => l.FromUserId == userId && l.ToUserId == targetId, ct);

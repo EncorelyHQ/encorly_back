@@ -23,6 +23,22 @@ namespace Encorely.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Encorely.Api.Features.Auth.BannedEmail", b =>
+                {
+                    b.Property<byte[]>("EmailHash")
+                        .HasColumnType("bytea")
+                        .HasColumnName("email_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("EmailHash")
+                        .HasName("pk_banned_emails");
+
+                    b.ToTable("banned_emails", (string)null);
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Auth.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -136,6 +152,51 @@ namespace Encorely.Api.Data.Migrations
                     b.ToTable("chat_messages", (string)null);
                 });
 
+            modelBuilder.Entity("Encorely.Api.Features.Chat.MessageFrankingRecord", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<byte[]>("FrankingTag")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("franking_tag");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("match_id");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipient_id");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.HasKey("MessageId")
+                        .HasName("pk_message_franking_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_message_franking_records_created_at");
+
+                    b.HasIndex("MatchId")
+                        .HasDatabaseName("ix_message_franking_records_match_id");
+
+                    b.HasIndex("RecipientId")
+                        .HasDatabaseName("ix_message_franking_records_recipient_id");
+
+                    b.HasIndex("SenderId")
+                        .HasDatabaseName("ix_message_franking_records_sender_id");
+
+                    b.ToTable("message_franking_records", (string)null);
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Chat.UserBoxKey", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -213,6 +274,10 @@ namespace Encorely.Api.Data.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("platform");
 
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -229,6 +294,9 @@ namespace Encorely.Api.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_device_push_tokens");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("ix_device_push_tokens_session_id");
 
                     b.HasIndex("Token")
                         .IsUnique()
@@ -927,6 +995,23 @@ namespace Encorely.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_chat_messages_users_sender_id");
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Chat.MessageFrankingRecord", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_message_franking_records_users_recipient_id");
+
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_message_franking_records_users_sender_id");
                 });
 
             modelBuilder.Entity("Encorely.Api.Features.Chat.UserBoxKey", b =>

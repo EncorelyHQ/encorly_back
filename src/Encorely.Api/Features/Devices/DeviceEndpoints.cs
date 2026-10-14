@@ -18,7 +18,7 @@ public static class DeviceEndpoints
 
     private static async Task<NoContent> Register(PushTokenRequest request, ClaimsPrincipal user, DeviceService devices, CancellationToken ct)
     {
-        await devices.RegisterAsync(user.UserId(), request, ct);
+        await devices.RegisterAsync(user.UserId(), user.SessionId(), request, ct);
         return TypedResults.NoContent();
     }
 

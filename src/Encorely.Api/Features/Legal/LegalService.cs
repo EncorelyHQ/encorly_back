@@ -1,14 +1,11 @@
+using Encorely.Api.Features.Auth;
 using Encorely.Api.Features.Users;
-using Encorely.Api.Infrastructure.Auth;
 using Encorely.Api.Infrastructure.Configuration;
-using Encorely.Api.Infrastructure.Database;
-using Encorely.Api.Infrastructure.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Encorely.Api.Features.Legal;
 
-public sealed class LegalService(AppDbContext db, PasswordHasher hasher, UserService users, IOptions<LegalOptions> options)
+public sealed class LegalService(AuthService auth, UserService users, IOptions<LegalOptions> options)
 {
     public LegalResponse Current()
     {
@@ -19,12 +16,8 @@ public sealed class LegalService(AppDbContext db, PasswordHasher hasher, UserSer
 
     public async Task DeleteAccountAsync(AccountDeletionRequest request, CancellationToken ct)
     {
-        var email = Text.NormalizeEmail(request.Email);
-        var user = await db.Users.AsNoTracking().Where(u => u.Email == email).Select(u => new { u.Id, u.PasswordHash }).FirstOrDefaultAsync(ct);
-
-        if (!hasher.Verify(request.Password, user?.PasswordHash))
-            throw ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos.");
-
-        await users.DeleteAsync(user!.Id, ct);
+        // Mismo control que el login (bloqueo por intentos incluido): si no, esta página sería un oráculo de contraseñas sin freno.
+        var user = await auth.VerifyCredentialsAsync(request.Email, request.Password, ct);
+        await users.DeleteAsync(user.Id, ct);
     }
 }

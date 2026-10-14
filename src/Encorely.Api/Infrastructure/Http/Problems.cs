@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
 
 namespace Encorely.Api.Infrastructure.Http;
 
@@ -94,6 +95,16 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
                     Detail = bad.StatusCode == 400 ? "El cuerpo o los parámetros de la solicitud no tienen el formato esperado." : null,
                 };
                 break;
+            case var ex when IsInvalidText(ex):
+                // Red de seguridad para query strings/route con U+0000 que el converter de JSON no ve.
+                pd = new ProblemDetails
+                {
+                    Status = 400,
+                    Title = Problems.TitleFor(400),
+                    Detail = "Los datos enviados contienen caracteres no válidos.",
+                };
+                pd.Extensions["code"] = ErrorCodes.InvalidBody;
+                break;
             case OperationCanceledException when http.RequestAborted.IsCancellationRequested:
                 return true;
             default:
@@ -104,5 +115,13 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
 
         http.Response.StatusCode = pd.Status!.Value;
         return await problems.TryWriteAsync(new ProblemDetailsContext { HttpContext = http, ProblemDetails = pd, Exception = exception });
+    }
+
+    // 22021: byte inválido para UTF-8 (U+0000). 22P05: escape Unicode no soportado en jsonb. Puede venir envuelta (DbUpdateException).
+    private static bool IsInvalidText(Exception exception)
+    {
+        for (var e = exception; e is not null; e = e.InnerException)
+            if (e is PostgresException { SqlState: "22021" or "22P05" }) return true;
+        return false;
     }
 }

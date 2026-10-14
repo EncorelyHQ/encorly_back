@@ -31,6 +31,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Block> Blocks => Set<Block>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<DevicePushToken> DevicePushTokens => Set<DevicePushToken>();
+    public DbSet<BannedEmail> BannedEmails => Set<BannedEmail>();
+    public DbSet<MessageFrankingRecord> MessageFrankingRecords => Set<MessageFrankingRecord>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
     {
@@ -203,7 +205,23 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.Token).HasMaxLength(200);
             e.HasIndex(x => x.Token).IsUnique();
             e.HasIndex(x => x.UserId);
+            e.HasIndex(x => x.SessionId);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<BannedEmail>(e =>
+        {
+            e.HasKey(x => x.EmailHash);
+        });
+
+        b.Entity<MessageFrankingRecord>(e =>
+        {
+            e.HasKey(x => x.MessageId);
+            e.Property(x => x.MessageId).ValueGeneratedNever();
+            e.HasIndex(x => x.MatchId);
+            e.HasIndex(x => x.CreatedAt);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.RecipientId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

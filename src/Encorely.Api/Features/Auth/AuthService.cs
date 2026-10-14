@@ -29,6 +29,10 @@ public sealed class AuthService(
             throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "Revisa los datos enviados.", "El nombre debe tener al menos 2 caracteres.");
 
         if (await db.Users.AnyAsync(u => u.Email == email, ct)) throw EmailTaken();
+        // Después del 409: un correo con cuenta (aunque suspendida) sigue respondiendo igual que antes, sin revelar el ban.
+        var emailHash = BannedEmail.HashOf(email);
+        if (await db.BannedEmails.AnyAsync(b => b.EmailHash == emailHash, ct))
+            throw ApiException.Forbidden(ErrorCodes.AccountBanned, "No puedes crear una cuenta con este correo.");
 
         var now = clock.GetUtcNow();
         var user = new User
@@ -54,33 +58,45 @@ public sealed class AuthService(
             throw EmailTaken();
         }
 
-        return BuildResponse(user, refresh.Token);
+        return BuildResponse(user, refresh.Token, refresh.Entity.FamilyId);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
     {
-        var email = Text.NormalizeEmail(request.Email);
-        var user = await db.Users.Include(u => u.Genres).FirstOrDefaultAsync(u => u.Email == email, ct);
+        var user = await VerifyCredentialsAsync(request.Email, request.Password, ct);
+        if (user.Status == UserStatus.Banned) throw Banned();
+
+        var refresh = NewRefreshToken(user.Id, Guid.CreateVersion7(), clock.GetUtcNow());
+        db.RefreshTokens.Add(refresh.Entity);
+        await db.SaveChangesAsync(ct);
+
+        return BuildResponse(user, refresh.Token, refresh.Entity.FamilyId);
+    }
+
+    /// <summary>
+    /// Única puerta para comprobar correo + contraseña (login y borrado web de cuenta): aplica el bloqueo por intentos
+    /// (429), compara contra un hash ficticio si la cuenta no existe, cuenta el fallo de forma atómica y reinicia el
+    /// contador al acertar. No mira el estado de la cuenta: un suspendido puede borrarla (Ley 1581).
+    /// </summary>
+    public async Task<User> VerifyCredentialsAsync(string rawEmail, string password, CancellationToken ct)
+    {
+        var email = Text.NormalizeEmail(rawEmail);
+        var user = await db.Users.AsNoTracking().Include(u => u.Genres).FirstOrDefaultAsync(u => u.Email == email, ct);
         var now = clock.GetUtcNow();
 
         if (user?.LockoutEndsAt > now)
             throw new ApiException(StatusCodes.Status429TooManyRequests, ErrorCodes.AccountLocked, "Demasiados intentos. Intenta de nuevo en unos minutos.");
 
-        if (!hasher.Verify(request.Password, user?.PasswordHash))
+        if (!hasher.Verify(password, user?.PasswordHash))
         {
-            if (user is not null) await RegisterFailureAsync(user, now, ct);
+            if (user is not null) await RegisterFailureAsync(user.Id, now, ct);
             throw ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos.");
         }
 
-        if (user!.Status == UserStatus.Banned) throw Banned();
-
-        user.FailedLoginAttempts = 0;
-        user.LockoutEndsAt = null;
-        var refresh = NewRefreshToken(user.Id, Guid.CreateVersion7(), now);
-        db.RefreshTokens.Add(refresh.Entity);
-        await db.SaveChangesAsync(ct);
-
-        return BuildResponse(user, refresh.Token);
+        if (user!.FailedLoginAttempts != 0 || user.LockoutEndsAt is not null)
+            await db.Users.Where(u => u.Id == user.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.FailedLoginAttempts, 0).SetProperty(u => u.LockoutEndsAt, (DateTimeOffset?)null), ct);
+        return user;
     }
 
     public async Task<AuthResponse> RefreshAsync(RefreshRequest request, CancellationToken ct)
@@ -116,7 +132,7 @@ public sealed class AuthService(
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        return BuildResponse(user, next.Token);
+        return BuildResponse(user, next.Token, current.FamilyId);
     }
 
     public async Task LogoutAsync(LogoutRequest request, CancellationToken ct)
@@ -126,20 +142,30 @@ public sealed class AuthService(
         if (familyId is { } id) await RevokeFamilyAsync(id, clock.GetUtcNow(), ct);
     }
 
-    private async Task RegisterFailureAsync(User user, DateTimeOffset now, CancellationToken ct)
+    /// <summary>
+    /// Un solo UPDATE: incrementar sobre la entidad perdía fallos en paralelo (cada petición leía el mismo contador).
+    /// Al llegar al máximo fija el bloqueo y reinicia el contador en la misma sentencia.
+    /// </summary>
+    private async Task RegisterFailureAsync(Guid userId, DateTimeOffset now, CancellationToken ct)
     {
-        user.FailedLoginAttempts++;
-        if (user.FailedLoginAttempts >= limits.Value.MaxFailedLogins)
-        {
-            user.LockoutEndsAt = now.AddMinutes(limits.Value.LockoutMinutes);
-            user.FailedLoginAttempts = 0;
-        }
-        await db.SaveChangesAsync(ct);
+        var max = limits.Value.MaxFailedLogins;
+        var lockUntil = now.AddMinutes(limits.Value.LockoutMinutes);
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE users SET
+                lockout_ends_at = CASE WHEN failed_login_attempts + 1 >= {max} THEN {lockUntil} ELSE lockout_ends_at END,
+                failed_login_attempts = CASE WHEN failed_login_attempts + 1 >= {max} THEN 0 ELSE failed_login_attempts + 1 END
+            WHERE id = {userId}
+            """, ct);
     }
 
-    private Task<int> RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken ct)
-        => db.RefreshTokens.Where(t => t.FamilyId == familyId && t.RevokedAt == null)
+    /// <summary>Cierra la sesión: revoca la familia y borra los push tokens que se registraron con ella.</summary>
+    private async Task<int> RevokeFamilyAsync(Guid familyId, DateTimeOffset now, CancellationToken ct)
+    {
+        var revoked = await db.RefreshTokens.Where(t => t.FamilyId == familyId && t.RevokedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), ct);
+        await db.DevicePushTokens.Where(t => t.SessionId == familyId).ExecuteDeleteAsync(ct);
+        return revoked;
+    }
 
     private (string Token, RefreshToken Entity) NewRefreshToken(Guid userId, Guid familyId, DateTimeOffset now)
     {
@@ -154,9 +180,9 @@ public sealed class AuthService(
         });
     }
 
-    private AuthResponse BuildResponse(User user, string refreshToken)
+    private AuthResponse BuildResponse(User user, string refreshToken, Guid familyId)
     {
-        var (access, expiresIn) = tokens.CreateAccessToken(user);
+        var (access, expiresIn) = tokens.CreateAccessToken(user, familyId);
         return new AuthResponse(access, refreshToken, expiresIn,
             new AuthUserDto(user.Id, user.Email, user.DisplayName, user.OnboardingCompleted, user.Role));
     }

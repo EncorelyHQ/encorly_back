@@ -1,3 +1,4 @@
+using Encorely.Api.Features.Chat;
 using Encorely.Api.Features.Sync;
 using Encorely.Api.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,9 @@ public sealed class MaintenanceService(IServiceScopeFactory scopes, IOptions<Cha
         var messages = chat.Value.MessageRetentionDays > 0
             ? await db.ChatMessages.Where(m => m.CreatedAt <= now.AddDays(-chat.Value.MessageRetentionDays)).ExecuteDeleteAsync(ct)
             : 0;
-        if (links + tokens + messages > 0)
-            logger.LogInformation("Limpieza: {Links} vinculaciones, {Tokens} refresh tokens y {Messages} mensajes vencidos", links, tokens, messages);
+        var franking = await db.MessageFrankingRecords.Where(f => f.CreatedAt <= now.AddDays(-MessageFrankingRecord.RetentionDays)).ExecuteDeleteAsync(ct);
+        if (links + tokens + messages + franking > 0)
+            logger.LogInformation("Limpieza: {Links} vinculaciones, {Tokens} refresh tokens, {Messages} mensajes y {Franking} compromisos de franking vencidos",
+                links, tokens, messages, franking);
     }
 }

@@ -15,6 +15,10 @@ public static class CurrentUser
             : throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
     }
 
+    /// <summary>Sesión (familia de refresh) del access token; null en tokens emitidos antes de existir el claim.</summary>
+    public static Guid? SessionId(this ClaimsPrincipal principal)
+        => Guid.TryParse(principal.FindFirstValue(TokenService.SessionClaim), out var id) ? id : null;
+
     public static Guid? TryUserId(this ClaimsPrincipal principal)
         => Guid.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id) ? id : null;
 }

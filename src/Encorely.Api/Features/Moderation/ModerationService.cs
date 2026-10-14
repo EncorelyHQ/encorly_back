@@ -100,10 +100,23 @@ public sealed class ModerationService(AppDbContext db, Notifier notifier, TimePr
             where ids.Contains(m.Id) && mt.UserAId == a && mt.UserBId == b && m.SenderId == reportedId
             select new { m.Id, m.MatchId, m.FrankingTag }).ToDictionaryAsync(m => m.Id, ct);
 
+        // El ack del receptor o la retención ya pudieron borrar el mensaje: su compromiso sigue en franking_records.
+        var missing = ids.Where(id => !messages.ContainsKey(id)).ToList();
+        var kept = missing.Count == 0
+            ? new Dictionary<Guid, Evidence>()
+            : await (
+                from f in db.MessageFrankingRecords.AsNoTracking()
+                join mt in db.Matches.AsNoTracking() on f.MatchId equals mt.Id
+                where missing.Contains(f.MessageId) && mt.UserAId == a && mt.UserBId == b
+                      && f.SenderId == reportedId && f.RecipientId == reporterId
+                select new Evidence(f.MessageId, f.MatchId, f.FrankingTag)).ToDictionaryAsync(f => f.Id, ct);
+
         var result = new List<ReportEvidence>(items.Count);
         foreach (var item in items)
         {
-            if (!messages.TryGetValue(item.MessageId, out var msg))
+            Evidence msg;
+            if (messages.TryGetValue(item.MessageId, out var live)) msg = new Evidence(live.Id, live.MatchId, live.FrankingTag);
+            else if (!kept.TryGetValue(item.MessageId, out msg!))
                 throw ApiException.BadRequest(ModerationErrors.InvalidEvidence, "La evidencia debe ser de mensajes que te envió esa persona.");
 
             var verified = msg.FrankingTag is { } tag
@@ -113,6 +126,8 @@ public sealed class ModerationService(AppDbContext db, Notifier notifier, TimePr
         }
         return result;
     }
+
+    private sealed record Evidence(Guid Id, Guid MatchId, byte[]? FrankingTag);
 
     private static bool TagMatches(byte[] storedTag, byte[] key, Guid messageId, string plaintext)
     {

@@ -37,6 +37,38 @@ public sealed class NotEmptyGuidAttribute : ValidationAttribute
     public override string FormatErrorMessage(string name) => "Es obligatorio.";
 }
 
+/// <summary>Una lista no puede traer null entre sus elementos ([null] rompería el servicio con un 500).</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Field)]
+public sealed class NoNullItemsAttribute : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        if (value is null or string || value is not System.Collections.IEnumerable items) return true;
+        foreach (var item in items)
+            if (item is null) return false;
+        return true;
+    }
+
+    public override string FormatErrorMessage(string name) => "No puede contener elementos vacíos.";
+}
+
+/// <summary>
+/// Postgres no admite U+0000 en texto (22021): se rechaza en el borde de JSON con 400 en vez de dejar que llegue a la BD.
+/// </summary>
+public sealed class NoNulCharStringConverter : System.Text.Json.Serialization.JsonConverter<string>
+{
+    public override string? Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        if (value is not null && value.Contains('\0'))
+            throw new System.Text.Json.JsonException("El texto no puede contener el carácter nulo (U+0000).");
+        return value;
+    }
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, string value, System.Text.Json.JsonSerializerOptions options)
+        => writer.WriteStringValue(value);
+}
+
 public static class Text
 {
     public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();

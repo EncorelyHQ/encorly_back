@@ -19,7 +19,7 @@ public static class EventEndpoints
         g.MapGet("/me/events", MyEvents).WithName("GetMyEvents").WithSummary("Eventos futuros a los que voy").Problems(401);
         g.MapGet("/events/{id:guid}/radar", Radar).WithName("GetEventRadar")
             .WithSummary("Asistentes del evento ordenados por afinidad real. Requiere ir al evento y haber desbloqueado el radar")
-            .Problems(401, 403, 404);
+            .Problems(400, 401, 403, 404);
     }
 
     private static async Task<Ok<IReadOnlyList<EventDto>>> List(

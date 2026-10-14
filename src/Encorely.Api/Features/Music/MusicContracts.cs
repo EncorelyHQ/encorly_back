@@ -22,8 +22,8 @@ public sealed record DnaResponse(IReadOnlyList<DnaGenreDto> Genres, int SwipeCou
 
 /// <summary>Gustos importados de Spotify por el cliente (PKCE en el dispositivo; el token nunca llega al servidor).</summary>
 public sealed record SpotifyImportRequest(
-    [Required(ErrorMessage = Msg.Required), MaxLength(50, ErrorMessage = Msg.MaxItems)] IReadOnlyList<SpotifyArtist> TopArtists);
+    [Required(ErrorMessage = Msg.Required), MaxLength(50, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<SpotifyArtist> TopArtists);
 
 public sealed record SpotifyArtist(
     [Required(ErrorMessage = Msg.Required), MaxLength(200, ErrorMessage = Msg.MaxLength)] string Name,
-    [Required(ErrorMessage = Msg.Required), MaxLength(20, ErrorMessage = Msg.MaxItems)] IReadOnlyList<string> Genres);
+    [Required(ErrorMessage = Msg.Required), MaxLength(20, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string> Genres);

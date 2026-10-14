@@ -40,3 +40,19 @@ public sealed class ChatMessage
     public byte[]? FrankingTag { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+
+/// <summary>
+/// Copia del compromiso de franking de un mensaje, con vida propia: el ack del receptor y la retención borran el
+/// mensaje, pero el reporte debe poder verificarse después. Solo guarda el tag (nunca ciphertext) y vence a los 180 días.
+/// </summary>
+public sealed class MessageFrankingRecord
+{
+    public const int RetentionDays = 180;
+
+    public Guid MessageId { get; set; }
+    public Guid MatchId { get; set; }
+    public Guid SenderId { get; set; }
+    public Guid RecipientId { get; set; }
+    public required byte[] FrankingTag { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+}

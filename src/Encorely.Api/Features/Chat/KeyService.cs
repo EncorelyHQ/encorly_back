@@ -12,7 +12,11 @@ public sealed class KeyService(AppDbContext db, Notifier notifier, TimeProvider 
     public async Task<KeyBundleDto> PutAsync(Guid userId, UploadKeysRequest request, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
-        var current = await db.UserKeys.FirstOrDefaultAsync(k => k.UserId == userId, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Serializa las rotaciones del mismo usuario: en paralelo todas veían el mismo máximo y la última en escribir
+        // (no la de id mayor) dejaba CurrentBoxKeyId retrocedido.
+        await AdvisoryLock.AcquireAsync(db, "keys", userId, ct);
+        var current = await db.UserKeys.AsNoTracking().FirstOrDefaultAsync(k => k.UserId == userId, ct);
 
         if (current is not null)
         {
@@ -28,9 +32,14 @@ public sealed class KeyService(AppDbContext db, Notifier notifier, TimeProvider 
             var max = await db.UserBoxKeys.Where(k => k.UserId == userId).MaxAsync(k => (int?)k.BoxKeyId, ct) ?? 0;
             if (request.BoxKeyId <= max) throw Stale(max);
 
-            current.IdentityKey = request.IdentityKey;
-            current.CurrentBoxKeyId = request.BoxKeyId;
-            current.UpdatedAt = now;
+            // Condicionado a que el id solo suba: defensa por si algún camino llegara aquí sin el lock.
+            var updated = await db.UserKeys.Where(k => k.UserId == userId && k.CurrentBoxKeyId < request.BoxKeyId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(k => k.IdentityKey, request.IdentityKey)
+                    .SetProperty(k => k.CurrentBoxKeyId, request.BoxKeyId)
+                    .SetProperty(k => k.UpdatedAt, now), ct);
+            if (updated == 0) throw Stale(max);
+            current = new UserKey { UserId = userId, IdentityKey = request.IdentityKey, CurrentBoxKeyId = request.BoxKeyId, UpdatedAt = now };
         }
         else
         {
@@ -49,8 +58,12 @@ public sealed class KeyService(AppDbContext db, Notifier notifier, TimeProvider 
         };
         db.UserBoxKeys.Add(box);
 
-        try { await db.SaveChangesAsync(ct); }
-        // Dos PUT simultáneos con el mismo id: el que pierde la PK recibe 409.
+        try
+        {
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+        // Defensa: con el lock no debería ocurrir, pero un id repetido sigue siendo 409 y no un 500.
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             throw Stale(request.BoxKeyId);

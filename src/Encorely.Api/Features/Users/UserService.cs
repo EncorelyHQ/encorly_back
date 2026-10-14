@@ -21,6 +21,18 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
 
     public async Task<MeResponse> UpdateAsync(Guid userId, UpdateMeRequest request, CancellationToken ct)
     {
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            // Serializa los PATCH del mismo usuario: dos que reemplazan géneros a la vez insertaban la misma PK de user_genres (500).
+            await AdvisoryLock.AcquireAsync(db, "profile", userId, ct);
+            await ApplyUpdateAsync(userId, request, ct);
+            await tx.CommitAsync(ct);
+        }
+        return await GetAsync(userId, ct);
+    }
+
+    private async Task ApplyUpdateAsync(Guid userId, UpdateMeRequest request, CancellationToken ct)
+    {
         var user = await db.Users.Include(u => u.Genres).FirstOrDefaultAsync(u => u.Id == userId, ct)
             ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
 
@@ -52,7 +64,6 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
 
         user.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
-        return await GetAsync(userId, ct);
     }
 
     public async Task DeleteAsync(Guid userId, CancellationToken ct)

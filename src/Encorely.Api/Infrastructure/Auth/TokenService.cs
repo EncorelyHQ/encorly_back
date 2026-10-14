@@ -11,14 +11,24 @@ namespace Encorely.Api.Infrastructure.Auth;
 
 public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider clock)
 {
+    public const string SessionClaim = "sid";
+
     private readonly JwtOptions _jwt = options.Value;
 
     public static SymmetricSecurityKey SigningKey(JwtOptions jwt) => new(Encoding.UTF8.GetBytes(jwt.SigningKey));
 
-    public (string Token, int ExpiresInSeconds) CreateAccessToken(User user)
+    /// <param name="sessionId">Familia del refresh token: el claim <c>sid</c> liga el access token (y sus push tokens) a una sesión.</param>
+    public (string Token, int ExpiresInSeconds) CreateAccessToken(User user, Guid? sessionId = null)
     {
         var now = clock.GetUtcNow();
         var lifetime = TimeSpan.FromMinutes(_jwt.AccessTokenMinutes);
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
+            new("role", user.Role.ToString().ToLowerInvariant()),
+        };
+        if (sessionId is { } sid) claims.Add(new Claim(SessionClaim, sid.ToString()));
         var descriptor = new SecurityTokenDescriptor
         {
             Issuer = _jwt.Issuer,
@@ -26,12 +36,7 @@ public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider cloc
             IssuedAt = now.UtcDateTime,
             NotBefore = now.UtcDateTime,
             Expires = (now + lifetime).UtcDateTime,
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                new Claim("role", user.Role.ToString().ToLowerInvariant()),
-            ]),
+            Subject = new ClaimsIdentity(claims),
             SigningCredentials = new SigningCredentials(SigningKey(_jwt), SecurityAlgorithms.HmacSha256),
         };
         return (new JsonWebTokenHandler().CreateToken(descriptor), (int)lifetime.TotalSeconds);

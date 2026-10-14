@@ -40,14 +40,19 @@ public static class SessionEndpoints
 
     private static async Task<NoContent> Revoke(Guid id, ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        var revoked = await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == user.UserId() && t.FamilyId == id), clock, ct);
+        var userId = user.UserId();
+        var revoked = await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == userId && t.FamilyId == id), clock, ct);
         if (revoked == 0) throw ApiException.NotFound("session_not_found", "Esa sesión no existe o ya está cerrada.");
+        // Sin esto el teléfono "cerrado" seguiría recibiendo avisos de mensajes y matches.
+        await db.DevicePushTokens.Where(t => t.UserId == userId && t.SessionId == id).ExecuteDeleteAsync(ct);
         return TypedResults.NoContent();
     }
 
     private static async Task<NoContent> RevokeAll(ClaimsPrincipal user, AppDbContext db, TimeProvider clock, CancellationToken ct)
     {
-        await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == user.UserId()), clock, ct);
+        var userId = user.UserId();
+        await RevokeWhere(db.RefreshTokens.Where(t => t.UserId == userId), clock, ct);
+        await db.DevicePushTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
         return TypedResults.NoContent();
     }
 
