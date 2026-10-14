@@ -138,7 +138,7 @@ public sealed class Seeder(
             }
             db.UserGenreScores.AddRange(scores.Values);
 
-            foreach (var name in d.Attends)
+            foreach (var name in d.Attends.Distinct())
                 if (events.TryGetValue(name, out var eventId))
                     db.EventAttendances.Add(new EventAttendance { UserId = user.Id, EventId = eventId, CreatedAt = now });
         }

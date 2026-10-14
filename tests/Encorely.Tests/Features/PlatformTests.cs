@@ -145,3 +145,26 @@ public sealed class UserRateLimitTests(ApiFixture api)
         Assert.NotEqual(HttpStatusCode.TooManyRequests, (await Client(b).PostJson("/api/v1/blocks", body)).StatusCode);
     }
 }
+
+public sealed class SeedTests(ApiFixture api)
+{
+    [Fact]
+    public async Task Usuarios_demo_se_siembran_de_forma_idempotente()
+    {
+        await api.WithDbAsync(async db =>
+        {
+            var seeder = new Encorely.Api.Data.Seeder(db,
+                api.Service<Encorely.Api.Infrastructure.Auth.PasswordHasher>(),
+                Microsoft.Extensions.Options.Options.Create(new Encorely.Api.Infrastructure.Configuration.SeedOptions { DemoUserPassword = "contrasena-de-prueba-demo" }),
+                Microsoft.Extensions.Options.Options.Create(new Encorely.Api.Infrastructure.Configuration.LegalOptions()),
+                TimeProvider.System,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<Encorely.Api.Data.Seeder>.Instance);
+            await seeder.SeedAsync(TestContext.Current.CancellationToken);
+            await seeder.SeedAsync(TestContext.Current.CancellationToken);
+        });
+
+        var count = await api.WithDbAsync(db => Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .CountAsync(db.Users, u => u.Email.EndsWith("@encorely.demo"), TestContext.Current.CancellationToken));
+        Assert.Equal(16, count);
+    }
+}
