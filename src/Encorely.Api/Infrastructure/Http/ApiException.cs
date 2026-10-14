@@ -31,6 +31,7 @@ public static class ErrorCodes
 
     public const string EmailTaken = "email_taken";
     public const string InvalidCredentials = "invalid_credentials";
+    public const string InvalidPassword = "invalid_password";
     public const string AccountLocked = "account_locked";
     public const string AccountBanned = "account_banned";
     public const string InvalidRefreshToken = "invalid_refresh_token";
@@ -57,4 +58,5 @@ public static class ErrorCodes
     public const string StaleRecipientKey = "stale_recipient_key";
     public const string UnknownSenderKey = "unknown_sender_key";
     public const string MessageIdConflict = "message_id_conflict";
+    public const string MessageAlreadyDelivered = "message_already_delivered";
 }

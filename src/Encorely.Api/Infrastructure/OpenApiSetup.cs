@@ -1,4 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.OpenApi;
 
 namespace Encorely.Api.Infrastructure;
@@ -59,6 +63,15 @@ public static class OpenApiSetup
             schema.Type = JsonSchemaType.String;
             if (ctx.JsonPropertyInfo is { IsGetNullable: true } || ctx.ParameterDescription is { ModelMetadata.IsNullableValueType: true })
                 schema.Type |= JsonSchemaType.Null;
+            return Task.CompletedTask;
+        });
+
+        // [AllowedValues] en un parámetro string (p. ej. ?status de /admin/reports) se publica como enum, para que el cliente lo tipe.
+        o.AddSchemaTransformer((schema, ctx, _) =>
+        {
+            if (ctx.ParameterDescription?.ParameterDescriptor is IParameterInfoParameterDescriptor { ParameterInfo: var p }
+                && p.GetCustomAttribute<AllowedValuesAttribute>() is { } allowed)
+                schema.Enum = [.. allowed.Values.Select(v => (JsonNode)JsonValue.Create(v?.ToString())!)];
             return Task.CompletedTask;
         });
 

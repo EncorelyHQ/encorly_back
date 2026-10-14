@@ -149,6 +149,34 @@ public sealed class UserRateLimitTests(ApiFixture api)
 
 public sealed class SeedTests(ApiFixture api)
 {
+    private sealed class Env(string name) : Microsoft.Extensions.Hosting.IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = name;
+        public string ApplicationName { get; set; } = "Encorely.Api";
+        public string ContentRootPath { get; set; } = "";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
+    }
+
+    [Theory]
+    [InlineData("Production", "clave", false, false)]
+    [InlineData("Production", "clave", true, true)]
+    [InlineData("Production", "", false, true)]
+    [InlineData("Staging", "clave", false, false)]
+    [InlineData("Development", "clave", false, true)]
+    public void Usuarios_demo_fuera_de_desarrollo_exigen_modo_revisor(string environment, string password, bool reviewerOnly, bool ok)
+    {
+        var result = new Encorely.Api.Infrastructure.Configuration.SeedOptionsValidator(new Env(environment))
+            .Validate(null, new Encorely.Api.Infrastructure.Configuration.SeedOptions { DemoUserPassword = password, ReviewerOnly = reviewerOnly });
+        Assert.Equal(ok, result.Succeeded);
+    }
+
+    [Fact]
+    public void Modo_revisor_siembra_solo_al_revisor_y_su_par_sin_admin()
+    {
+        Assert.Contains("admin@encorely.demo", Encorely.Api.Data.Seeder.DemoEmails(reviewerOnly: false));
+        Assert.Equal(["revisor@encorely.demo", "valentina.rojas@encorely.demo"], Encorely.Api.Data.Seeder.DemoEmails(reviewerOnly: true).Order());
+    }
+
     [Fact]
     public async Task Usuarios_demo_se_siembran_de_forma_idempotente()
     {

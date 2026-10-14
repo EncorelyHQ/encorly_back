@@ -190,7 +190,7 @@ public sealed class FrontRequestsTests(ApiFixture api)
         await user.Client.PutJson("/api/v1/devices/push-token", new { token, platform = "android" }).Expect(HttpStatusCode.NoContent);
         Assert.True(await api.WithDbAsync(db => db.DevicePushTokens.AnyAsync(t => t.Token == token, Ct)));
 
-        await user.Client.DeleteAsync("/api/v1/me", Ct).Expect(HttpStatusCode.NoContent);
+        await user.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
 
         Assert.False(await api.WithDbAsync(db => db.DevicePushTokens.AnyAsync(t => t.Token == token, Ct)));
     }

@@ -60,7 +60,7 @@ contenido, que reenvía a FCM/APNs).
 | Mayoría de edad 18+ | Validación de `birthDate` en el perfil |
 | Política y términos versionados, consentimiento registrado | `/legal/*`, tabla `user_consents`, `POST /api/v1/me/consents` |
 | Acceso a los datos (Ley 1581) | `GET /api/v1/me/export` |
-| Cuenta demo para revisores | `revisor@encorely.demo` (seed con `DEMO_USER_PASSWORD`; la contraseña se entrega en la consola de cada tienda, nunca en el repo) |
+| Cuenta demo para revisores | `revisor@encorely.demo` (seed con `DEMO_USER_PASSWORD` y `SEED_REVIEWER_ONLY=true`, que no siembra el admin; la contraseña se entrega en la consola de cada tienda, nunca en el repo) |
 
 Lo que corresponde al front (manifiesto `PrivacyInfo.xcprivacy`, textos de permisos, TalkBack/VoiceOver, capturas) está
 en el repo `encorely-front`.

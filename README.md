@@ -53,6 +53,10 @@ Al arrancar en Development se siembra, de forma idempotente:
 Cuentas especiales: `admin@encorely.demo` (rol admin, para `/api/v1/admin/*`) y `revisor@encorely.demo` (cuenta para
 revisores de tiendas). La contraseña de todas es la de `DEMO_USER_PASSWORD`: no está en el repo.
 
+Fuera de `Development` la API no arranca con `DEMO_USER_PASSWORD` salvo que `SEED_REVIEWER_ONLY=true`, que siembra solo
+`revisor@` y su par (nunca el admin): la clave del revisor se entrega a terceros. El admin de producción se crea a mano, con
+una contraseña propia.
+
 Para volver a empezar desde cero: `docker compose down -v` (borra el volumen de la BD local) y arrancar de nuevo.
 
 ## Tests

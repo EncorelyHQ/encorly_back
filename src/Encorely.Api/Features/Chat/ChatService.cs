@@ -22,6 +22,7 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
         if (blocked) throw ApiException.Forbidden(ErrorCodes.Blocked, "No puedes escribir a esta persona.");
 
         if (await ResolveExistingAsync(userId, matchId, request, ct) is { } same) return (same, false);
+        await RejectDeliveredIdAsync(userId, matchId, request, ct);
 
         var senderKnown = await db.UserBoxKeys.AnyAsync(k => k.UserId == userId && k.BoxKeyId == request.SenderBoxKeyId, ct);
         if (!senderKnown)
@@ -63,11 +64,13 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
             if (request.FrankingTag is { } tag)
             {
                 // Misma transacción que el mensaje: el ack y la retención lo borran, el compromiso queda para verificar reportes.
-                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                var inserted = await db.Database.ExecuteSqlInterpolatedAsync($"""
                     INSERT INTO message_franking_records (message_id, match_id, sender_id, recipient_id, franking_tag, created_at)
                     VALUES ({request.Id}, {matchId}, {userId}, {peerId}, {tag}, {now})
                     ON CONFLICT (message_id) DO NOTHING
                     """, ct);
+                // Carrera con un ack entre RejectDeliveredIdAsync y aquí: sin la fila, la evidencia verificaría contra el tag viejo.
+                if (inserted == 0) throw IdConflict();
             }
             await tx.CommitAsync(ct);
         }
@@ -123,6 +126,22 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
             && e.Ciphertext.AsSpan().SequenceEqual(r.Ciphertext)
             && (e.FrankingTag is null ? r.FrankingTag is null : r.FrankingTag is not null && e.FrankingTag.AsSpan().SequenceEqual(r.FrankingTag));
         return identical ? new MessageAcceptedDto(e.Id, e.Seq, e.CreatedAt) : throw IdConflict();
+    }
+
+    /// <summary>
+    /// El ack borra el mensaje pero conserva su compromiso de franking: reusar ese id crearía un duplicado (seq nuevo) cuya
+    /// evidencia se verificaría contra el tag del primero, y el contenido nuevo no se podría probar al reportarlo.
+    /// </summary>
+    private async Task RejectDeliveredIdAsync(Guid userId, Guid matchId, SendMessageRequest r, CancellationToken ct)
+    {
+        var delivered = await db.MessageFrankingRecords.AsNoTracking().Where(f => f.MessageId == r.Id)
+            .Select(f => new { f.MatchId, f.SenderId, f.FrankingTag }).FirstOrDefaultAsync(ct);
+        if (delivered is null) return;
+        var retry = delivered.MatchId == matchId && delivered.SenderId == userId
+            && r.FrankingTag is not null && delivered.FrankingTag.AsSpan().SequenceEqual(r.FrankingTag);
+        throw retry
+            ? ApiException.Conflict(ErrorCodes.MessageAlreadyDelivered, "Ese mensaje ya se entregó y el receptor lo confirmó.")
+            : IdConflict();
     }
 
     private static ApiException IdConflict()

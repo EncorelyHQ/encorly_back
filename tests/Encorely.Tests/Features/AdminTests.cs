@@ -191,6 +191,16 @@ public sealed class AdminTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Reportes_filtra_por_status_en_minusculas_como_anuncia_el_contrato()
+    {
+        var admin = await AdminAsync();
+        foreach (var status in new[] { "open", "resolved", "dismissed" })
+            await admin.Client.GetAsync($"/api/v1/admin/reports?status={status}", Ct).Expect<List<AdminReportDto>>(HttpStatusCode.OK);
+        foreach (var status in new[] { "1", "Open", "closed" })
+            await admin.Client.GetAsync($"/api/v1/admin/reports?status={status}", Ct).ExpectProblem(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Admin_no_puede_suspenderse_a_si_mismo_y_puede_reactivar()
     {
         var admin = await AdminAsync();

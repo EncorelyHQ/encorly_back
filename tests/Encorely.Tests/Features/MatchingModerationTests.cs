@@ -56,6 +56,23 @@ public sealed class MatchingModerationTests(ApiFixture api)
         => u.Client.GetAsync("/api/v1/matches", Ct).Expect<List<MatchDto>>(HttpStatusCode.OK);
 
     [Fact]
+    public async Task Reactivar_una_cuenta_suspendida_no_rehace_el_match_con_un_like()
+    {
+        var (a, b, _) = await MatchedPairAsync();
+        var admin = await api.CreateUserAsync("Admin", u => u.Role = Encorely.Api.Features.Users.UserRole.Admin);
+        await admin.Client.PutJson($"/api/v1/admin/users/{b.Id}/status", new { status = "banned" }).Expect(HttpStatusCode.NoContent);
+        await admin.Client.PutJson($"/api/v1/admin/users/{b.Id}/status", new { status = "active" }).Expect(HttpStatusCode.NoContent);
+        Assert.False(await api.WithDbAsync(db => db.UserLikes.AnyAsync(l => l.FromUserId == b.Id || l.ToUserId == b.Id, Ct)));
+
+        // El ban cerró las sesiones de B: entra de nuevo.
+        var (_, token, client) = await api.OpenSessionAsync(b.Id);
+        var reactivated = b with { AccessToken = token, Client = client };
+        Assert.False((await LikeOk(reactivated, a)).Matched);
+        Assert.Equal(0, await CountMatchesAsync(a.Id, b.Id, MatchStatus.Active));
+        Assert.True((await LikeOk(a, reactivated)).Matched);
+    }
+
+    [Fact]
     public async Task Like_unilateral_no_crea_match()
     {
         var a = await api.CreateUserAsync();

@@ -17,6 +17,7 @@ public static class EnvironmentMapping
         ("DB_MIGRATE_ON_STARTUP", "Database:MigrateOnStartup"),
         ("SEED_CATALOG", "Seed:Catalog"),
         ("DEMO_USER_PASSWORD", "Seed:DemoUserPassword"),
+        ("SEED_REVIEWER_ONLY", "Seed:ReviewerOnly"),
         ("JWT_SIGNING_KEY", "Jwt:SigningKey"),
         ("JWT_ISSUER", "Jwt:Issuer"),
         ("JWT_AUDIENCE", "Jwt:Audience"),

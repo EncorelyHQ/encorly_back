@@ -4,6 +4,7 @@ using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
+using Encorely.Api.Infrastructure.Auth;
 using Encorely.Api.Infrastructure.Database;
 using Encorely.Api.Infrastructure.Http;
 using Encorely.Api.Infrastructure.Realtime;
@@ -12,7 +13,7 @@ using Npgsql;
 
 namespace Encorely.Api.Features.Admin;
 
-public sealed class AdminService(AppDbContext db, Notifier notifier, TimeProvider clock, ILogger<AdminService> logger)
+public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevoker sessions, TimeProvider clock, ILogger<AdminService> logger)
 {
     public async Task<IReadOnlyList<AdminEventDto>> ListEventsAsync(bool includePast, CancellationToken ct)
     {
@@ -143,8 +144,6 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, TimeProvide
                 var emailHash = BannedEmail.HashOf(user.Email);
                 await db.Database.ExecuteSqlInterpolatedAsync(
                     $"INSERT INTO banned_emails (email_hash, created_at) VALUES ({emailHash}, {now}) ON CONFLICT (email_hash) DO NOTHING", ct);
-                // Los avisos push del teléfono del suspendido terminan con su acceso.
-                await db.DevicePushTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
                 closed = await db.Matches.Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId)).ToListAsync(ct);
                 foreach (var m in closed)
                 {
@@ -153,8 +152,12 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, TimeProvide
                     m.ClosedAt = now;
                     m.ClosedByUserId = adminId;
                 }
-                await db.RefreshTokens.Where(t => t.UserId == userId && t.RevokedAt == null)
-                    .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now), ct);
+                // Como en unmatch y bloqueo: si se reactiva, volver a hacer match exige dos likes nuevos (un like viejo de
+                // quien lo reportó no debe bastar para rehacer el contacto).
+                await db.UserLikes.Where(l => l.FromUserId == userId || l.ToUserId == userId).ExecuteDeleteAsync(ct);
+                // Sesiones y avisos push del suspendido terminan con su acceso. El corte del hub de RevokeAllAsync puede
+                // adelantarse al commit (y reconectar con la cuenta aún activa): por eso se repite el Disconnect tras el commit.
+                await sessions.RevokeAllAsync(userId, ct);
             }
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);

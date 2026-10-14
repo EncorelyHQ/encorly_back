@@ -20,6 +20,11 @@ public static class Http
     public static Task<HttpResponseMessage> PostJson<T>(this HttpClient c, string url, T body) => c.PostAsJsonAsync(url, body, Json);
     public static Task<HttpResponseMessage> PutJson<T>(this HttpClient c, string url, T body) => c.PutAsJsonAsync(url, body, Json);
     public static Task<HttpResponseMessage> PatchJson<T>(this HttpClient c, string url, T body) => c.PatchAsJsonAsync(url, body, Json);
+    public static Task<HttpResponseMessage> DeleteJson<T>(this HttpClient c, string url, T body)
+        => c.SendAsync(new HttpRequestMessage(HttpMethod.Delete, url) { Content = JsonContent.Create(body, options: Json) });
+
+    /// <summary>DELETE /me con la contraseña de los usuarios de prueba.</summary>
+    public static Task<HttpResponseMessage> DeleteMe(this HttpClient c) => c.DeleteJson("/api/v1/me", new { password = ApiFixture.TestPassword });
 
     public static async Task<T> Read<T>(this HttpResponseMessage r)
         => (await r.Content.ReadFromJsonAsync<T>(Json))!;
