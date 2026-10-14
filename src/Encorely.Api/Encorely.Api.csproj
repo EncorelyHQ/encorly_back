@@ -3,8 +3,6 @@
     <RootNamespace>Encorely.Api</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>encorely-api</UserSecretsId>
-    <!-- TEMPORAL: stubs del contrato. Quitar cuando todas las features estén implementadas. -->
-    <NoWarn>$(NoWarn);CS9113</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" />
