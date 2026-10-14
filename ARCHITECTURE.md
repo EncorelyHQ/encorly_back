@@ -236,8 +236,14 @@ y `@noble/ciphers` (XChaCha20-Poly1305), JS puro y auditadas, sin dev build.
 | Logs | Sin query strings, cuerpos, tokens ni contenido de mensajes |
 | Datos personales (Ley 1581) | Consentimiento versionado con fecha, exportación (`/me/export`), borrado en la app y en la web (`/cuenta/eliminar`), mayoría de edad 18+ |
 
-Riesgo residual aceptado: el registro responde 409 si el email ya existe (no hay verificación por correo en la v1, así
-que no hay forma de ocultarlo sin romper la experiencia). Está limitado por el rate limit.
+Riesgos residuales aceptados:
+
+- El registro responde 409 si el email ya existe (no hay verificación por correo en la v1, así que no hay forma de
+  ocultarlo sin romper la experiencia). Está limitado por el rate limit.
+- Una cuenta suspendida recibe 403 `account_banned` solo cuando la contraseña es correcta (con una incorrecta, el 401 de
+  siempre). Eso confirma la contraseña de una cuenta que ya no se puede usar; a cambio, la persona sabe por qué no entra.
+- Una cuenta suspendida puede borrarse (derecho de supresión, Ley 1581), pero el hash de su email queda vetado para
+  registrarse de nuevo.
 
 ## 7. Pruebas
 
