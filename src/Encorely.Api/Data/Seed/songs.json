@@ -1,1 +1,962 @@
-[]
+[
+  {
+    "title": "Provenza",
+    "artist": "Karol G",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/9b/01/44/9b0144e6-21ae-b53f-2b25-ef6c594b18a3/22UM1IM38716.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e0/c6/79/e0c679cf-4837-132a-f1e2-065faf13e0d4/mzaf_16649152643389056902.plus.aac.p.m4a",
+    "iTunesTrackId": 1670245875
+  },
+  {
+    "title": "Mi Gente",
+    "artist": "J Balvin",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/43/23/44/43234493-859a-53f6-e31c-805370dc33d7/18UMGIM19841.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/de/bf/1f/debf1ffb-3440-93ce-b0a8-1477874a2419/mzaf_16600081962078547731.plus.aac.p.m4a",
+    "iTunesTrackId": 1368816792
+  },
+  {
+    "title": "Ginza",
+    "artist": "J Balvin",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b8/52/88/b85288bd-9be4-a69f-c3a9-8f333424d484/16UMGIM32608.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e6/96/cc/e696cc46-2f4b-df52-db54-835a66d36ebd/mzaf_2365145724134490678.plus.aac.p.m4a",
+    "iTunesTrackId": 1440835180
+  },
+  {
+    "title": "Ay Vamos",
+    "artist": "J Balvin",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/dd/ac/fe/ddacfe4b-742e-a5ca-591e-190c9b7003fe/14UMGIM27311.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1a/0e/50/1a0e5015-b83a-c503-0df2-a91671645fd0/mzaf_10875595659491577461.plus.aac.p.m4a",
+    "iTunesTrackId": 1440817278
+  },
+  {
+    "title": "Gasolina",
+    "artist": "Daddy Yankee",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2f/66/f0/2f66f0f1-c3c2-9dc0-8391-04804cabc8cf/24CRGIM46808.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6c/56/33/6c5633cf-a5f0-d489-f3e2-4fdd9b821ef3/mzaf_417409533127729756.plus.aac.p.m4a",
+    "iTunesTrackId": 1786000124
+  },
+  {
+    "title": "Sensualidad",
+    "artist": "Bad Bunny",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a3/1a/e9/a31ae99b-9378-d004-a613-e8f7397f7a88/191773843489.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b6/c4/e5/b6c4e5f9-b6db-331a-725c-2cfb6d88f60f/mzaf_5234489305622674042.plus.aac.p.m4a",
+    "iTunesTrackId": 1299972308
+  },
+  {
+    "title": "Hawái",
+    "artist": "Maluma",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/6f/4a/ab/6f4aab37-196a-3df8-a584-baf24772ed59/886448614913.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/bd/6b/f5/bd6bf5b3-3c87-280d-3f1c-19d8d57f9057/mzaf_8304789786178793654.plus.aac.p.m4a",
+    "iTunesTrackId": 1523698843
+  },
+  {
+    "title": "Felices los 4",
+    "artist": "Maluma",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/89/58/95/895895d5-4046-6135-bb9c-de6a32c4d609/886446521077.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/33/4c/5b/334c5b1b-0c12-7e30-5317-acadca1f3c48/mzaf_6742363138654677978.plus.aac.p.m4a",
+    "iTunesTrackId": 1238908777
+  },
+  {
+    "title": "Ojitos Lindos",
+    "artist": "Bad Bunny",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/3e/04/eb/3e04ebf6-370f-f59d-ec84-2c2643db92f1/196626945068.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/72/ae/81/72ae81c2-4ef3-b998-40b6-563c0609509f/mzaf_12868850384306577273.plus.aac.p.m4a",
+    "iTunesTrackId": 1622045962
+  },
+  {
+    "title": "Si Antes Te Hubiera Conocido",
+    "artist": "Karol G",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a0/60/94/a060947c-54d8-0fad-c558-eed12600224c/24UMGIM62705.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0f/07/33/0f0733c9-76b3-39f9-9115-9031acd75839/mzaf_249954100848422596.plus.aac.p.m4a",
+    "iTunesTrackId": 1752031539
+  },
+  {
+    "title": "Qué Más Pues",
+    "artist": "J Balvin",
+    "genre": "reggaeton",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/80/91/18/80911883-d094-b5d6-6d0b-ff4169aee160/21UMGIM43047.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f8/00/ce/f800ce88-5d7a-2df8-ae02-c4867998744f/mzaf_2647286292190216114.plus.aac.p.m4a",
+    "iTunesTrackId": 1568544187
+  },
+  {
+    "title": "Mamichula",
+    "artist": "Trueno",
+    "genre": "trap-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/fc/85/86/fc8586c8-bc00-130f-6f75-818797148ce2/195497279401.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/03/0e/58/030e5840-822b-440e-4fe9-bc6c57df6aa5/mzaf_7649341439290852851.plus.aac.p.m4a",
+    "iTunesTrackId": 1535429402
+  },
+  {
+    "title": "Te Boté",
+    "artist": "Casper Mágico",
+    "genre": "trap-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/86/9c/b9/869cb9bc-3604-bab0-a716-88442bde0228/191773891138.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8f/fe/18/8ffe18d5-4625-50bc-156a-2b60d1ce9e87/mzaf_17756392255871282416.plus.aac.p.m4a",
+    "iTunesTrackId": 1309439380
+  },
+  {
+    "title": "Soltera",
+    "artist": "Lunay",
+    "genre": "trap-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/82/91/5f/82915f06-cdf6-629d-bc68-9699893ed8f1/192641388781_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/77/c5/10/77c51036-ab97-9050-7a2c-e35bcb26332a/mzaf_1262917211399000449.plus.aac.p.m4a",
+    "iTunesTrackId": 1484377355
+  },
+  {
+    "title": "Baila Baila Baila",
+    "artist": "Ozuna",
+    "genre": "trap-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/16/71/df/1671df3a-2260-253f-7207-9c3dbddf53c1/193483775180.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/28/11/a2/2811a252-8c43-4075-dc12-4677cb28e2b9/mzaf_659479581417549049.plus.aac.p.m4a",
+    "iTunesTrackId": 1460707404
+  },
+  {
+    "title": "Ella Quiere Beber",
+    "artist": "Anuel AA",
+    "genre": "trap-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/04/00/92/040092f4-d379-6b7f-3781-594c8a87c3fd/193483488950.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/49/82/b7/4982b73f-497e-6093-bc54-ce27d0481295/mzaf_14878324616632461814.plus.aac.p.m4a",
+    "iTunesTrackId": 1453886770
+  },
+  {
+    "title": "Waka Waka",
+    "artist": "Shakira",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3e/3a/73/3e3a73da-e19e-b26c-ec19-9da6a5da93fa/mzi.ixhiugev.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/98/88/e5/9888e55d-4daf-0e96-480b-a38259013586/mzaf_9048311608369053538.plus.aac.p.m4a",
+    "iTunesTrackId": 371784883
+  },
+  {
+    "title": "Hips Don't Lie",
+    "artist": "Shakira",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0d/b5/8a/0db58a8b-7b17-dd53-3464-116a415d0f49/196872648836.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ac/c7/61/acc7619f-c1e3-e0a5-df9b-0329a35af062/mzaf_13106936727189536738.plus.aac.p.m4a",
+    "iTunesTrackId": 1817217063
+  },
+  {
+    "title": "La Bicicleta",
+    "artist": "Carlos Vives",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/60/9f/7f/609f7f34-c239-73e8-32da-96fd5f2cba77/886446480060.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0f/a9/79/0fa97997-ca73-fb37-bb51-095d8463ef6f/mzaf_14762169277651482027.plus.aac.p.m4a",
+    "iTunesTrackId": 1234665881
+  },
+  {
+    "title": "Bzrp Music Sessions, Vol. 53",
+    "artist": "Shakira",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/55/0e/5e/550e5ecc-3fe4-50df-c5a3-a019b67008c3/196871854894.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0a/e1/0e/0ae10eda-19d6-9acb-2dd4-3a8f87c076c9/mzaf_11017736900654766444.plus.aac.p.m4a",
+    "iTunesTrackId": 1731060236
+  },
+  {
+    "title": "Besos en Guerra",
+    "artist": "Morat",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/de/2b/1d/de2b1d0f-1cfd-4b89-f456-c8756d015fa1/18UMGIM57686.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/36/78/72/36787233-5f47-c10e-41e6-64529f005991/mzaf_13820986857408448191.plus.aac.p.m4a",
+    "iTunesTrackId": 1438883869
+  },
+  {
+    "title": "Cómo Te Atreves",
+    "artist": "Morat",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/c2/0c/35/c20c35b0-1f80-986a-a9d4-a313bf48b8b1/17UM1IM28747.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/b0/13/66/b0136675-2693-d2d6-4159-34183c1bab62/mzaf_15644982957738871328.plus.aac.p.m4a",
+    "iTunesTrackId": 1443880168
+  },
+  {
+    "title": "Te Mando Flores",
+    "artist": "Fonseca",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/3e/76/a3/3e76a3fb-96b5-34c1-d80d-475318943bcc/00602537944125.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/e8/1f/cc/e81fcc92-cbad-9fe6-9087-a408a8c2524e/mzaf_16235507750665406359.plus.aac.p.m4a",
+    "iTunesTrackId": 1443750094
+  },
+  {
+    "title": "Bailando",
+    "artist": "Enrique Iglesias",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/67/80/ca/6780ca3a-666e-84ee-f53b-e00a3ae80dfc/825646186884.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/32/f0/3d/32f03d6b-b4a9-a95c-8485-5382f3320ad5/mzaf_4845334402819508912.plus.aac.p.m4a",
+    "iTunesTrackId": 1446515051
+  },
+  {
+    "title": "Vivir Mi Vida",
+    "artist": "Marc Anthony",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f7/24/ce/f724ce48-4d0d-0cbc-3493-3d935142e5e6/886443947238.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/10/fd/bf/10fdbf20-d17d-a8a2-6058-c1ef9f221068/mzaf_9159790581568803090.plus.aac.p.m4a",
+    "iTunesTrackId": 668743167
+  },
+  {
+    "title": "Fotografía",
+    "artist": "Juanes",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/8f/b1/5d/8fb15d20-491c-5232-e939-ca4ddbd07a9d/06UMGIM13859.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/06/87/42/0687421a-2177-77c0-a752-b304a64a3249/mzaf_4226900691019473495.plus.aac.p.m4a",
+    "iTunesTrackId": 1440785288
+  },
+  {
+    "title": "A Dios le Pido",
+    "artist": "Juanes",
+    "genre": "pop-latino",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/8f/b1/5d/8fb15d20-491c-5232-e939-ca4ddbd07a9d/06UMGIM13859.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c0/a6/31/c0a631e9-2699-0659-420f-b070cbd57986/mzaf_9234358422951205271.plus.aac.p.m4a",
+    "iTunesTrackId": 1440785264
+  },
+  {
+    "title": "Cásate Conmigo",
+    "artist": "Silvestre Dangond",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/85/9c/6e/859c6e85-6a03-3ef1-10f7-953704cf0ed8/886447400678.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a7/21/06/a7210612-e765-3bbb-5344-435905fe1fcf/mzaf_14119687795151880524.plus.aac.p.m4a",
+    "iTunesTrackId": 1440876900
+  },
+  {
+    "title": "Pa' Mayte",
+    "artist": "Carlos Vives",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b3/98/6c/b3986caf-7a83-bfb7-c38b-2b4a5848a509/195497759453.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/12/2a/e6/122ae6f9-49e6-02ab-e2b5-27e5e4dea682/mzaf_3218079271078019554.plus.aac.p.m4a",
+    "iTunesTrackId": 1543817006
+  },
+  {
+    "title": "Volví a Nacer",
+    "artist": "Carlos Vives",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music49/v4/23/6a/6b/236a6b71-aa7e-6bf3-7a48-809942d94566/dj.libttlmv.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d9/21/82/d9218211-5d71-3250-29e2-9954803ba04a/mzaf_6572342001455180300.plus.aac.p.m4a",
+    "iTunesTrackId": 632302899
+  },
+  {
+    "title": "La Gota Fría",
+    "artist": "Carlos Vives",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/73/af/a3/73afa343-f187-efa2-07be-12a9d53dbdc5/195497756858.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/25/1c/64/251c64df-1fd9-824b-e0cf-43dd5c1a49c8/mzaf_9425335053053873695.plus.aac.p.m4a",
+    "iTunesTrackId": 1543991935
+  },
+  {
+    "title": "Fruta Fresca",
+    "artist": "Carlos Vives",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music71/v4/af/b5/23/afb523e4-2901-1814-4975-f9219357c712/886446191539.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8b/df/c1/8bdfc1fc-e0cf-66c5-423a-df4ea85df207/mzaf_3334185850390379081.plus.aac.p.m4a",
+    "iTunesTrackId": 1182552350
+  },
+  {
+    "title": "La Tierra del Olvido",
+    "artist": "Carlos Vives",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b3/98/6c/b3986caf-7a83-bfb7-c38b-2b4a5848a509/195497759453.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6c/5a/19/6c5a197b-2d20-99ed-d817-10f6714f4004/mzaf_8499616609402853180.plus.aac.p.m4a",
+    "iTunesTrackId": 1543817535
+  },
+  {
+    "title": "Te Quiero",
+    "artist": "Peter Manjarrés",
+    "genre": "vallenato",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/68/52/d8/6852d819-d5bd-d362-097f-06fff181d8bc/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/90/00/f1/9000f1cb-bc21-60a5-fedd-180aa542193d/mzaf_834203294426481985.plus.aac.p.m4a",
+    "iTunesTrackId": 1884065803
+  },
+  {
+    "title": "Cali Pachanguero",
+    "artist": "Grupo Niche",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/28/1c/54/281c549e-b04b-cf96-1677-8cf6687c2dd6/842656024326.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/01/4a/93/014a93f3-4e27-3fa0-bffe-ea9a36347c92/mzaf_11600086204242181357.plus.aac.p.m4a",
+    "iTunesTrackId": 1750353645
+  },
+  {
+    "title": "Una Aventura",
+    "artist": "Grupo Niche",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3a/6f/0b/3a6f0b81-d605-067a-ddc3-1d9640757db0/mzi.hmbxemtg.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/22/4e/3f/224e3f60-3808-1d80-be05-f5425b21bc7e/mzaf_9966114718251754236.plus.aac.p.m4a",
+    "iTunesTrackId": 321443361
+  },
+  {
+    "title": "Gotas de Lluvia",
+    "artist": "Grupo Niche",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/5f/30/d7/5f30d748-4844-57fa-8b7f-b7b43853b37f/814715011912_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/9f/a8/7c/9fa87c5e-ca76-f56d-4bf7-e81f63160cf4/mzaf_13400529150103251675.plus.aac.p.m4a",
+    "iTunesTrackId": 1581133479
+  },
+  {
+    "title": "Sin Sentimientos",
+    "artist": "Grupo Niche",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/5f/30/d7/5f30d748-4844-57fa-8b7f-b7b43853b37f/814715011912_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/cf/3b/fe/cf3bfef0-fade-0ab7-793e-fb5e8acb2f8f/mzaf_17483332445280394677.plus.aac.p.m4a",
+    "iTunesTrackId": 1581133271
+  },
+  {
+    "title": "En Barranquilla Me Quedo",
+    "artist": "Joe Arroyo",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/36/4a/e3/364ae3d3-d13d-248d-646c-ba14cd6ffc96/cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/78/92/15/7892157a-b55b-93df-2fa5-b7ff19e46ab5/mzaf_2120628857593267513.plus.aac.p.m4a",
+    "iTunesTrackId": 1318261028
+  },
+  {
+    "title": "Tania",
+    "artist": "Joe Arroyo",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music41/v4/82/17/a2/8217a262-3f9d-f009-6fac-71dcd299a2ea/mzm.yhxsbacj.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/46/f7/5f/46f75fec-110d-0aed-52e0-c20ea1c6eaf3/mzaf_7034525639895945622.plus.aac.p.m4a",
+    "iTunesTrackId": 1045174773
+  },
+  {
+    "title": "Pedro Navaja",
+    "artist": "Rubén Blades",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b8/e3/8a/b8e38a85-4176-ee44-6d24-e6bb46635dd3/18CRGIM08715.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/85/63/99/8563997d-3ecd-ceee-8f22-3a850edc05ad/mzaf_13604459457562194517.plus.aac.p.m4a",
+    "iTunesTrackId": 1464957419
+  },
+  {
+    "title": "La Vida Es Un Carnaval",
+    "artist": "Celia Cruz",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1a/22/3b/1a223bd0-2620-fdbf-c561-f1aee5cee9eb/00602567162544.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6f/f9/2e/6ff92e11-47b3-8084-6a42-bb3efbf11d1d/mzaf_3007570206376941106.plus.aac.p.m4a",
+    "iTunesTrackId": 1445663595
+  },
+  {
+    "title": "Quimbara",
+    "artist": "Celia Cruz",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/82/3e/81/823e81ed-d672-f358-0fca-00d571b2aa7a/20CRGIM20926.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a9/6e/d8/a96ed8e0-ba6a-988e-ccb1-410024e9bd58/mzaf_11452675241118521908.plus.aac.p.m4a",
+    "iTunesTrackId": 1513011978
+  },
+  {
+    "title": "Aguanile",
+    "artist": "Héctor Lavoe",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ce/08/1f/ce081fba-7a05-9a79-ef48-69af20c3aab9/18CRGIM08495.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0e/38/03/0e380359-48fe-14ed-0020-342f9878b040/mzaf_18116874014160524400.plus.aac.p.m4a",
+    "iTunesTrackId": 1465963965
+  },
+  {
+    "title": "El Cantante",
+    "artist": "Héctor Lavoe",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/87/52/7c/87527c04-18cd-123b-10f7-bce1cc6ca952/22CRGIM35300.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/71/8a/92/718a9232-0224-9667-a1d6-15f473f8b7d3/mzaf_1490622456259106343.plus.aac.p.m4a",
+    "iTunesTrackId": 1701025846
+  },
+  {
+    "title": "Hasta Ayer",
+    "artist": "Marc Anthony",
+    "genre": "salsa",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/63/c1/86/63c18610-5fc7-6d32-0774-675c210f2012/00602498607084.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f4/d6/d3/f4d6d38c-4dfe-5b63-0a7f-eca30e834362/mzaf_11022693140509123890.plus.aac.p.m4a",
+    "iTunesTrackId": 1440793082
+  },
+  {
+    "title": "La Pollera Colorá",
+    "artist": "Totó la Momposina",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music6/v4/bc/dc/a7/bcdca7fa-2bb2-ab87-b9a3-a69e7e1a3941/786367313525.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/76/c4/98/76c49831-42da-c5f9-cb5e-269bdabc512c/mzaf_10482923251554239453.plus.aac.p.m4a",
+    "iTunesTrackId": 1041554329
+  },
+  {
+    "title": "Curura",
+    "artist": "Totó la Momposina",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/25/65/1c/25651c09-900d-e1de-2841-b2b7e62a2525/5037005001188_cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3c/bf/eb/3cbfebb2-886d-7608-9cf7-5a8b5d381548/mzaf_8793488583962218407.plus.aac.p.m4a",
+    "iTunesTrackId": 1653541742
+  },
+  {
+    "title": "Cumbia Sobre el Mar",
+    "artist": "Quantic",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/c0/d2/1e/c0d21e60-c1d6-0180-1ee7-4f89bf9728dc/3803.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/78/2f/8a/782f8aa5-41b9-7b03-d9b6-e12fe8d05232/mzaf_7616973392643014492.plus.aac.p.m4a",
+    "iTunesTrackId": 1645652021
+  },
+  {
+    "title": "Cómo Te Voy a Olvidar",
+    "artist": "Los Ángeles Azules",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/2c/22/97/2c2297f7-5bcc-b102-24b5-423e31b86c69/00602527128801.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1d/48/cb/1d48cb2e-e0bf-6857-a2b7-c45a32bdda2d/mzaf_10101728503536312004.plus.aac.p.m4a",
+    "iTunesTrackId": 1444377723
+  },
+  {
+    "title": "17 Años",
+    "artist": "Los Ángeles Azules",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/39/da/be/39dabe11-1599-5e8b-0e82-103768b80580/00801472063520.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e2/6c/2d/e26c2dd8-e847-0a9f-2733-88b62327466a/mzaf_10033450653198440286.plus.aac.p.m4a",
+    "iTunesTrackId": 1440927485
+  },
+  {
+    "title": "El Año Viejo",
+    "artist": "Los Hispanos",
+    "genre": "cumbia",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/f4/8d/9e/f48d9ed0-848b-fd6f-3bcf-5319a1ef8fd4/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/74/68/0a/74680ad8-7fac-5d4d-4113-aaca9c7c3403/mzaf_11281505779703457158.plus.aac.p.m4a",
+    "iTunesTrackId": 1708661519
+  },
+  {
+    "title": "Obsesión",
+    "artist": "Aventura",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/fd/1c/c4/fd1cc42a-c642-bb66-5b11-291a568c73d6/617101300023.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7c/7f/29/7c7f293a-bab2-7741-50a9-6639895bea26/mzaf_18419148381556148823.plus.aac.p.m4a",
+    "iTunesTrackId": 211280101
+  },
+  {
+    "title": "Eres Mía",
+    "artist": "Romeo Santos",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/8f/fc/6e/8ffc6efb-353f-46ac-eeb6-8247c01cfc87/886444383691.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/dd/9c/86/dd9c86c5-e93a-cc7c-7474-79bd8a7ccc74/mzaf_6510878655846577098.plus.aac.p.m4a",
+    "iTunesTrackId": 804145419
+  },
+  {
+    "title": "Propuesta Indecente",
+    "artist": "Romeo Santos",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/8f/fc/6e/8ffc6efb-353f-46ac-eeb6-8247c01cfc87/886444383691.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5b/f9/0e/5bf90e88-15a8-4777-489e-12c9472b41cd/mzaf_15984668273820895131.plus.aac.p.m4a",
+    "iTunesTrackId": 804145428
+  },
+  {
+    "title": "Darte un Beso",
+    "artist": "Prince Royce",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/8e/fe/87/8efe87bd-74aa-3c10-8471-4f1b50194a2b/886444191760.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f5/2b/6a/f52b6a1b-15c6-8d4d-26b4-5bcdb6283e01/mzaf_15861746941852248745.plus.aac.p.m4a",
+    "iTunesTrackId": 701008894
+  },
+  {
+    "title": "Stand by Me",
+    "artist": "Prince Royce",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/86/71/56/867156c7-401f-b174-51e3-2423609c72fa/886444460651.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/98/43/38/98433886-e8d5-c81e-f3a1-9c72b214b4d6/mzaf_1749252486787626304.plus.aac.p.m4a",
+    "iTunesTrackId": 841018293
+  },
+  {
+    "title": "Bachata Rosa",
+    "artist": "Juan Luis Guerra",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/64/7c/57/647c5772-e5a3-aa7b-062c-c7558a03d9db/ticket.leadndxy.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/31/87/1b/31871be2-038e-b4cf-72e3-569d1324882f/mzaf_9173580424141544041.plus.aac.p.m4a",
+    "iTunesTrackId": 19468970
+  },
+  {
+    "title": "Burbujas de Amor",
+    "artist": "Juan Luis Guerra",
+    "genre": "bachata",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/64/7c/57/647c5772-e5a3-aa7b-062c-c7558a03d9db/ticket.leadndxy.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c6/09/3e/c6093e8a-5436-fea2-e385-eaff4e9b5096/mzaf_15890603483954066997.plus.aac.p.m4a",
+    "iTunesTrackId": 19468968
+  },
+  {
+    "title": "Florecita Rockera",
+    "artist": "Aterciopelados",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4f/37/5a/4f375ac6-03b8-2c7f-fc72-b5ecaa11be12/743212620429.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c8/de/9a/c8de9ae1-aa0c-63ce-dbed-95292ca31e2b/mzaf_13824232909385915345.plus.aac.p.m4a",
+    "iTunesTrackId": 254793001
+  },
+  {
+    "title": "Bolero Falaz",
+    "artist": "Aterciopelados",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4f/37/5a/4f375ac6-03b8-2c7f-fc72-b5ecaa11be12/743212620429.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/87/46/f4/8746f4e1-f5f9-b6fb-0584-a2a7db13ac7a/mzaf_9198331723546312715.plus.aac.p.m4a",
+    "iTunesTrackId": 254793125
+  },
+  {
+    "title": "Persiana Americana",
+    "artist": "Soda Stereo",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/46/99/42/469942d2-3f7d-32cc-8d9f-f0ee7844cd7b/mzi.rpicvdyw.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c8/ab/4f/c8ab4fa6-c7c0-b792-5f10-14e369e6666d/mzaf_5181701441884204757.plus.aac.p.m4a",
+    "iTunesTrackId": 262637746
+  },
+  {
+    "title": "De Música Ligera",
+    "artist": "Soda Stereo",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/60/18/68/601868f7-68ba-9416-af42-b26b2f68035f/mzi.qyqtvoxs.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/95/6e/1a/956e1a22-49ff-3714-b5b9-c0e93be9e977/mzaf_4047724057514631474.plus.aac.p.m4a",
+    "iTunesTrackId": 321882958
+  },
+  {
+    "title": "Lamento Boliviano",
+    "artist": "Enanitos Verdes",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music/c8/8a/f8/mzi.ojedvyqk.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/4b/53/78/4b5378a5-06c7-d913-19c9-78e113553f7e/mzaf_4531316348738799753.plus.aac.p.m4a",
+    "iTunesTrackId": 440062080
+  },
+  {
+    "title": "Rayando el Sol",
+    "artist": "Maná",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b2/27/d8/b227d8b8-21c2-79f4-18ef-4e90f281f965/s06.gqkqqnvt.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3f/01/86/3f0186bb-c33c-2d9e-0438-0eebdb8ed03d/mzaf_13744697863124499124.plus.aac.p.m4a",
+    "iTunesTrackId": 42017785
+  },
+  {
+    "title": "Oye Mi Amor",
+    "artist": "Maná",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/69/78/99/6978998b-f8ae-d092-db16-32ee9ea5dd66/825646537099.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/28/a6/a0/28a6a0ad-56c5-4f05-7ad6-dd8462138c48/mzaf_17776676256968176158.plus.aac.p.m4a",
+    "iTunesTrackId": 571814073
+  },
+  {
+    "title": "Es Por Ti",
+    "artist": "Juanes",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/8f/b1/5d/8fb15d20-491c-5232-e939-ca4ddbd07a9d/06UMGIM13859.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/21/41/ae/2141ae62-3273-fb78-d146-ebc409b81da0/mzaf_2002473520653017788.plus.aac.p.m4a",
+    "iTunesTrackId": 1440785267
+  },
+  {
+    "title": "La Camisa Negra",
+    "artist": "Juanes",
+    "genre": "rock-en-espanol",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/21/1d/ad/211dad4f-69f6-9ac3-4c3b-3116dd3de4d4/06UMGIM24053.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/84/de/46/84de46ef-f9f8-c6ad-fb6e-f6d5ca7571b7/mzaf_17789816509198950478.plus.aac.p.m4a",
+    "iTunesTrackId": 1440652265
+  },
+  {
+    "title": "La Muerte",
+    "artist": "Monsieur Periné",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/bc/4f/8d/bc4f8deb-2ca7-3bf1-3a89-9b943490e26c/194491998752.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/07/e3/27/07e32713-8592-7f16-9ff7-5a837942e151/mzaf_8557815277636473081.plus.aac.p.m4a",
+    "iTunesTrackId": 1498707311
+  },
+  {
+    "title": "Mi Libertad",
+    "artist": "Monsieur Periné",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/6f/ee/5a/6fee5a87-f7f4-5e91-6d8d-23fc85df60be/196006401368.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/ea/73/46/ea734694-8981-87f7-ae5b-0d9f4fed3677/mzaf_6199115630608509854.plus.aac.p.m4a",
+    "iTunesTrackId": 1559825863
+  },
+  {
+    "title": "Nuestra Canción",
+    "artist": "Monsieur Periné",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/6f/ee/5a/6fee5a87-f7f4-5e91-6d8d-23fc85df60be/196006401368.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/23/07/57/230757b4-d45f-e181-1414-2111baf91eea/mzaf_17389604902836723840.plus.aac.p.m4a",
+    "iTunesTrackId": 1559825487
+  },
+  {
+    "title": "Soy Yo",
+    "artist": "Bomba Estéreo",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/fc/a0/54/fca05437-5d39-ad90-f8f9-92443db6b2c7/886445149005.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/23/0d/dc/230ddca1-f4c4-3a6b-7215-da7956829faf/mzaf_1083321566775821275.plus.aac.p.m4a",
+    "iTunesTrackId": 993274903
+  },
+  {
+    "title": "Fuego",
+    "artist": "Bomba Estéreo",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/50/36/cb/5036cb74-69b1-26ca-fb53-60f08534e99a/4251513996182_3000.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a6/f9/73/a6f973fe-3623-b779-ba66-3714e02fb822/mzaf_17101627847265240066.plus.aac.p.m4a",
+    "iTunesTrackId": 1514424047
+  },
+  {
+    "title": "Telepatía",
+    "artist": "Kali Uchis",
+    "genre": "indie-alternativo",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/c2/21/4a/c2214a0a-1355-770e-eef2-7b872f433e02/20UMGIM71274.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0b/56/cb/0b56cbc2-1ba0-20be-4ac2-c9494122a529/mzaf_8775620475686465204.plus.aac.p.m4a",
+    "iTunesTrackId": 1541731262
+  },
+  {
+    "title": "Titanium",
+    "artist": "David Guetta",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/77/6f/57/776f57e2-017d-ed40-8f0f-1547beb65517/190296501425.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f9/01/93/f9019321-f61d-6580-49fc-acb83ba8eef1/mzaf_18350530174046400465.plus.aac.p.m4a",
+    "iTunesTrackId": 1581632203
+  },
+  {
+    "title": "Don't You Worry Child",
+    "artist": "Swedish House Mafia",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/7a/a0/33/7aa0335b-167b-c15a-fcac-22e22ed2ea03/5099997933755.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/77/06/19/77061943-7598-9d06-d1d4-7fe6e4b89a7c/mzaf_9832849938043881705.plus.aac.p.m4a",
+    "iTunesTrackId": 6798736835
+  },
+  {
+    "title": "Strobe",
+    "artist": "deadmau5",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f7/24/19/f724197c-b6b7-b2ad-94a9-06b2f5f95455/617465226458.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/68/f2/85/68f285ca-6cc6-5bc5-54da-5ee164bee249/mzaf_16955640893323702645.plus.aac.p.m4a",
+    "iTunesTrackId": 1813489559
+  },
+  {
+    "title": "Levels",
+    "artist": "Avicii",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/67/38/43/67384338-9ed7-fc68-5927-93f1fcf4705d/11UMGIM36900.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/66/dc/bd/66dcbd68-b557-bdfd-f2c2-a05491758783/mzaf_13654489760720011690.plus.aac.p.m4a",
+    "iTunesTrackId": 1440787349
+  },
+  {
+    "title": "Wake Me Up",
+    "artist": "Avicii",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/18/5b/1e/185b1ef5-5d97-19d8-aebf-8e29e41874ef/13UAAIM59255.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/68/1e/60/681e601f-e1f2-4ebb-37de-adf00bdf57b6/mzaf_8266263075137964740.plus.aac.p.m4a",
+    "iTunesTrackId": 1440872929
+  },
+  {
+    "title": "Animals",
+    "artist": "Martin Garrix",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6e/1e/f0/6e1ef055-195a-bb73-d5a8-5926058366a5/8712944577525.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/8f/ca/53/8fca53bf-328f-4006-fb9c-eef2feee7790/mzaf_17242236602085711440.plus.aac.p.m4a",
+    "iTunesTrackId": 1670593167
+  },
+  {
+    "title": "Lean On",
+    "artist": "Major Lazer",
+    "genre": "electronica",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/3a/9b/bd/3a9bbdba-5829-91c8-1349-cc04cdaf3423/653738030629_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/97/f0/20/97f02080-81c3-90a5-e45a-fb7b4e842dbb/mzaf_10164896606044573073.plus.aac.p.m4a",
+    "iTunesTrackId": 1696639397
+  },
+  {
+    "title": "Somos Pacífico",
+    "artist": "ChocQuibTown",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music/ec/8f/f9/mzi.ksxheiqz.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/1e/66/0f/1e660fbf-42f1-a807-415b-6595f201cbfe/mzaf_4336780723020315584.plus.aac.p.m4a",
+    "iTunesTrackId": 334646479
+  },
+  {
+    "title": "De Donde Vengo Yo",
+    "artist": "ChocQuibTown",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music6/v4/44/ff/81/44ff814a-e135-ca2e-4753-b1950e5aa736/886444331517.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4e/fc/2f/4efc2fa8-cc9b-0eb0-9ffb-98df3ed44ca4/mzaf_16175254165966641578.plus.aac.p.m4a",
+    "iTunesTrackId": 747431258
+  },
+  {
+    "title": "Pa' Olvidarte",
+    "artist": "ChocQuibTown",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/70/da/9b/70da9b10-456e-96d1-fd3a-97f8ecf999d8/886447742662.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/0e/8b/b0/0e8bb0d2-9203-2e53-b935-99bf770eff0c/mzaf_16204498156927376788.plus.aac.p.m4a",
+    "iTunesTrackId": 1463689071
+  },
+  {
+    "title": "Lose Yourself",
+    "artist": "Eminem",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/08/23/fc/0823fcd9-cb44-695b-32bf-b3bf51d9f800/00606949351229.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/13/5a/61/135a6154-8ca2-0523-1fa2-f4ac0ea9e1e7/mzaf_13242749689945681184.plus.aac.p.m4a",
+    "iTunesTrackId": 1440903439
+  },
+  {
+    "title": "Atrévete-te-te",
+    "artist": "Calle 13",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music/05/a2/04/mzi.prjfraff.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/d8/a4/64/d8a46449-93d3-a8e8-57eb-b97e5435f888/mzaf_3816101058186124540.plus.aac.p.m4a",
+    "iTunesTrackId": 264409593
+  },
+  {
+    "title": "Gangsta's Paradise",
+    "artist": "Coolio",
+    "genre": "hip-hop",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/c2/23/0b/c2230b5f-e753-e9b0-c032-b9ea0713450f/016998513262.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c1/28/9e/c1289efd-07f3-d33c-4f83-ee46496b131c/mzaf_1464096825618179366.plus.aac.p.m4a",
+    "iTunesTrackId": 1605189373
+  },
+  {
+    "title": "Te Invito",
+    "artist": "Herencia de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/85/a5/d8/85a5d888-27fb-0eb5-f72c-de6d4e7dfe8f/8445162411530.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/50/f9/c0/50f9c036-99b7-2f6f-0d57-1ec2b2305672/mzaf_14191815324667125586.plus.aac.p.m4a",
+    "iTunesTrackId": 1566506511
+  },
+  {
+    "title": "Sabrás",
+    "artist": "Herencia de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/9f/fa/0d/9ffa0d80-610a-b324-4a4a-16b4bd16a9e5/199066184585.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c9/42/82/c9428233-9df8-2699-7df4-a599719b64ae/mzaf_6684835859609659685.plus.aac.p.m4a",
+    "iTunesTrackId": 1805240426
+  },
+  {
+    "title": "Vive a Tu Manera",
+    "artist": "Herencia de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d0/e9/92/d0e9926a-6465-d276-dd5e-7c10b2a80784/702730600153.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/0a/38/bb/0a38bb8f-537a-23fa-cedd-c49ef78149fc/mzaf_10105417341038094914.plus.aac.p.m4a",
+    "iTunesTrackId": 1566508271
+  },
+  {
+    "title": "Coca por Coco",
+    "artist": "Herencia de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f7/7e/3b/f77e3bb5-85f2-88c9-fe2f-f8adfc47d28e/738435457280.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/00/94/96/00949695-4784-09cd-1d26-452695c21bd7/mzaf_121159093432309693.plus.aac.p.m4a",
+    "iTunesTrackId": 1566507725
+  },
+  {
+    "title": "La Juana",
+    "artist": "Grupo Canalon de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/86/f9/5b/86f95b3c-1e4e-67ee-970e-d015abd8c5a2/3521383423721_cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d4/ad/69/d4ad6943-52e6-31ed-d20f-1b358c5f56bf/mzaf_16362200664082973408.plus.aac.p.m4a",
+    "iTunesTrackId": 1776642803
+  },
+  {
+    "title": "Tío Guachupesito",
+    "artist": "Grupo Canalon de Timbiquí",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/37/32/48/3732484e-dc64-5a4e-70ac-72b9128b331b/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/3d/3a/e1/3d3ae1b4-38fb-9b03-3084-3ced76fac708/mzaf_16785549202652572078.plus.aac.p.m4a",
+    "iTunesTrackId": 1445473661
+  },
+  {
+    "title": "Ay Lucecita",
+    "artist": "Las Cantadoras de Pogue",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/4f/eb/b6/4febb607-a799-6ee1-49ef-f47869b893c0/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview128/v4/cd/6c/d8/cd6cd8ed-faf0-4f40-6369-1c66eaf1d682/mzaf_6196184258464057819.plus.aac.p.m4a",
+    "iTunesTrackId": 1371468651
+  },
+  {
+    "title": "Salte",
+    "artist": "Alexis Play",
+    "genre": "musica-del-pacifico",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/79/1f/00/791f0069-1c5d-d3ff-7bc9-ecb7d13f9c9e/5059033138599.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/40/20/86/402086c9-e3ad-5d83-b6b8-051d10ffc1ca/mzaf_15928023066750679772.plus.aac.p.m4a",
+    "iTunesTrackId": 1460838917
+  },
+  {
+    "title": "Cantinero",
+    "artist": "Darío Gómez",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/04/1e/f8/041ef863-4a9e-3fd9-5abd-793c49ea5513/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/6f/ef/48/6fef483a-b265-0719-7e75-14612a6c2cc2/mzaf_7686394014123770837.plus.aac.p.m4a",
+    "iTunesTrackId": 1794195200
+  },
+  {
+    "title": "Nadie es Eterno",
+    "artist": "Darío Gómez",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/aa/dc/27/aadc27d4-dfc3-14e3-31c1-897a43583409/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e0/23/72/e023729d-f834-5a36-2583-1ff056aefaf7/mzaf_8298739636538847222.plus.aac.p.m4a",
+    "iTunesTrackId": 1782928422
+  },
+  {
+    "title": "Ella Baila Sola",
+    "artist": "Peso Pluma",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/b1/9b/95/b19b9506-5696-ad86-1c85-d198503adfbf/816144021906_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/8d/2a/20/8d2a20dd-7391-afd1-c543-009c87414265/mzaf_10873691963030604339.plus.aac.p.m4a",
+    "iTunesTrackId": 1677446410
+  },
+  {
+    "title": "El Rey",
+    "artist": "Vicente Fernández",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/c6/f5/81/c6f581d2-e7c3-37c9-5afb-718e79203533/mzi.tglyjhrk.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/17/cb/9b/17cb9bb6-bfef-8622-4dd2-1365cb2a97f3/mzaf_15943127848695173612.plus.aac.p.m4a",
+    "iTunesTrackId": 322076425
+  },
+  {
+    "title": "Volver Volver",
+    "artist": "Vicente Fernández",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/cc/a2/be/cca2be5b-7e0b-6d4e-73ac-22c6e5011b75/dj.ncpwkoyc.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ad/d6/b9/add6b921-2442-5f10-46c3-79aee84ec4c2/mzaf_3657937127561661018.plus.aac.p.m4a",
+    "iTunesTrackId": 322077972
+  },
+  {
+    "title": "El Azul",
+    "artist": "Junior H",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/92/c3/76/92c376a9-5571-132b-2d3d-f18cf7cb367b/5054197559709.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/58/76/0b/58760b0d-a6ed-7b76-03cd-1e34530917ce/mzaf_5520681130457147108.plus.aac.p.m4a",
+    "iTunesTrackId": 1670252659
+  },
+  {
+    "title": "La Chona",
+    "artist": "Los Tucanes de Tijuana",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/fc/0b/00/fc0b0020-aaac-4804-e556-d10f73e7f905/018736747175_cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3c/94/3b/3c943bb2-9400-3aa9-91eb-3ff13d6ac92e/mzaf_10100104700067888212.plus.aac.p.m4a",
+    "iTunesTrackId": 1301513530
+  },
+  {
+    "title": "Adiós Amor",
+    "artist": "Christian Nodal",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/ca/70/a4/ca70a457-5d72-0e11-87a8-fb8dba93e204/17UM1IM16287.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/cc/0c/7a/cc0c7af7-915c-554a-be52-1a1da6dbf32d/mzaf_12083257902042068985.plus.aac.p.m4a",
+    "iTunesTrackId": 1440902525
+  },
+  {
+    "title": "La Puerta Negra",
+    "artist": "Los Tigres del Norte",
+    "genre": "regional-mexicano",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/99/04/36/99043649-2ab8-fc60-6d26-ac2d7ba2398e/00602567764045.rgb.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c6/41/bf/c641bf65-ce0e-c2ec-6d28-8dfe047ecc84/mzaf_8929789596018272020.plus.aac.p.m4a",
+    "iTunesTrackId": 1403564221
+  },
+  {
+    "title": "El Serrucho",
+    "artist": "Mr. Black",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/00/07/d4/0007d46a-a7e4-c2d6-7525-eac856fce22c/196922887666_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7d/99/85/7d99859a-4f17-3339-df6d-4a08ff085a78/mzaf_12095615885744217858.plus.aac.p.m4a",
+    "iTunesTrackId": 1735373624
+  },
+  {
+    "title": "El Clavo",
+    "artist": "Mr. Black",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/13/60/cc/1360ccd2-88db-040a-7f1e-afd86d9b795f/196922887604_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview122/v4/e5/fe/35/e5fe358c-a110-e131-2e56-43b4d1ba64c6/mzaf_17154526408697737257.plus.aac.p.m4a",
+    "iTunesTrackId": 1735373228
+  },
+  {
+    "title": "Apretaito al Pickup",
+    "artist": "Mr. Black",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/04/75/ab/0475ab81-57f8-c635-157c-94a7a1b8a442/888831898634.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/77/c8/25/77c82569-90d7-675c-774a-d2b004433a6f/mzaf_13289028344128294735.plus.aac.p.m4a",
+    "iTunesTrackId": 1714020152
+  },
+  {
+    "title": "Bandida",
+    "artist": "Mr. Black",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/05/2b/5b/052b5bb2-a665-39ba-2e8d-80603087e250/196922887475_Cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e5/9d/f0/e59df041-a8d0-3a4d-1178-69c0ad9ff5f3/mzaf_6851667961270800842.plus.aac.p.m4a",
+    "iTunesTrackId": 1735315699
+  },
+  {
+    "title": "Yo Voy Ganao",
+    "artist": "Systema Solar",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/60/fe/dc/60fedc60-d743-2d72-23da-782061f4fc8a/719926451994_cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/48/33/91/48339177-dacf-e6f7-6e9b-afde43e40c8f/mzaf_5453062829626888516.plus.aac.p.m4a",
+    "iTunesTrackId": 1744154959
+  },
+  {
+    "title": "La Invité a Bailar",
+    "artist": "Kevin Flórez",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/23/a9/22/23a922ff-2356-6664-0fa7-e37c701dd93b/8445888353046.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/2a/a4/ba/2aa4ba41-07ac-ff03-3a4a-f0e67f9cc250/mzaf_18018908845907445537.plus.aac.p.m4a",
+    "iTunesTrackId": 1654662200
+  },
+  {
+    "title": "Asómate a la Ventana",
+    "artist": "Kevin Flórez",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f0/9b/1d/f09b1d95-a344-95f5-e9ca-bed051650d0e/8433391637494.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3d/0e/fe/3d0efe8d-7b24-223b-9fb1-57b2c1b5b075/mzaf_7248735251923080707.plus.aac.p.m4a",
+    "iTunesTrackId": 1459103907
+  },
+  {
+    "title": "El Chocho",
+    "artist": "Charles King",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/9c/ce/b7/9cceb7fe-cd05-c9db-2222-1927397eac32/8429006642861.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/9f/a9/59/9fa95912-f644-346c-703e-162f3258f16b/mzaf_3451163411413053391.plus.aac.p.m4a",
+    "iTunesTrackId": 1485358459
+  },
+  {
+    "title": "El Martillo",
+    "artist": "Charles King",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/9c/ce/b7/9cceb7fe-cd05-c9db-2222-1927397eac32/8429006642861.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/98/24/a5/9824a57d-ef5f-392c-1418-0005f91e52ba/mzaf_18404310292072567483.plus.aac.p.m4a",
+    "iTunesTrackId": 1485358474
+  },
+  {
+    "title": "La Cucharita",
+    "artist": "Charles King",
+    "genre": "champeta",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/49/3e/f1/493ef1f2-8af8-1b75-6031-bda92da73330/192562718629.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/57/68/0e/57680e20-8149-44b7-72d4-aede1a49eb1a/mzaf_16257440598409358744.plus.aac.p.m4a",
+    "iTunesTrackId": 1417484768
+  },
+  {
+    "title": "Aventurero",
+    "artist": "Yeison Jiménez",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/e9/c6/d0/e9c6d0a7-d405-4b49-7105-0335d119c94f/886447341094.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/9a/9f/4b/9a9f4bef-9f53-28dc-b53a-eb74ff7e3359/mzaf_3396137437711124774.plus.aac.p.m4a",
+    "iTunesTrackId": 1437416681
+  },
+  {
+    "title": "Por Qué la Envidia",
+    "artist": "Yeison Jiménez",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/b4/86/a8/b486a86f-979e-e5d0-ec5b-8c48d43c800b/3616557686368.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2e/82/1c/2e821cbe-122f-5cb4-43c0-1ed22d1d9271/mzaf_18161000505320125132.plus.aac.p.m4a",
+    "iTunesTrackId": 6788852947
+  },
+  {
+    "title": "Murió el Amor",
+    "artist": "Paola Jara",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/79/a6/89/79a68953-8a9d-a5d0-8fd4-4b9db825f14a/4061798015900.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e0/a2/29/e0a229a7-4798-d68c-5795-20208145c5ec/mzaf_12521167043651605721.plus.aac.p.m4a",
+    "iTunesTrackId": 1631587736
+  },
+  {
+    "title": "Salud por Él",
+    "artist": "Paola Jara",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/ba/86/f7/ba86f7cc-0b89-70dd-05b5-3ee590b55876/0.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/4e/33/d9/4e33d9e8-2cd7-b8ad-1de6-036b7603170f/mzaf_15499352899257686830.plus.aac.p.m4a",
+    "iTunesTrackId": 6781441562
+  },
+  {
+    "title": "Mala Mujer",
+    "artist": "Paola Jara",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d7/db/81/d7db81a9-919d-afab-66b0-edd26ea75d06/8433391736654.png/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/df/87/bf/df87bf70-a5b2-8d13-5e93-e12f18f755e9/mzaf_6121519045523697258.plus.aac.p.m4a",
+    "iTunesTrackId": 1632614126
+  },
+  {
+    "title": "Como Si Nada",
+    "artist": "Paola Jara",
+    "genre": "popular",
+    "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/25/94/74/25947427-bf62-baec-890f-cf6c21fc3835/1827849712326_cover.jpg/600x600bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/e6/03/c4/e603c4c3-fecd-0c6b-89f3-a0b12ca3b1e9/mzaf_3506278452543128602.plus.aac.p.m4a",
+    "iTunesTrackId": 1450858070
+  }
+]
