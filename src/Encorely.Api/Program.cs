@@ -161,6 +161,7 @@ api.MapSessions();
 api.MapAdmin();
 app.MapHub<ChatHub>(ChatHub.Path);
 app.MapAccountDeletionPage();
+app.MapAdminPanel();
 
 await app.Services.PrepareDatabaseAsync();
 app.Run();
