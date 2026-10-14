@@ -37,7 +37,7 @@ public sealed class HubLifecycleTests(ApiFixture api)
         await using var hub = ChatKit.Hub(api, user.AccessToken);
         var closed = await ConnectAsync(hub);
 
-        await user.Client.DeleteAsync("/api/v1/me", Ct).Expect(HttpStatusCode.NoContent);
+        await user.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
         await closed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
     }
 }

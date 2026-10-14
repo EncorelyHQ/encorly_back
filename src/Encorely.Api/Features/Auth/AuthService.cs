@@ -83,6 +83,22 @@ public sealed class AuthService(
     {
         var email = Text.NormalizeEmail(rawEmail);
         var user = await db.Users.AsNoTracking().Include(u => u.Genres).FirstOrDefaultAsync(u => u.Email == email, ct);
+        return await VerifyAsync(user, password,
+            () => ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos."), ct);
+    }
+
+    /// <summary>
+    /// Reconfirma la contraseña del usuario ya autenticado (operaciones sensibles), con el mismo bloqueo por intentos.
+    /// Falla con 403 y no 401: la sesión sigue siendo válida y el cliente no debe intentar refrescarla ni cerrarla.
+    /// </summary>
+    public async Task VerifyPasswordAsync(Guid userId, string password, CancellationToken ct)
+    {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
+        await VerifyAsync(user, password, () => ApiException.Forbidden(ErrorCodes.InvalidPassword, "La contraseña no es correcta."), ct);
+    }
+
+    private async Task<User> VerifyAsync(User? user, string password, Func<ApiException> wrongPassword, CancellationToken ct)
+    {
         var now = clock.GetUtcNow();
 
         if (user?.LockoutEndsAt > now)
@@ -91,7 +107,7 @@ public sealed class AuthService(
         if (!hasher.Verify(password, user?.PasswordHash))
         {
             if (user is not null) await RegisterFailureAsync(user.Id, now, ct);
-            throw ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos.");
+            throw wrongPassword();
         }
 
         if (user!.FailedLoginAttempts != 0 || user.LockoutEndsAt is not null)

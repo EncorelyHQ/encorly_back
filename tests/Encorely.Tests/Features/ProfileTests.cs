@@ -208,6 +208,19 @@ public sealed class ProfileTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Delete_me_pide_la_contrasena_y_un_fallo_no_cierra_la_sesion()
+    {
+        var a = await api.CreateUserAsync();
+        await a.Client.DeleteAsync("/api/v1/me", Ct).ExpectProblem(HttpStatusCode.BadRequest);
+        await a.Client.DeleteJson("/api/v1/me", new { password = "" }).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+        await a.Client.DeleteJson("/api/v1/me", new { password = "no-es-la-mia-1" }).ExpectProblem(HttpStatusCode.Forbidden, "invalid_password");
+
+        await a.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
+        Assert.Equal(1, await api.WithDbAsync(db => db.Users.Where(u => u.Id == a.Id).Select(u => u.FailedLoginAttempts).SingleAsync(Ct)));
+        await a.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
     public async Task Delete_me_borra_todo_del_usuario_y_su_token_deja_de_servir()
     {
         var a = await api.CreateUserAsync("Ana");
@@ -220,7 +233,7 @@ public sealed class ProfileTests(ApiFixture api)
             await db.SaveChangesAsync(Ct);
         });
 
-        await a.Client.DeleteAsync("/api/v1/me", Ct).Expect(HttpStatusCode.NoContent);
+        await a.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
 
         await api.WithDbAsync(async db =>
         {
@@ -250,7 +263,7 @@ public sealed class ProfileTests(ApiFixture api)
         var c = await api.CreateUserAsync("Carla");
         await SeedActivityAsync(b, c);
 
-        await a.Client.DeleteAsync("/api/v1/me", Ct).Expect(HttpStatusCode.NoContent);
+        await a.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
 
         await api.WithDbAsync(async db =>
         {

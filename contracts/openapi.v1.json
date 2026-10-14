@@ -381,14 +381,54 @@
         "tags": [
           "Perfil"
         ],
-        "summary": "Borra mi cuenta: datos personales, swipes, likes, matches y mensajes. Irreversible",
+        "summary": "Borra mi cuenta (pide la contrase\u00F1a): datos personales, swipes, likes, matches y mensajes. Irreversible",
         "operationId": "DeleteMe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteMeRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "204": {
             "description": "No Content"
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -4205,6 +4245,18 @@
           }
         },
         "description": "Copia de los datos personales (derecho de acceso, Ley 1581). Nunca incluye mensajes: el servidor no los puede leer."
+      },
+      "DeleteMeRequest": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "description": "Borrar la cuenta pide la contrase\u00F1a: un access token robado no basta para una operaci\u00F3n irreversible."
       },
       "DeletePushTokenRequest": {
         "required": [

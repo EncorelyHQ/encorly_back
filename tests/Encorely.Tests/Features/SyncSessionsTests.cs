@@ -131,7 +131,7 @@ public sealed class SyncSessionsTests(ApiFixture api)
         await lostClosed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
         foreach (var path in new[] { "/api/v1/me", "/api/v1/me/export", "/api/v1/me/backup" })
             await lostClient.GetAsync(path, Ct).ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
-        await lostClient.DeleteAsync("/api/v1/me", Ct).ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
+        await lostClient.DeleteMe().ExpectProblem(HttpStatusCode.Unauthorized, "unauthorized");
         // La otra sesión del mismo usuario sigue viva.
         Assert.Equal(Microsoft.AspNetCore.SignalR.Client.HubConnectionState.Connected, ownHub.State);
         await user.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);

@@ -74,6 +74,10 @@ public sealed class ApiFixture : IAsyncLifetime
     /// <summary>Cliente sin sesión.</summary>
     public HttpClient Anonymous() => Factory.CreateClient();
 
+    /// <summary>Contraseña de todos los usuarios de <see cref="CreateUserAsync"/> (costo bajo: solo para tests).</summary>
+    public const string TestPassword = "contraseña-de-prueba-1";
+    private static readonly string TestPasswordHash = BCrypt.Net.BCrypt.HashPassword(TestPassword, 4);
+
     /// <summary>
     /// Crea un usuario directo en la BD (onboarding completo por defecto) y devuelve un cliente con su JWT.
     /// No depende de /auth: cada feature se prueba aislada.
@@ -88,7 +92,7 @@ public sealed class ApiFixture : IAsyncLifetime
         var user = new User
         {
             Email = $"u{Guid.NewGuid():N}@test.encorely.local",
-            PasswordHash = "$2a$04$unusedunusedunusedunuseOq0cH1M0w8b3z4Q2yC7fU5i1rTzQe",
+            PasswordHash = TestPasswordHash,
             DisplayName = displayName ?? "Tester",
             BirthDate = new DateOnly(1999, 5, 20),
             City = "Bogotá",

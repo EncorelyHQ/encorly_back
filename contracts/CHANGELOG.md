@@ -12,6 +12,10 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   cualquier llamada con él responde **401 `unauthorized`**, y su conexión al hub se corta. Antes seguía sirviendo hasta 15 min.
   Las demás sesiones del mismo usuario no se ven afectadas. Un 401 tras refrescar con éxito ya no debería darse: si el refresh
   también da 401, la sesión se cerró desde otro dispositivo y hay que volver al login.
+- **Rompe:** `DELETE /me` exige body `{ "password": string }` (la contraseña actual). Sin body o vacía → **400**;
+  contraseña incorrecta → **403 `invalid_password`** (403 y no 401: la sesión sigue válida, el cliente no debe refrescar ni
+  cerrar sesión, solo pedir de nuevo la contraseña). Comparte el bloqueo por intentos del login: tras 5 fallos responde
+  **429 `account_locked`**, y tiene el mismo rate limit por IP que `/auth/*`. Con la contraseña correcta, 204 como antes.
 
 ## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
 Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.

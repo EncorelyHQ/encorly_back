@@ -31,6 +31,7 @@ public static class ErrorCodes
 
     public const string EmailTaken = "email_taken";
     public const string InvalidCredentials = "invalid_credentials";
+    public const string InvalidPassword = "invalid_password";
     public const string AccountLocked = "account_locked";
     public const string AccountBanned = "account_banned";
     public const string InvalidRefreshToken = "invalid_refresh_token";

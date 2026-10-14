@@ -32,6 +32,9 @@ public sealed record UpdateMeRequest(
     [MaxLength(300, ErrorMessage = Msg.MaxLength)] string? Bio = null,
     [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string>? Genres = null);
 
+/// <summary>Borrar la cuenta pide la contraseña: un access token robado no basta para una operación irreversible.</summary>
+public sealed record DeleteMeRequest([Required(ErrorMessage = Msg.Required), MaxUtf8Bytes(72)] string Password);
+
 public sealed record ConsentRequest([Required(ErrorMessage = Msg.Required), MaxLength(32, ErrorMessage = Msg.MaxLength)] string Version);
 
 /// <summary>Copia de los datos personales (derecho de acceso, Ley 1581). Nunca incluye mensajes: el servidor no los puede leer.</summary>
