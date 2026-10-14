@@ -25,6 +25,7 @@ public static class EnvironmentMapping
         ("RADAR_MIN_SWIPES", "Matching:RadarMinSwipes"),
         ("RATE_LIMIT_USER_WRITES_PER_MINUTE", "RateLimit:UserWritesPerMinute"),
         ("RADAR_MIN_AFFINITY", "Matching:RadarMinAffinity"),
+        ("CHAT_MESSAGE_RETENTION_DAYS", "Chat:MessageRetentionDays"),
         ("PUSH_ENABLED", "Push:Enabled"),
         ("EXPO_PUSH_ACCESS_TOKEN", "Push:ExpoAccessToken"),
         ("CORS_ORIGINS", "Cors:Origins"),

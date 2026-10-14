@@ -121,3 +121,34 @@ public sealed class SyncSessionsTests(ApiFixture api)
         Assert.Empty(await a.Client.GetAsync("/api/v1/me/sessions", Ct).Expect<List<SessionDto>>(HttpStatusCode.OK));
     }
 }
+
+public sealed class RetentionTests(ApiFixture api)
+{
+    [Fact]
+    public async Task Retencion_borra_solo_mensajes_vencidos_cuando_esta_configurada()
+    {
+        var a = await api.CreateUserAsync();
+        var b = await api.CreateUserAsync();
+        var (ua, ub) = Encorely.Api.Features.Matching.Match.OrderPair(a.Id, b.Id);
+        var match = new Encorely.Api.Features.Matching.Match { UserAId = ua, UserBId = ub, LastSeq = 2 };
+        Encorely.Api.Features.Chat.ChatMessage Msg(long seq, int ageDays) => new()
+        {
+            Id = Guid.NewGuid(), MatchId = match.Id, SenderId = a.Id, Seq = seq, Version = 1, SenderBoxKeyId = 1, RecipientBoxKeyId = 1,
+            Nonce = new byte[24], Ciphertext = new byte[32], CreatedAt = DateTimeOffset.UtcNow.AddDays(-ageDays),
+        };
+        await api.WithDbAsync(async db =>
+        {
+            db.Matches.Add(match);
+            db.ChatMessages.AddRange(Msg(1, 40), Msg(2, 1));
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        });
+
+        var maintenance = new MaintenanceService(api.Service<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>(),
+            Microsoft.Extensions.Options.Options.Create(new Encorely.Api.Infrastructure.Configuration.ChatOptions { MessageRetentionDays = 30 }),
+            TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<MaintenanceService>.Instance);
+        await maintenance.RunOnceAsync(TestContext.Current.CancellationToken);
+
+        var left = await api.WithDbAsync(db => db.ChatMessages.Where(m => m.MatchId == match.Id).Select(m => m.Seq).ToListAsync(TestContext.Current.CancellationToken));
+        Assert.Equal([2L], left);
+    }
+}

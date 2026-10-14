@@ -38,6 +38,7 @@ builder.Services.AddOptions<DatabaseOptions>().BindConfiguration(DatabaseOptions
 builder.Services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<MatchingOptions>().BindConfiguration(MatchingOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.Section).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<ChatOptions>().BindConfiguration(ChatOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<SeedOptions>().BindConfiguration(SeedOptions.Section);
 builder.Services.AddOptions<PushOptions>().BindConfiguration(PushOptions.Section);
 builder.Services.AddOptions<LegalOptions>().BindConfiguration(LegalOptions.Section).ValidateDataAnnotations().ValidateOnStart();

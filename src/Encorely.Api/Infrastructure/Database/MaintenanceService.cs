@@ -1,10 +1,16 @@
 using Encorely.Api.Features.Sync;
+using Encorely.Api.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Encorely.Api.Infrastructure.Database;
 
-/// <summary>Limpieza periódica: buzones de vinculación vencidos y refresh tokens caducados hace más de 30 días.</summary>
-public sealed class MaintenanceService(IServiceScopeFactory scopes, TimeProvider clock, ILogger<MaintenanceService> logger) : BackgroundService
+/// <summary>
+/// Limpieza periódica: buzones de vinculación vencidos, refresh tokens caducados hace más de 30 días y, si está
+/// configurada, la retención de mensajes cifrados.
+/// </summary>
+public sealed class MaintenanceService(IServiceScopeFactory scopes, IOptions<ChatOptions> chat, TimeProvider clock, ILogger<MaintenanceService> logger)
+    : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromHours(1);
 
@@ -31,6 +37,10 @@ public sealed class MaintenanceService(IServiceScopeFactory scopes, TimeProvider
         var now = clock.GetUtcNow();
         var links = await db.Set<DeviceLinkRequest>().Where(l => l.ExpiresAt <= now).ExecuteDeleteAsync(ct);
         var tokens = await db.RefreshTokens.Where(t => t.ExpiresAt <= now.AddDays(-30)).ExecuteDeleteAsync(ct);
-        if (links + tokens > 0) logger.LogInformation("Limpieza: {Links} vinculaciones y {Tokens} refresh tokens", links, tokens);
+        var messages = chat.Value.MessageRetentionDays > 0
+            ? await db.ChatMessages.Where(m => m.CreatedAt <= now.AddDays(-chat.Value.MessageRetentionDays)).ExecuteDeleteAsync(ct)
+            : 0;
+        if (links + tokens + messages > 0)
+            logger.LogInformation("Limpieza: {Links} vinculaciones, {Tokens} refresh tokens y {Messages} mensajes vencidos", links, tokens, messages);
     }
 }
