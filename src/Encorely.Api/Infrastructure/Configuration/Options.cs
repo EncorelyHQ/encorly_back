@@ -173,3 +173,22 @@ public sealed class LegalOptionsValidator : IValidateOptions<LegalOptions>
             : ValidateOptionsResult.Fail("PRIVACY_CONTACT_EMAIL no es un email válido.");
     }
 }
+
+public sealed class SpotifyOptions
+{
+    public const string Section = "Spotify";
+
+    /// <summary>Client ID público de la app en el Dashboard de Spotify. Sin valor, el login con Spotify responde 502.</summary>
+    public string? ClientId { get; set; }
+    /// <summary>
+    /// Redirect URIs aceptadas (separadas por coma), idénticas a las del Dashboard. Se validan antes de salir a la red:
+    /// el back solo canjea codes emitidos hacia la app, aunque el Dashboard tenga registradas otras (web, pruebas).
+    /// </summary>
+    public string AllowedRedirects { get; set; } = "";
+    public string AccountsBaseUrl { get; set; } = "https://accounts.spotify.com/";
+    public string ApiBaseUrl { get; set; } = "https://api.spotify.com/";
+
+    public bool IsAllowedRedirect(string redirectUri) => AllowedRedirects
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Contains(redirectUri, StringComparer.Ordinal);
+}

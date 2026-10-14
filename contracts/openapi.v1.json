@@ -128,6 +128,87 @@
         }
       }
     },
+    "/api/v1/auth/spotify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Entra con Spotify (canjea el code PKCE). Crea la cuenta si el Spotify no est\u00E1 vinculado",
+        "operationId": "SpotifyLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotifyLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyAuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
@@ -381,7 +462,7 @@
         "tags": [
           "Perfil"
         ],
-        "summary": "Borra mi cuenta (pide la contrase\u00F1a): datos personales, swipes, likes, matches y mensajes. Irreversible",
+        "summary": "Borra mi cuenta (pide la contrase\u00F1a o reconfirmar con Spotify): datos personales, swipes, likes, matches y mensajes. Irreversible",
         "operationId": "DeleteMe",
         "requestBody": {
           "content": {
@@ -429,6 +510,142 @@
           },
           "429": {
             "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/spotify/link": {
+      "post": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Vincula mi cuenta de Spotify para poder entrar con ella",
+        "operationId": "LinkSpotify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotifyGrant"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Desvincula Spotify (no si es mi \u00FAnica forma de entrar)",
+        "operationId": "UnlinkSpotify",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -4247,16 +4464,26 @@
         "description": "Copia de los datos personales (derecho de acceso, Ley 1581). Nunca incluye mensajes: el servidor no los puede leer."
       },
       "DeleteMeRequest": {
-        "required": [
-          "password"
-        ],
         "type": "object",
         "properties": {
           "password": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "spotify": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SpotifyGrant"
+              }
+            ]
           }
         },
-        "description": "Borrar la cuenta pide la contrase\u00F1a: un access token robado no basta para una operaci\u00F3n irreversible."
+        "description": "Borrar la cuenta reconfirma la identidad: un access token robado no basta para una operaci\u00F3n irreversible.\nVa exactamente uno de los dos: la contrase\u00F1a, o un grant nuevo de la cuenta de Spotify vinculada."
       },
       "DeletePushTokenRequest": {
         "required": [
@@ -4851,7 +5078,9 @@
           "role",
           "createdAt",
           "acceptedConsentVersion",
-          "consentUpToDate"
+          "consentUpToDate",
+          "spotifyLinked",
+          "hasPassword"
         ],
         "type": "object",
         "properties": {
@@ -4919,6 +5148,14 @@
           "consentUpToDate": {
             "type": "boolean",
             "description": "true si \u0060AcceptedConsentVersion\u0060 es la vigente (\u0060GET /legal/current\u0060); false: pedir aceptar de nuevo."
+          },
+          "spotifyLinked": {
+            "type": "boolean",
+            "description": "true si hay una cuenta de Spotify vinculada (sirve para entrar)."
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "description": "false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify."
           }
         }
       },
@@ -5511,6 +5748,58 @@
           }
         }
       },
+      "SpotifyAuthResponse": {
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn",
+          "user",
+          "isNewUser"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "isNewUser": {
+            "type": "boolean",
+            "description": "true si este login cre\u00F3 la cuenta (sin contrase\u00F1a, onboarding pendiente)."
+          }
+        }
+      },
+      "SpotifyGrant": {
+        "required": [
+          "code",
+          "codeVerifier",
+          "redirectUri"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Authorization code recibido en la redirect URI. De un solo uso."
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "El verifier PKCE con el que se gener\u00F3 el challenge (43 a 128 caracteres)."
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "La misma de la autorizaci\u00F3n; debe estar en la lista permitida del servidor."
+          }
+        },
+        "description": "Resultado del flujo PKCE de Spotify en el dispositivo. El back canjea el code: el cliente no lo hace."
+      },
       "SpotifyImportRequest": {
         "required": [
           "topArtists"
@@ -5525,6 +5814,41 @@
           }
         },
         "description": "Gustos importados de Spotify por el cliente (PKCE en el dispositivo; el token nunca llega al servidor)."
+      },
+      "SpotifyLoginRequest": {
+        "required": [
+          "code",
+          "codeVerifier",
+          "redirectUri",
+          "acceptTerms"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Authorization code recibido en la redirect URI. De un solo uso."
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "El verifier PKCE con el que se gener\u00F3 el challenge (43 a 128 caracteres)."
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "La misma de la autorizaci\u00F3n; debe estar en la lista permitida del servidor."
+          },
+          "acceptTerms": {
+            "type": "boolean",
+            "description": "Solo se exige si se crea una cuenta nueva; en el login de una cuenta existente se ignora."
+          },
+          "consentVersion": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Versi\u00F3n aceptada; debe coincidir con GET /api/v1/legal/current si se crea la cuenta."
+          }
+        },
+        "description": "Entrar con Spotify: el grant PKCE m\u00E1s el consentimiento, que solo cuenta si se crea la cuenta."
       },
       "SwipeDirection": {
         "enum": [

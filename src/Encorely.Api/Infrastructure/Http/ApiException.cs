@@ -38,6 +38,15 @@ public static class ErrorCodes
     public const string ConsentRequired = "consent_required";
     public const string UnderAge = "under_age";
 
+    public const string SpotifyInvalidCode = "spotify_invalid_code";
+    public const string SpotifyUnavailable = "spotify_unavailable";
+    public const string SpotifyUserNotAllowed = "spotify_user_not_allowed";
+    public const string SpotifyEmailMissing = "spotify_email_missing";
+    public const string SpotifyEmailInUse = "spotify_email_in_use";
+    public const string SpotifyAlreadyLinked = "spotify_already_linked";
+    public const string SpotifyLastLoginMethod = "spotify_last_login_method";
+    public const string SpotifyAccountMismatch = "spotify_account_mismatch";
+
     public const string SongNotFound = "song_not_found";
     public const string UnknownGenre = "unknown_genre";
     public const string EventNotFound = "event_not_found";

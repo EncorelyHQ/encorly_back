@@ -3,6 +3,32 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.8 (login con Spotify)
+- Nuevo: `POST /auth/spotify` `{ code, codeVerifier, redirectUri, acceptTerms, consentVersion }`. La app hace el flujo PKCE
+  (scope `user-read-email`) y manda el code **sin canjearlo**; el back lo canjea y lee `/v1/me`. Responde lo mismo que el login
+  más `isNewUser`. Si el Spotify ya está vinculado, entra (el consentimiento se ignora). Si no, crea una cuenta **sin contraseña**
+  con el correo de Spotify (`onboardingCompleted=false`, `isNewUser=true`). Nunca vincula una cuenta existente por correo.
+  `redirectUri` debe estar en `SPOTIFY_ALLOWED_REDIRECTS` (hoy `encorely://spotify-callback`). Errores:
+  - **400 `consent_required`**: cuenta nueva sin `acceptTerms` o con otra versión. El code ya se gastó: hay que repetir el flujo.
+  - **400 `spotify_invalid_code`**: code vencido, ya usado, o verifier/redirect que no casan.
+  - **400 `spotify_email_missing`**: Spotify no entregó un correo válido (solo al crear cuenta).
+  - **400 `validation_failed`**: `redirectUri` no permitida o campos fuera de rango (el verifier mide 43 a 128).
+  - **403 `account_banned`**: cuenta suspendida, o el correo es de una cuenta suspendida y borrada.
+  - **403 `spotify_user_not_allowed`**: la app de Spotify está en modo desarrollo y ese usuario no está en el Dashboard.
+  - **409 `spotify_email_in_use`**: ya hay una cuenta con ese correo; entrar con contraseña y vincular desde el perfil.
+  - **502 `spotify_unavailable`**: Spotify no respondió (o el servidor no tiene `SPOTIFY_CLIENT_ID`).
+- Nuevo: `POST /me/spotify/link` (body `SpotifyGrant`: `{ code, codeVerifier, redirectUri }`) → **204**; idempotente con el mismo
+  Spotify. **409 `spotify_already_linked`** si ese Spotify es de otro perfil o el perfil ya tiene otro (desvincular primero).
+  Mismos 400/403/502 de Spotify que el login.
+- Nuevo: `DELETE /me/spotify/link` → **204** (también si no había nada). **409 `spotify_last_login_method`** si la cuenta no
+  tiene contraseña.
+- Nuevo (no rompe): `GET /me` (y `PATCH /me`, y `profile` de `/me/export`) ganan `spotifyLinked` y `hasPassword`.
+- Cambio (no rompe a quien ya manda la contraseña): `DELETE /me` acepta `{ "password": string }` **o**
+  `{ "spotify": SpotifyGrant }` (un grant nuevo de la cuenta vinculada), exactamente uno: ninguno o ambos → **400**. Spotify de
+  otra cuenta → **403 `spotify_account_mismatch`**. En el esquema `password` pasa a opcional.
+- Cambio de comportamiento: `POST /auth/login` con el correo de una cuenta sin contraseña da el 401 `invalid_credentials`
+  genérico y no suma intentos fallidos. El borrado web (`/account-deletion`) tampoco sirve para esas cuentas: se borran desde la app.
+
 ## 2026-10-14 · v1.0.0-draft.7 (conciliación del back)
 - Arreglo (no rompe): `GET /admin/reports?status=open|resolved|dismissed` respondía 400 con los valores en minúsculas que
   anunciaba el contrato. Ahora el parámetro es un `string` con `enum` explícito (`open`, `resolved`, `dismissed`; por defecto `open`).

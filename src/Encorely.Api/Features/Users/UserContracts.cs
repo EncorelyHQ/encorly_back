@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Encorely.Api.Features.Auth;
 using Encorely.Api.Infrastructure.Http;
 
 namespace Encorely.Api.Features.Users;
@@ -7,6 +8,8 @@ namespace Encorely.Api.Features.Users;
 /// <param name="OnboardingCompleted">true cuando hay fecha de nacimiento, ciudad y al menos un género.</param>
 /// <param name="AcceptedConsentVersion">Versión más reciente aceptada por la persona; null si no consta ninguna.</param>
 /// <param name="ConsentUpToDate">true si <c>AcceptedConsentVersion</c> es la vigente (<c>GET /legal/current</c>); false: pedir aceptar de nuevo.</param>
+/// <param name="SpotifyLinked">true si hay una cuenta de Spotify vinculada (sirve para entrar).</param>
+/// <param name="HasPassword">false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify.</param>
 public sealed record MeResponse(
     Guid Id,
     string Email,
@@ -20,7 +23,9 @@ public sealed record MeResponse(
     UserRole Role,
     DateTimeOffset CreatedAt,
     string? AcceptedConsentVersion,
-    bool ConsentUpToDate);
+    bool ConsentUpToDate,
+    bool SpotifyLinked,
+    bool HasPassword);
 
 /// <summary>PATCH: los campos null no cambian. Bio vacía ("") la borra.</summary>
 /// <param name="BirthDate">yyyy-MM-dd; 18 años o más.</param>
@@ -32,8 +37,11 @@ public sealed record UpdateMeRequest(
     [MaxLength(300, ErrorMessage = Msg.MaxLength)] string? Bio = null,
     [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string>? Genres = null);
 
-/// <summary>Borrar la cuenta pide la contraseña: un access token robado no basta para una operación irreversible.</summary>
-public sealed record DeleteMeRequest([Required(ErrorMessage = Msg.Required), MaxUtf8Bytes(72)] string Password);
+/// <summary>
+/// Borrar la cuenta reconfirma la identidad: un access token robado no basta para una operación irreversible.
+/// Va exactamente uno de los dos: la contraseña, o un grant nuevo de la cuenta de Spotify vinculada.
+/// </summary>
+public sealed record DeleteMeRequest([MaxUtf8Bytes(72)] string? Password = null, SpotifyGrant? Spotify = null);
 
 public sealed record ConsentRequest([Required(ErrorMessage = Msg.Required), MaxLength(32, ErrorMessage = Msg.MaxLength)] string Version);
 

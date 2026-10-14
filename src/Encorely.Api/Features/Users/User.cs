@@ -11,7 +11,10 @@ public sealed class User
     public Guid Id { get; set; } = Guid.CreateVersion7();
     /// <summary>Siempre normalizado (trim + minúsculas). Único.</summary>
     public required string Email { get; set; }
-    public required string PasswordHash { get; set; }
+    /// <summary>null en las cuentas creadas con Spotify: no tienen contraseña y el login por correo no las acepta.</summary>
+    public string? PasswordHash { get; set; }
+    /// <summary>Id de usuario de Spotify vinculado (login con Spotify). Único.</summary>
+    public string? SpotifyId { get; set; }
     public required string DisplayName { get; set; }
     public DateOnly? BirthDate { get; set; }
     public string? City { get; set; }
@@ -24,6 +27,8 @@ public sealed class User
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public List<UserGenre> Genres { get; set; } = [];
+
+    public bool HasPassword => PasswordHash is not null;
 
     public bool OnboardingCompleted => BirthDate is not null && !string.IsNullOrWhiteSpace(City) && Genres.Count > 0;
 

@@ -33,6 +33,8 @@ public static class EnvironmentMapping
         ("FORWARDED_TRUSTED_NETWORKS", "Proxy:TrustedNetworks"),
         ("PUBLIC_BASE_URL", "Legal:PublicBaseUrl"),
         ("PRIVACY_CONTACT_EMAIL", "Legal:PrivacyContactEmail"),
+        ("SPOTIFY_CLIENT_ID", "Spotify:ClientId"),
+        ("SPOTIFY_ALLOWED_REDIRECTS", "Spotify:AllowedRedirects"),
     ];
 
     public static IConfigurationBuilder AddEncorelyEnvironment(this IConfigurationBuilder builder)

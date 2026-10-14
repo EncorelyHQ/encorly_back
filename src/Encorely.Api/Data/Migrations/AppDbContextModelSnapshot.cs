@@ -888,7 +888,6 @@ namespace Encorely.Api.Data.Migrations
                         .HasColumnName("lockout_ends_at");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("password_hash");
@@ -898,6 +897,11 @@ namespace Encorely.Api.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
                         .HasColumnName("role");
+
+                    b.Property<string>("SpotifyId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("spotify_id");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -915,6 +919,10 @@ namespace Encorely.Api.Data.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("SpotifyId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_spotify_id");
 
                     b.ToTable("users", (string)null);
                 });

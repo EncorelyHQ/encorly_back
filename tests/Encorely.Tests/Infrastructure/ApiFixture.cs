@@ -7,6 +7,7 @@ using Encorely.Api.Infrastructure.Configuration;
 using Encorely.Api.Infrastructure.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
     public string ConnectionString => _postgres.GetConnectionString();
+    public FakeSpotify Spotify { get; } = new();
 
     public async ValueTask InitializeAsync()
     {
@@ -55,7 +57,10 @@ public sealed class ApiFixture : IAsyncLifetime
                 ["RateLimit:UserWritesPerMinute"] = "100000",
                 ["Push:Enabled"] = "false",
                 ["Matching:RadarMinSwipes"] = "3",
+                ["Spotify:ClientId"] = FakeSpotify.ClientId,
+                ["Spotify:AllowedRedirects"] = FakeSpotify.RedirectUri,
             }));
+            b.ConfigureTestServices(s => s.AddHttpClient<SpotifyClient>().ConfigurePrimaryHttpMessageHandler(Spotify.CreateHandler));
         });
 
         // Migraciones y catálogo explícitos (no en paralelo con el arranque de la app).

@@ -47,10 +47,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.Email).HasMaxLength(254);
             e.HasIndex(x => x.Email).IsUnique();
             e.Property(x => x.PasswordHash).HasMaxLength(100);
+            e.Property(x => x.SpotifyId).HasMaxLength(128);
+            e.HasIndex(x => x.SpotifyId).IsUnique();
             e.Property(x => x.DisplayName).HasMaxLength(50);
             e.Property(x => x.City).HasMaxLength(80);
             e.Property(x => x.Bio).HasMaxLength(300);
             e.Ignore(x => x.OnboardingCompleted);
+            e.Ignore(x => x.HasPassword);
             e.HasMany(x => x.Genres).WithOne().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
