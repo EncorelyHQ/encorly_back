@@ -58,4 +58,5 @@ public static class ErrorCodes
     public const string StaleRecipientKey = "stale_recipient_key";
     public const string UnknownSenderKey = "unknown_sender_key";
     public const string MessageIdConflict = "message_id_conflict";
+    public const string MessageAlreadyDelivered = "message_already_delivered";
 }

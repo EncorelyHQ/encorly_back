@@ -324,6 +324,33 @@ public sealed class SecurityHardeningTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Reusar_el_id_de_un_mensaje_ya_confirmado_no_crea_un_duplicado()
+    {
+        var (a, b, matchId) = await ChatKit.PairAsync(api);
+        var key = RandomNumberGenerator.GetBytes(32);
+        var id = Guid.NewGuid();
+        var first = Tag(key, id, Envelope(id, matchId, b.Id, a.Id, "hola"));
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1, franking: first)).Expect(HttpStatusCode.Created);
+        await a.Client.PostJson($"/api/v1/matches/{matchId}/messages/ack", new { upToSeq = 1 }).Expect(HttpStatusCode.NoContent);
+
+        // Reintento del mismo mensaje: ya entregado, no se duplica.
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1, franking: first))
+            .ExpectProblem(HttpStatusCode.Conflict, "message_already_delivered");
+        // Contenido nuevo con el id viejo (cliente modificado): conflicto, con tag nuevo o sin tag.
+        var other = Tag(key, id, Envelope(id, matchId, b.Id, a.Id, "mensaje ofensivo"));
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1, franking: other)).ExpectProblem(HttpStatusCode.Conflict, "message_id_conflict");
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1)).ExpectProblem(HttpStatusCode.Conflict, "message_id_conflict");
+        // Ni el otro lado del match puede ocupar ese id.
+        await ChatKit.SendAsync(a, matchId, ChatKit.MessageBody(id, 1, 1, franking: first)).ExpectProblem(HttpStatusCode.Conflict, "message_id_conflict");
+
+        await api.WithDbAsync(async db =>
+        {
+            Assert.False(await db.ChatMessages.AnyAsync(m => m.Id == id, Ct));
+            Assert.Equal(1, await db.Matches.Where(m => m.Id == matchId).Select(m => m.LastSeq).SingleAsync(Ct));
+        });
+    }
+
+    [Fact]
     public async Task Evidencia_de_mensaje_borrado_solo_vale_para_quien_la_recibio_y_de_quien_la_envio()
     {
         var (a, b, matchId) = await ChatKit.PairAsync(api);

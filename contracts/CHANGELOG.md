@@ -16,6 +16,10 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   contraseña incorrecta → **403 `invalid_password`** (403 y no 401: la sesión sigue válida, el cliente no debe refrescar ni
   cerrar sesión, solo pedir de nuevo la contraseña). Comparte el bloqueo por intentos del login: tras 5 fallos responde
   **429 `account_locked`**, y tiene el mismo rate limit por IP que `/auth/*`. Con la contraseña correcta, 204 como antes.
+- Nuevo (no rompe): `POST /matches/{id}/messages` con el `id` de un mensaje que el receptor ya confirmó (ack) ya no crea un
+  duplicado. Si es el mismo mensaje (mismo remitente y `frankingTag`) → **409 `message_already_delivered`**: el cliente lo da
+  por entregado. Si el contenido o el remitente cambian → **409 `message_id_conflict`**. Antes se aceptaba con un `seq` nuevo y
+  la evidencia de ese contenido no verificaba al reportarlo.
 
 ## 2026-10-14 · v1.0.0-draft.6 (pedidos del front)
 Todo son campos nuevos al final de cada DTO: no rompe a clientes que ignoran campos desconocidos.
