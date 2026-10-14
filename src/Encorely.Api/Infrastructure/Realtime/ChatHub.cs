@@ -19,9 +19,21 @@ public interface IChatClient
 
 /// <summary>Hub autenticado y sin métodos invocables por el cliente: nadie puede emitir en nombre de otro.</summary>
 [Authorize]
-public sealed class ChatHub : Hub<IChatClient>
+public sealed class ChatHub(HubConnections connections) : Hub<IChatClient>
 {
     public const string Path = "/hubs/chat";
+
+    public override Task OnConnectedAsync()
+    {
+        connections.Add(Context);
+        return Task.CompletedTask;
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        connections.Remove(Context.ConnectionId);
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>Enruta Clients.User(id) por el claim <c>sub</c> del JWT.</summary>

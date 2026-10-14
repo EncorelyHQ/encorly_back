@@ -147,6 +147,7 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, TimeProvide
         }
 
         logger.LogInformation("Cuenta {UserId} pasó a {Status} por el admin {AdminId}", userId, status, adminId);
+        if (status == UserStatus.Banned) notifier.Disconnect(userId);
         foreach (var m in closed) await notifier.MatchClosedAsync(m.Id, m.UserAId, m.UserBId);
     }
 

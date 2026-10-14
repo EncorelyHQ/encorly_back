@@ -7,8 +7,11 @@ namespace Encorely.Api.Infrastructure.Realtime;
 /// Fachada única de avisos (hub + push). Los fallos de entrega se registran y no rompen la operación:
 /// el dato ya quedó persistido y el cliente lo recupera por REST.
 /// </summary>
-public sealed class Notifier(IHubContext<ChatHub, IChatClient> hub, IPushSender push, ILogger<Notifier> logger)
+public sealed class Notifier(IHubContext<ChatHub, IChatClient> hub, IPushSender push, HubConnections connections, ILogger<Notifier> logger)
 {
+    /// <summary>Corta las conexiones en tiempo real de una cuenta suspendida o borrada.</summary>
+    public void Disconnect(Guid userId) => connections.Abort(userId);
+
     public async Task MessageAvailableAsync(Guid recipientId, MessageAvailableEvent e)
     {
         await Safe(() => hub.Clients.User(recipientId.ToString()).MessageAvailable(e));

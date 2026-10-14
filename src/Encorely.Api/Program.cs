@@ -56,6 +56,7 @@ builder.Services.AddEncorelyOpenApi();
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 builder.Services.AddSignalR().AddJsonProtocol(o => ConfigureJson(o.PayloadSerializerOptions));
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
+builder.Services.AddSingleton<HubConnections>();
 builder.Services.AddScoped<Notifier>();
 builder.Services.AddHttpClient();
 builder.Services.AddExpoPush();
@@ -160,7 +161,8 @@ api.MapDevices();
 api.MapSync();
 api.MapSessions();
 api.MapAdmin();
-app.MapHub<ChatHub>(ChatHub.Path);
+// Una conexión no sobrevive al vencimiento del JWT con el que se abrió: el cliente reconecta con uno fresco.
+app.MapHub<ChatHub>(ChatHub.Path, o => o.CloseOnAuthenticationExpiration = true);
 app.MapAccountDeletionPage();
 app.MapAdminPanel();
 // Los navegadores lo piden solos; sin esto la política por defecto respondería 401.

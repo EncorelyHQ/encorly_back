@@ -68,6 +68,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
         if (deleted == 0) throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
         await tx.CommitAsync(ct);
 
+        notifier.Disconnect(userId);
         foreach (var p in peers) await notifier.MatchClosedAsync(p.Id, p.Peer);
     }
 
