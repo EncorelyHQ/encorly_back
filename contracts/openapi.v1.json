@@ -1264,7 +1264,7 @@
         "tags": [
           "M\u00FAsica"
         ],
-        "summary": "Importa top artistas de Spotify (le\u00EDdos en el dispositivo) para enriquecer el ADN",
+        "summary": "Importa top artistas de Spotify (le\u00EDdos en el dispositivo) para enriquecer el ADN; avisa los g\u00E9neros que no mapean",
         "operationId": "ImportSpotify",
         "requestBody": {
           "content": {
@@ -1282,7 +1282,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DnaResponse"
+                  "$ref": "#/components/schemas/SpotifyImportResponse"
                 }
               }
             }
@@ -6602,6 +6602,43 @@
           }
         },
         "description": "Gustos importados de Spotify por el cliente (PKCE en el dispositivo; el token nunca llega al servidor)."
+      },
+      "SpotifyImportResponse": {
+        "required": [
+          "genres",
+          "swipeCount",
+          "radarThreshold",
+          "radarUnlocked",
+          "unmappedGenres"
+        ],
+        "type": "object",
+        "properties": {
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnaGenreDto"
+            }
+          },
+          "swipeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarThreshold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarUnlocked": {
+            "type": "boolean"
+          },
+          "unmappedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "G\u00E9neros recibidos que no aportaron al ADN (sin repetidos, en el orden en que llegaron, m\u00E1x. 50). Si todos\n    quedan aqu\u00ED, la importaci\u00F3n no cambi\u00F3 el ADN y conviene avisarlo."
+          }
+        },
+        "description": "El ADN tras importar, m\u00E1s los g\u00E9neros de Spotify que no se pudieron llevar a ning\u00FAn g\u00E9nero del cat\u00E1logo."
       },
       "SpotifyLoginRequest": {
         "required": [

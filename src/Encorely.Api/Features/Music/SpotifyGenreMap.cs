@@ -19,8 +19,12 @@ public static class SpotifyGenreMap
         ("bachata", ["bachata"]),
         ("musica-del-pacifico", ["currulao", "musica del pacifico", "pacific colombiano", "afrocolombian", "marimba"]),
         ("popular", ["musica popular colombiana", "musica popular", "popular colombiana", "carrilera", "musica guasca"]),
-        ("regional-mexicano", ["corrido", "corridos tumbados", "regional mexican", "regional mexicano", "mariachi", "norteno", "sierreno", "ranchera", "banda"]),
-        ("rock-en-espanol", ["rock en espanol", "rock latino", "latin rock", "rock colombiano", "rock en castellano"]),
+        ("regional-mexicano", ["corrido", "corridos", "corridos tumbados", "corridos belicos", "regional mexican", "regional mexicano", "mariachi", "norteno", "sierreno", "ranchera", "banda"]),
+        // Antes de rock y electrónica: "pop rock" y "dance pop" son pop, no rock ni electrónica.
+        ("pop-latino", ["dance pop", "pop rock"]),
+        // "rock" a secas es la última palabra clave del rock: no hay otro slug de rock en el catálogo.
+        ("rock-en-espanol", ["rock en espanol", "rock latino", "latin rock", "rock colombiano", "colombian rock", "rock en castellano",
+            "alternative rock", "rock alternativo", "rock"]),
         ("indie-alternativo", ["latin alternative", "indie colombiano", "colombian indie", "indie latino", "indie", "alternative latino", "latin indie", "folk colombiano"]),
         ("electronica", ["edm", "electronica", "electro latino", "house", "techno", "tropical house", "dance"]),
         ("hip-hop", ["rap latina", "rap latino", "latin hip hop", "hip hop", "rap"]),
@@ -34,18 +38,21 @@ public static class SpotifyGenreMap
     {
         var slugs = new HashSet<string>();
         foreach (var raw in spotifyGenres)
-        {
-            var text = $" {Normalize(raw)} ";
-            if (Ignored.Any(i => text.Contains($" {i} ", StringComparison.Ordinal))) continue;
-            foreach (var (slug, keywords) in Rules)
-            {
-                // Palabras completas: "rap" no debe coincidir con "trap" ni "pop" con "popular".
-                if (!keywords.Any(k => text.Contains($" {k} ", StringComparison.Ordinal))) continue;
-                slugs.Add(slug);
-                break;
-            }
-        }
+            if (SlugOf(raw) is { } slug) slugs.Add(slug);
         return slugs;
+    }
+
+    /// <summary>
+    /// Slug de un género de Spotify, o null si no mapea a ninguno (incluye los que se ignoran a propósito, como k-pop).
+    /// </summary>
+    public static string? SlugOf(string spotifyGenre)
+    {
+        var text = $" {Normalize(spotifyGenre)} ";
+        if (Ignored.Any(i => text.Contains($" {i} ", StringComparison.Ordinal))) return null;
+        foreach (var (slug, keywords) in Rules)
+            // Palabras completas: "rap" no debe coincidir con "trap" ni "pop" con "popular".
+            if (keywords.Any(k => text.Contains($" {k} ", StringComparison.Ordinal))) return slug;
+        return null;
     }
 
     /// <summary>Minúsculas, sin acentos ni puntuación, espacios colapsados.</summary>

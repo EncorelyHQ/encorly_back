@@ -21,6 +21,10 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   sin recoger en ese match (el ack del otro libera espacio; la cuota es por remitente). `GET …/messages` corta la página al llegar a
   1 MiB de ciphertext aunque no llegue a `limit` (siempre trae al menos uno y `nextCursor` sigue funcionando igual).
   `CHAT_MESSAGE_RETENTION_DAYS` pasa a **30** por defecto: un cliente sin base local (sin ack) pierde lo que tenga más de 30 días.
+- **Spotify (FIN-15):** `POST /me/spotify/import` responde `SpotifyImportResponse` = los campos de `DnaResponse` **+ `unmappedGenres`**
+  (aditivo): géneros recibidos que no aportaron al ADN, sin repetidos y en orden de llegada (máx. 50). Si todos caen ahí, el ADN no
+  cambió y conviene avisarlo. El mapeo ahora reconoce `rock`, `colombian rock`, `alternative rock`, `corridos` y `corridos bélicos`, y
+  `dance pop`/`pop rock` van a `pop-latino` (antes caían en electrónica o en nada).
 
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).

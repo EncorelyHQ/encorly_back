@@ -343,8 +343,33 @@ public sealed class MusicTests(ApiFixture api)
     [InlineData("corrido", "regional-mexicano")]
     [InlineData("edm", "electronica")]
     [InlineData("bachata", "bachata")]
+    [InlineData("rock", "rock-en-espanol")]
+    [InlineData("colombian rock", "rock-en-espanol")]
+    [InlineData("alternative rock", "rock-en-espanol")]
+    [InlineData("corridos", "regional-mexicano")]
+    [InlineData("corridos tumbados", "regional-mexicano")]
+    [InlineData("dance pop", "pop-latino")]
+    [InlineData("pop rock", "pop-latino")]
+    [InlineData("dance", "electronica")]
     public void SpotifyGenreMap_mapea_a_slugs_sin_distinguir_acentos(string spotify, string expected)
         => Assert.Equal([expected], SpotifyGenreMap.Map([spotify]));
+
+    [Fact]
+    public async Task Importar_Spotify_avisa_los_generos_que_no_mapean()
+    {
+        var user = await api.CreateUserAsync();
+        var dna = await user.Client.PostJson("/api/v1/me/spotify/import", new
+        {
+            topArtists = new[]
+            {
+                new { name = "Aterciopelados", genres = new[] { "colombian rock", "metal sinfonico", "k-pop" } },
+                new { name = "Otro", genres = new[] { "Metal Sinfónico", "shoegaze" } },
+            },
+        }).Expect<SpotifyImportResponse>(HttpStatusCode.OK);
+
+        Assert.Equal(["metal sinfonico", "k-pop", "shoegaze"], dna.UnmappedGenres);
+        Assert.Contains(dna.Genres, g => g.Genre == "rock-en-espanol");
+    }
 
     [Theory]
     [InlineData("k-pop")]
