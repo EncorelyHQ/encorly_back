@@ -79,6 +79,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         {
             e.HasIndex(x => x.TokenHash).IsUnique();
             e.HasIndex(x => x.FamilyId);
+            // La purga horaria filtra por vencimiento; sin índice recorre la tabla entera.
+            e.HasIndex(x => x.ExpiresAt);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -189,6 +191,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.Id).ValueGeneratedNever();
             e.HasIndex(x => new { x.MatchId, x.Seq }).IsUnique();
             e.HasIndex(x => x.SenderId);
+            e.HasIndex(x => x.CreatedAt);
             e.HasOne<Match>().WithMany().HasForeignKey(x => x.MatchId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Cascade);
         });
