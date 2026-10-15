@@ -191,6 +191,29 @@ public sealed class AdminTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task El_historial_del_reportado_cuenta_personas_y_no_reportes()
+    {
+        var admin = await AdminAsync();
+        var reported = await api.CreateUserAsync("Troll");
+        var insistent = await api.CreateUserAsync("Insistente");
+        var other = await api.CreateUserAsync("Otra");
+        var openId = Guid.Empty;
+        await api.WithDbAsync(async db =>
+        {
+            // La misma persona ya tuvo 3 reportes cerrados contra él; otra persona tiene uno abierto.
+            for (var i = 0; i < 3; i++)
+                db.Reports.Add(new Report { ReporterId = insistent.Id, ReportedUserId = reported.Id, Reason = ReportReason.Spam, Status = ReportStatus.Dismissed });
+            var open = new Report { ReporterId = other.Id, ReportedUserId = reported.Id, Reason = ReportReason.Harassment };
+            db.Reports.Add(open);
+            await db.SaveChangesAsync(Ct);
+            openId = open.Id;
+        });
+
+        var queue = await admin.Client.GetAsync("/api/v1/admin/reports?status=open", Ct).Expect<List<AdminReportDto>>(HttpStatusCode.OK);
+        Assert.Equal(1, Assert.Single(queue, r => r.Id == openId).PriorReportsAgainstUser);
+    }
+
+    [Fact]
     public async Task Reportes_filtra_por_status_en_minusculas_como_anuncia_el_contrato()
     {
         var admin = await AdminAsync();

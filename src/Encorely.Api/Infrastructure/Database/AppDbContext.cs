@@ -206,6 +206,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.Detail).HasMaxLength(1000);
             e.Property(x => x.ResolutionNote).HasMaxLength(1000);
             e.HasIndex(x => new { x.Status, x.CreatedAt });
+            // Respaldo del advisory lock de ModerationService.ReportAsync: un solo reporte abierto por par.
+            e.HasIndex(x => new { x.ReporterId, x.ReportedUserId }).IsUnique().HasFilter("status = 'Open'");
+            // Explícito: el parcial de arriba no cubre los reportes cerrados y EF quitaría el índice de la FK (SET NULL al borrar la cuenta).
+            e.HasIndex(x => x.ReporterId);
             // El reporte sobrevive al borrado de cuentas: es evidencia de moderación.
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.SetNull);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ReportedUserId).OnDelete(DeleteBehavior.SetNull);

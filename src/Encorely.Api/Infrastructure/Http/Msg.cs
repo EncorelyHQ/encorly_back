@@ -15,6 +15,7 @@ public static class Msg
 public static class EndpointExtensions
 {
     public const string UserWritesPolicy = "user-writes";
+    public const string ReportsPolicy = "reports";
 
     /// <summary>Límite por usuario (no por IP) para escrituras que se prestan a abuso.</summary>
     public static RouteHandlerBuilder UserWrites(this RouteHandlerBuilder builder)

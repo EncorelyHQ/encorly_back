@@ -2556,7 +2556,7 @@
         "tags": [
           "Moderaci\u00F3n"
         ],
-        "summary": "Reporta a un usuario para revisi\u00F3n",
+        "summary": "Reporta a un usuario para revisi\u00F3n; si ya tengo uno abierto contra esa persona, le suma la evidencia (mismo id)",
         "operationId": "ReportUser",
         "requestBody": {
           "content": {
@@ -4359,6 +4359,7 @@
           },
           "priorReportsAgainstUser": {
             "type": "integer",
+            "description": "Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.",
             "format": "int32"
           }
         }

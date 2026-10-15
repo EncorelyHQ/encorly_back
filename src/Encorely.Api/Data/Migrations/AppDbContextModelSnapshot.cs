@@ -586,6 +586,11 @@ namespace Encorely.Api.Data.Migrations
                     b.HasIndex("ReporterId")
                         .HasDatabaseName("ix_reports_reporter_id");
 
+                    b.HasIndex("ReporterId", "ReportedUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_reports_reporter_id_reported_user_id")
+                        .HasFilter("status = 'Open'");
+
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("ix_reports_status_created_at");
 

@@ -58,6 +58,7 @@ public sealed record AdminUserRef(Guid Id, string DisplayName, string Email, Use
 
 public sealed record AdminEvidenceDto(Guid MessageId, string Plaintext, bool Verified);
 
+/// <param name="PriorReportsAgainstUser">Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.</param>
 public sealed record AdminReportDto(
     Guid Id,
     AdminUserRef? Reporter,

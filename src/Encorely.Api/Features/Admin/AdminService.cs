@@ -175,8 +175,13 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         var users = await db.Users.Where(u => userIds.Contains(u.Id))
             .Select(u => new AdminUserRef(u.Id, u.DisplayName, u.Email, u.Status)).ToDictionaryAsync(u => u.Id, ct);
         var reportedIds = reports.Select(r => r.ReportedUserId).OfType<Guid>().Distinct().ToList();
-        var counts = await db.Reports.Where(r => r.ReportedUserId != null && reportedIds.Contains(r.ReportedUserId.Value))
-            .GroupBy(r => r.ReportedUserId!.Value).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+        // Se cuentan personas, no reportes: insistir no infla el historial. Un reporte de una cuenta ya borrada cuenta solo.
+        var reporters = (await db.Reports.Where(r => r.ReportedUserId != null && reportedIds.Contains(r.ReportedUserId.Value))
+                .Select(r => new { Reported = r.ReportedUserId!.Value, r.ReporterId, r.Id }).ToListAsync(ct))
+            .ToLookup(x => x.Reported, x => x.ReporterId?.ToString() ?? x.Id.ToString());
+        int OthersReporting(Report r) => r.ReportedUserId is { } reported
+            ? reporters[reported].Where(k => k != (r.ReporterId?.ToString() ?? r.Id.ToString())).Distinct().Count()
+            : 0;
 
         return reports.Select(r => new AdminReportDto(
             r.Id,
@@ -190,7 +195,7 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
             r.ResolutionNote,
             r.CreatedAt,
             r.ResolvedAt,
-            r.ReportedUserId is { } c ? counts.GetValueOrDefault(c) - 1 : 0)).ToList();
+            OthersReporting(r))).ToList();
     }
 
     private static void Apply(Event e, AdminEventRequest r)
