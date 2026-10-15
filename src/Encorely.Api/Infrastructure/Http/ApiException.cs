@@ -27,6 +27,7 @@ public static class ErrorCodes
     public const string Forbidden = "forbidden";
     public const string NotFound = "not_found";
     public const string RateLimited = "rate_limited";
+    public const string ChatQuotaExceeded = "chat_quota_exceeded";
     public const string Internal = "internal_error";
 
     public const string EmailTaken = "email_taken";

@@ -24,7 +24,7 @@ public static class ChatEndpoints
         chat.MapPost("", Send).WithName("SendMessage")
             .WithSummary("Envía un mensaje cifrado. 201 al crearlo; 200 si el mismo id ya existía con el mismo contenido")
             .Produces<MessageAcceptedDto>(StatusCodes.Status200OK)
-            .Problems(400, 401, 403, 404, 409).UserWrites();
+            .Problems(400, 401, 403, 404, 409).UserWrites();   // 429 también por chat_quota_exceeded (50 MiB sin recoger)
         chat.MapGet("", List).WithName("ListMessages")
             .WithSummary("Mensajes cifrados del match. ?before=seq pagina hacia atrás (desc); ?after=seq trae los nuevos (asc)")
             .Problems(400, 401, 404);

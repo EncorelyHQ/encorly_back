@@ -17,6 +17,10 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   por usuario (429): `PUT /me/backup`, `PUT /keys/link-requests/{id}`, `PUT /events/{id}/attendance`, `PUT /devices/push-token`,
   `POST /me/spotify/import` y `GET /me/export`. Cada género de `topArtists[].genres` admite hasta 100 caracteres. KDF del respaldo:
   `memLimit` hasta 1 GiB, `opsLimit` hasta 2^32−1, y por algoritmo argon2id ≤ 20 y pbkdf2-sha256 ≤ 10 000 000 (si no, 400 `unsupported_kdf`).
+- **Chat (FIN-12):** `POST /matches/{id}/messages` responde **429 `chat_quota_exceeded`** si el remitente ya tiene 50 MiB cifrados
+  sin recoger en ese match (el ack del otro libera espacio; la cuota es por remitente). `GET …/messages` corta la página al llegar a
+  1 MiB de ciphertext aunque no llegue a `limit` (siempre trae al menos uno y `nextCursor` sigue funcionando igual).
+  `CHAT_MESSAGE_RETENTION_DAYS` pasa a **30** por defecto: un cliente sin base local (sin ack) pierde lo que tenga más de 30 días.
 
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).

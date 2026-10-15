@@ -117,10 +117,10 @@ public sealed class ChatOptions
     public const string Section = "Chat";
 
     /// <summary>
-    /// Días que el servidor conserva un mensaje cifrado. 0 = sin límite (v1: el historial vive en el servidor).
-    /// Cuando la app guarde el historial local y haga ack, conviene 30 (los no entregados vencen).
+    /// Días que el servidor conserva un mensaje cifrado que nadie recogió (con ack se borra antes). 0 = sin límite.
+    /// 30 por defecto: los sobres no entregados vencen (05-S6) y el almacenamiento queda acotado.
     /// </summary>
-    [Range(0, 3650)] public int MessageRetentionDays { get; set; }
+    [Range(0, 3650)] public int MessageRetentionDays { get; set; } = 30;
 }
 
 public sealed class RateLimitOptions

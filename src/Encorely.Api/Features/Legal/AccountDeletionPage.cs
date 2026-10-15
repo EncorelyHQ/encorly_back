@@ -220,7 +220,7 @@ public static class AccountDeletionPage
         <h2>7. Seguridad</h2>
         <p>Usamos conexiones cifradas, contraseñas con hash, sesiones con tokens de corta duración y cifrado de extremo a extremo en el chat.</p>
         <h2>8. Conservación</h2>
-        <p>Conservamos tus datos mientras tengas la cuenta activa. Al eliminarla, se suprimen de forma inmediata. Excepción: un reporte de moderación se conserva sin tu identidad vinculada, y el texto de los mensajes revelados y el detalle del reporte se borran 180 días después de resolverse (o en cuanto se elimina la cuenta reportada).</p>
+        <p>Conservamos tus datos mientras tengas la cuenta activa. Al eliminarla, se suprimen de forma inmediata. Los mensajes cifrados se borran del servidor cuando tu teléfono los descarga, o a los 30 días si nadie los descargó. Excepción: un reporte de moderación se conserva sin tu identidad vinculada, y el texto de los mensajes revelados y el detalle del reporte se borran 180 días después de resolverse (o en cuanto se elimina la cuenta reportada).</p>
         <h2>9. Cambios</h2>
         <p>Si esta política cambia, publicaremos una nueva versión y te pediremos aceptarla de nuevo en la app.</p>
         """, withScript: false);
