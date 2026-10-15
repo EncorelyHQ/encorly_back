@@ -3,6 +3,12 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-15 · v1.0.0-draft.16 (paginación del panel)
+- **`GET /admin/events`:** acepta `limit` (1–200, por defecto 100) y `offset`, como `/admin/songs`. Orden por `startsAt` e `id`.
+- **`GET /admin/reports`:** acepta `limit` (1–200, **por defecto 50**; antes devolvía hasta 200 sin avisar) y el cursor
+  `afterAt` + `afterId` (el `createdAt` y el `id` del último recibido; van juntos). Cursor y no offset: la cola cambia mientras se
+  modera. Orden por `createdAt` e `id`. Fuera de rango → 400 `validation_failed`. El panel muestra "Cargar más" en los dos.
+
 ## 2026-10-15 · v1.0.0-draft.15 (estado del like en el perfil ajeno)
 - **Perfil (aditivo):** `PublicProfileDto` gana `likedByMe` y `matched`, con la misma semántica que en `RadarEntryDto`:
   `likedByMe` = quien llama ya le dio like (en cualquier evento), haya o no match; `matched` = hay un match activo. Si `matched`
