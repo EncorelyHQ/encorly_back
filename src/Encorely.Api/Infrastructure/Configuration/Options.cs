@@ -134,6 +134,8 @@ public sealed class RateLimitOptions
     [Range(1, 1440)] public int LockoutMinutes { get; set; } = 15;
     /// <summary>Escrituras por usuario y minuto en acciones que se prestan a spam (likes, mensajes, reportes…).</summary>
     [Range(1, 100_000)] public int UserWritesPerMinute { get; set; } = 120;
+    /// <summary>Refresh y logout por IP y minuto: más holgado que login porque en una red compartida (NAT) refrescan todos.</summary>
+    [Range(1, 100_000)] public int TokenPermitPerMinute { get; set; } = 60;
     /// <summary>Reportes por usuario y hora: más que eso es inundar la cola de moderación.</summary>
     [Range(1, 100_000)] public int ReportsPerHour { get; set; } = 10;
 }

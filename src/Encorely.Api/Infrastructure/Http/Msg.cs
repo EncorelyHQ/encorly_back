@@ -16,10 +16,17 @@ public static class EndpointExtensions
 {
     public const string UserWritesPolicy = "user-writes";
     public const string ReportsPolicy = "reports";
+    public const string TokensPolicy = "tokens";
+    /// <summary>Tope de cuerpo por defecto: cubre un mensaje de chat de 64 KiB en base64 con margen.</summary>
+    public const long DefaultMaxBodyBytes = 256 * 1024;
 
     /// <summary>Límite por usuario (no por IP) para escrituras que se prestan a abuso.</summary>
     public static RouteHandlerBuilder UserWrites(this RouteHandlerBuilder builder)
         => builder.RequireRateLimiting(UserWritesPolicy).ProducesProblem(StatusCodes.Status429TooManyRequests);
+
+    /// <summary>Sube el tope de cuerpo de este endpoint por encima de <see cref="DefaultMaxBodyBytes"/>.</summary>
+    public static RouteHandlerBuilder MaxBody(this RouteHandlerBuilder builder, long bytes)
+        => builder.WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(bytes)).ProducesProblem(StatusCodes.Status413PayloadTooLarge);
 
     /// <summary>Documenta en el OpenAPI las respuestas ProblemDetails posibles.</summary>
     public static RouteHandlerBuilder Problems(this RouteHandlerBuilder builder, params int[] statuses)

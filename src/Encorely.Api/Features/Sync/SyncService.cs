@@ -9,12 +9,19 @@ public sealed class SyncService(AppDbContext db, TimeProvider clock)
     public static readonly TimeSpan LinkLifetime = TimeSpan.FromMinutes(10);
     private const int MaxOpenLinksPerUser = 3;
     private static readonly HashSet<string> KdfAlgorithms = ["argon2id", "scrypt", "pbkdf2-sha256"];
+    /// <summary>1 GiB: parámetros más altos colgarían al dispositivo que restaure el respaldo.</summary>
+    public const long MaxKdfMemLimit = 1L << 30;
+    private const long MaxArgon2Ops = 20;
+    private const long MaxPbkdf2Iterations = 10_000_000;
 
     public async Task<BackupInfoDto> PutBackupAsync(Guid userId, PutBackupRequest r, CancellationToken ct)
     {
         var algorithm = r.Kdf.Algorithm.Trim().ToLowerInvariant();
         if (!KdfAlgorithms.Contains(algorithm))
             throw ApiException.BadRequest("unsupported_kdf", "Algoritmo de derivación no soportado.", "Usa argon2id, scrypt o pbkdf2-sha256.");
+        var maxOps = algorithm switch { "argon2id" => MaxArgon2Ops, "pbkdf2-sha256" => MaxPbkdf2Iterations, _ => uint.MaxValue };
+        if (r.Kdf.OpsLimit > maxOps)
+            throw ApiException.BadRequest("unsupported_kdf", "Parámetros de derivación fuera de rango.", $"Para {algorithm}, opsLimit hasta {maxOps}.");
 
         var backup = await db.Set<EncryptedBackup>().FirstOrDefaultAsync(b => b.UserId == userId, ct);
         if (backup is null)

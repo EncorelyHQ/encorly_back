@@ -26,6 +26,7 @@ public static class EnvironmentMapping
         ("RADAR_MIN_SWIPES", "Matching:RadarMinSwipes"),
         ("RATE_LIMIT_USER_WRITES_PER_MINUTE", "RateLimit:UserWritesPerMinute"),
         ("RATE_LIMIT_REPORTS_PER_HOUR", "RateLimit:ReportsPerHour"),
+        ("RATE_LIMIT_TOKENS_PER_MINUTE", "RateLimit:TokenPermitPerMinute"),
         ("RADAR_MIN_AFFINITY", "Matching:RadarMinAffinity"),
         ("AFFINITY_MIN_SWIPES", "Matching:AffinityMinSwipes"),
         ("CHAT_MESSAGE_RETENTION_DAYS", "Chat:MessageRetentionDays"),

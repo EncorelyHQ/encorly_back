@@ -12,6 +12,11 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   reporte, o en cuanto se borra la cuenta reportada, se borran `detail` y el `plaintext` de la evidencia (queda `""`); se
   conservan `messageId` y `verified`. Un reporte abierto cuya cuenta reportada ya no existe se descarta solo. La política
   (`/legal/privacidad` §6 y §8, `/cuenta/eliminar`) documenta el plazo; **no** cambia `consentVersion` (reduce retención).
+- **Cotas (FIN-08):** cuerpo máximo **256 KiB** en todos los endpoints → 413; `PUT /me/backup` admite 15 MB y `POST /reports` 1 MB.
+  `POST /auth/refresh` y `/auth/logout` pasan a **60 por minuto por IP** (`RATE_LIMIT_TOKENS_PER_MINUTE`) → 429. Se suman al límite
+  por usuario (429): `PUT /me/backup`, `PUT /keys/link-requests/{id}`, `PUT /events/{id}/attendance`, `PUT /devices/push-token`,
+  `POST /me/spotify/import` y `GET /me/export`. Cada género de `topArtists[].genres` admite hasta 100 caracteres. KDF del respaldo:
+  `memLimit` hasta 1 GiB, `opsLimit` hasta 2^32−1, y por algoritmo argon2id ≤ 20 y pbkdf2-sha256 ≤ 10 000 000 (si no, 400 `unsupported_kdf`).
 
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).

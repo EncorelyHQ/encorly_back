@@ -18,7 +18,8 @@ public static class ModerationEndpoints
         g.MapDelete("/blocks/{userId:guid}", Unblock).WithName("UnblockUser").WithSummary("Desbloquea (no reabre el match)").Problems(401);
         g.MapPost("/reports", ReportUser).WithName("ReportUser")
             .WithSummary("Reporta a un usuario para revisión; si ya tengo uno abierto contra esa persona, le suma la evidencia (mismo id)")
-            .Problems(400, 401, 404, 429).RequireRateLimiting(EndpointExtensions.ReportsPolicy);
+            .Problems(400, 401, 404, 429).RequireRateLimiting(EndpointExtensions.ReportsPolicy)
+            .MaxBody(1024 * 1024);   // 20 mensajes de evidencia de hasta 8000 caracteres
     }
 
     private static async Task<NoContent> BlockUser(BlockRequest request, ClaimsPrincipal user, ModerationService moderation, CancellationToken ct)

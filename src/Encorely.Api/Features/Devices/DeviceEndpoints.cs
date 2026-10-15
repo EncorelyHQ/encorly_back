@@ -12,7 +12,7 @@ public static class DeviceEndpoints
     {
         var g = api.MapGroup("/devices").WithTags("Push");
 
-        g.MapPut("/push-token", Register).WithName("RegisterPushToken").WithSummary("Registra el token push de este dispositivo").Problems(400, 401);
+        g.MapPut("/push-token", Register).WithName("RegisterPushToken").WithSummary("Registra el token push de este dispositivo").Problems(400, 401).UserWrites();
         g.MapDelete("/push-token", Unregister).WithName("UnregisterPushToken").WithSummary("Quita el token push (al cerrar sesión)").Problems(400, 401);
     }
 

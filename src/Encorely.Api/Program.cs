@@ -34,6 +34,8 @@ using Microsoft.Extensions.Options;
 DotEnv.LoadFromNearest(Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
+// Sin esto rige el default de 30 MB en todos los endpoints, también en los anónimos. Los que necesitan más usan MaxBody().
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = EndpointExtensions.DefaultMaxBodyBytes);
 builder.Configuration.AddEncorelyEnvironment();
 
 // Configuración validada al arrancar: si falta un secreto, la API no levanta (sin valores de respaldo).
@@ -125,6 +127,13 @@ builder.Services.AddRateLimiter(o =>
         {
             PermitLimit = limits.UserWritesPerMinute, Window = TimeSpan.FromMinutes(1), SegmentsPerWindow = 6, QueueLimit = 0,
         });
+    });
+    o.AddPolicy(EndpointExtensions.TokensPolicy, ctx =>
+    {
+        var limits = ctx.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+        return RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.TokenPermitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 });
     });
     o.AddPolicy(EndpointExtensions.ReportsPolicy, ctx =>
     {
