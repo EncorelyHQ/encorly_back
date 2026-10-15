@@ -67,6 +67,7 @@ public static class AdminPanelPage
         .row>*{flex:1 1 12rem}
         .row>button{flex:0 0 auto}
         .actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+        .actions>p{flex:1 0 100%;margin:0}
         .grid{display:grid;gap:0 1rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
         [role=tablist]{display:flex;flex-wrap:wrap;gap:.25rem;border-bottom:1px solid var(--line);margin-bottom:1rem}
         [role=tab]{background:transparent;color:var(--fg);border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0}
@@ -618,9 +619,20 @@ public static class AdminPanelPage
         // ---------- reportes ----------
         const REASONS = { spam: 'Spam', harassment: 'Acoso', inappropriate: 'Contenido inapropiado', fakeProfile: 'Perfil falso', underage: 'Menor de edad', other: 'Otro' };
         const STATUSES = { open: 'Abierto', resolved: 'Resuelto', dismissed: 'Descartado' };
+        const ACCOUNT = { active: 'activa', banned: 'suspendida' };
 
         function userLine(label, u) {
-          return el('p', { class: 'muted', text: label + ': ' + (u ? u.displayName + ' <' + u.email + '> · ' + u.status : 'cuenta eliminada') });
+          return el('p', { class: 'muted', text: label + ': ' + (u ? u.displayName + ' <' + u.email + '> · ' + (ACCOUNT[u.status] || u.status) : 'cuenta eliminada') });
+        }
+
+        // Confirmación en el sitio y no con el diálogo nativo: no bloquea la página y la lee un lector de pantalla.
+        function confirmIn(box, question, yesText, onYes, restore) {
+          const yes = btn(yesText, async () => {
+            yes.disabled = true;
+            try { await onYes(); } finally { yes.disabled = false; }
+          }, 'danger');
+          box.replaceChildren(el('p', { text: question }), yes, btn('Cancelar', restore));
+          yes.focus();
         }
 
         function evidenceNode(ev) {
@@ -646,32 +658,46 @@ public static class AdminPanelPage
           const noteId = 'note-' + r.id;
           const note = el('textarea', { id: noteId, maxlength: 1000 });
           const err = el('div', { class: 'msg', role: 'alert' });
+          const who = r.reported ? r.reported.displayName : 'esta cuenta';
           const act = (action) => async () => {
             try {
               await call('POST', '/admin/reports/' + r.id + '/resolve', { action, note: note.value.trim() || null });
               await loadReports();
-            } catch (e2) { showProblem(err, e2.problem, e2.message); }
+            } catch (e2) { showProblem(err, e2.problem, e2.message); showActions(); }
           };
+          const actions = el('div', { class: 'actions' });
+          const showActions = () => {
+            const buttons = [];
+            if (r.status === 'open') buttons.push(
+              btn('Descartar', act('dismiss')),
+              btn('Resuelto', act('resolve')),
+              btn('Suspender cuenta', () => confirmIn(actions,
+                '¿Suspender a ' + who + '? Cierra todos sus matches, revoca sus sesiones y los matches no se recuperan al reactivarla.',
+                'Sí, suspender', act('ban'), showActions), 'danger'));
+            if (r.reported && r.reported.status === 'banned') buttons.push(
+              btn('Reactivar cuenta', () => confirmIn(actions,
+                '¿Reactivar a ' + who + '? Podrá volver a entrar y registrarse con su correo; sus matches cerrados siguen cerrados.',
+                'Sí, reactivar', async () => {
+                  try {
+                    await call('PUT', '/admin/users/' + r.reported.id + '/status', { status: 'active' });
+                    await loadReports();
+                  } catch (e2) { showProblem(err, e2.problem, e2.message); showActions(); }
+                }, showActions)));
+            actions.replaceChildren(...buttons);
+          };
+          showActions();
           const children = [
             el('h2', { text: (REASONS[r.reason] || r.reason) + ' · ' + (STATUSES[r.status] || r.status) }),
             el('p', { class: 'muted', text: fmt.format(new Date(r.createdAt)) }),
             userLine('Reporta', r.reporter),
             userLine('Reportado', r.reported),
-            el('p', { class: 'muted', text: 'Reportes previos contra esta cuenta: ' + r.priorReportsAgainstUser }),
+            el('p', { class: 'muted', text: 'Otras personas que reportaron esta cuenta: ' + r.priorReportsAgainstUser }),
           ];
           if (r.detail) children.push(el('p', { text: r.detail }));
           if (r.evidence.length) children.push(el('h3', { text: 'Evidencia' }), ...r.evidence.map(evidenceNode));
-          if (r.status === 'open') {
-            children.push(
-              el('label', { for: noteId, text: 'Nota de resolución (opcional)' }), note,
-              el('div', { class: 'actions' }, [
-                btn('Descartar', act('dismiss')),
-                btn('Resuelto', act('resolve')),
-                btn('Suspender cuenta', act('ban'), 'danger')]),
-              err);
-          } else if (r.resolutionNote) {
-            children.push(el('p', { text: 'Nota: ' + r.resolutionNote }));
-          }
+          if (r.status === 'open') children.push(el('label', { for: noteId, text: 'Nota de resolución (opcional)' }), note);
+          else if (r.resolutionNote) children.push(el('p', { text: 'Nota: ' + r.resolutionNote }));
+          if (actions.childElementCount) children.push(actions, err);
           return el('article', { class: 'card' }, children);
         }
         """;
