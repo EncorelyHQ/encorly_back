@@ -74,7 +74,7 @@ public static class AdminEndpoints
     // string y no ReportStatus: el binder de query usa Enum.TryParse sensible a mayúsculas (no el converter camelCase del body)
     // y aceptaba "Open" o "1" pero rechazaba el "open" que anuncia el contrato.
     private static async Task<Ok<IReadOnlyList<AdminReportDto>>> ListReports(AdminService admin, CancellationToken ct,
-        [Description("Filtra por estado; por defecto open")][AllowedValues("open", "resolved", "dismissed")] string status = "open")
+        [Description("Filtra por estado; por defecto open")][AllowedValuesIgnoreCase("open", "resolved", "dismissed")] string status = "open")
         => TypedResults.Ok(await admin.ListReportsAsync(Enum.Parse<ReportStatus>(status, ignoreCase: true), ct));
 
     private static async Task<Ok<AdminReportDto>> ResolveReport(Guid id, ResolveReportRequest request, ClaimsPrincipal user, AdminService admin, CancellationToken ct)

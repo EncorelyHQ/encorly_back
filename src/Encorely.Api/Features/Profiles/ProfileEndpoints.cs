@@ -42,7 +42,7 @@ public static class ProfileEndpoints
 
     private static async Task<NoContent> RemoveReaction(
         Guid id,
-        [Description("artist o genre")][AllowedValues("artist", "genre")] string targetKind,
+        [Description("artist o genre")][AllowedValuesIgnoreCase("artist", "genre")] string targetKind,
         [Description("Slug del género o key del artista")][MaxLength(100)] string targetKey,
         ClaimsPrincipal user, ProfileService profiles, CancellationToken ct)
     {

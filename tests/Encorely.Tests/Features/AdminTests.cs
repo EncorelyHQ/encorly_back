@@ -284,13 +284,16 @@ public sealed class AdminTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task Reportes_filtra_por_status_en_minusculas_como_anuncia_el_contrato()
+    public async Task Reportes_filtra_por_status_sin_distinguir_mayusculas_y_explica_el_error_en_espanol()
     {
         var admin = await AdminAsync();
-        foreach (var status in new[] { "open", "resolved", "dismissed" })
+        foreach (var status in new[] { "open", "resolved", "dismissed", "Open", "RESOLVED" })
             await admin.Client.GetAsync($"/api/v1/admin/reports?status={status}", Ct).Expect<List<AdminReportDto>>(HttpStatusCode.OK);
-        foreach (var status in new[] { "1", "Open", "closed" })
-            await admin.Client.GetAsync($"/api/v1/admin/reports?status={status}", Ct).ExpectProblem(HttpStatusCode.BadRequest);
+        foreach (var status in new[] { "1", "closed" })
+        {
+            var problem = await admin.Client.GetAsync($"/api/v1/admin/reports?status={status}", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+            Assert.Equal("Usa uno de estos valores: open, resolved, dismissed.", problem.GetProperty("errors").GetProperty("status")[0].GetString());
+        }
     }
 
     [Fact]

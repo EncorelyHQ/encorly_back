@@ -168,7 +168,8 @@ builder.Services.AddRateLimiter(o =>
 var corsOrigins = builder.Configuration["Cors:Origins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
-builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false);
+// Los fallos de binding llegan como excepción a ApiExceptionHandler, que les pone code, título en español y el campo.
+builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true);
 
 var app = builder.Build();
 
