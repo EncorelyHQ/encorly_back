@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using Encorely.Api.Features.Admin;
 using Encorely.Api.Features.Auth;
+using Encorely.Api.Features.Events;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
@@ -281,6 +282,67 @@ public sealed class AdminTests(ApiFixture api)
         Assert.Equal(5, all.Distinct().Count());
         Assert.Empty(await Page(6));
         await admin.Client.GetAsync("/api/v1/admin/songs?offset=-1", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+    }
+
+    [Fact]
+    public async Task Eventos_se_paginan_con_offset_sin_repetir_ni_saltar()
+    {
+        var admin = await AdminAsync();
+        // En 1990, antes que cualquier otro evento de la BD compartida: con includePast quedan al principio y los tests en
+        // paralelo (que crean eventos futuros) no corren el offset. Misma hora para los 5: solo el id desempata.
+        var at = new DateTimeOffset(1990, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        await api.WithDbAsync(async db =>
+        {
+            for (var i = 0; i < 5; i++)
+                db.Events.Add(new Event { Name = $"Paginado {i}", Venue = "Teatro", City = "Bogotá", StartsAt = at, ArtistLineup = ["Uno"] });
+            await db.SaveChangesAsync(Ct);
+        });
+
+        async Task<List<AdminEventDto>> Page(int offset) => await admin.Client
+            .GetAsync($"/api/v1/admin/events?includePast=true&limit=2&offset={offset}", Ct).Expect<List<AdminEventDto>>(HttpStatusCode.OK);
+        var ids = (await Page(0)).Concat(await Page(2)).Concat(await Page(4)).Where(e => e.StartsAt == at).Select(e => e.Id).ToList();
+        Assert.Equal(5, ids.Distinct().Count());
+        Assert.DoesNotContain(await admin.Client.GetAsync("/api/v1/admin/events", Ct).Expect<List<AdminEventDto>>(HttpStatusCode.OK), e => e.StartsAt == at);
+        await admin.Client.GetAsync("/api/v1/admin/events?limit=0", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+    }
+
+    [Fact]
+    public async Task Reportes_se_paginan_con_cursor_y_no_se_saltan_al_resolver()
+    {
+        var admin = await AdminAsync();
+        var reporter = await api.CreateUserAsync();
+        // Todos con el mismo createdAt, en un instante que ningún otro test usa: solo el id desempata y el cursor de partida
+        // deja fuera la cola compartida.
+        var at = new DateTimeOffset(2099, 1, 1, 0, 0, 0, TimeSpan.Zero).AddMinutes(Random.Shared.Next(1, 500_000));
+        await api.WithDbAsync(async db =>
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                var reported = new User { Email = $"p{Guid.NewGuid():N}@test.encorely.local", PasswordHash = "x", DisplayName = $"Reportado {i}" };
+                db.Users.Add(reported);
+                db.Reports.Add(new Report { ReporterId = reporter.Id, ReportedUserId = reported.Id, Reason = ReportReason.Spam, CreatedAt = at });
+            }
+            await db.SaveChangesAsync(Ct);
+        });
+
+        var start = at.AddTicks(-10);
+        async Task<List<AdminReportDto>> Page(DateTimeOffset afterAt, Guid afterId) => await admin.Client
+            .GetAsync($"/api/v1/admin/reports?limit=2&afterAt={Uri.EscapeDataString(afterAt.ToString("O"))}&afterId={afterId}", Ct)
+            .Expect<List<AdminReportDto>>(HttpStatusCode.OK);
+
+        var first = await Page(start, Guid.Empty);
+        Assert.Equal(2, first.Count);
+        // Resolver uno de la primera página no corre la cola: la siguiente sigue después del último recibido.
+        await admin.Client.PostJson($"/api/v1/admin/reports/{first[0].Id}/resolve", new { action = "dismiss" }).Expect(HttpStatusCode.OK);
+        var second = await Page(first[^1].CreatedAt, first[^1].Id);
+        var third = await Page(second[^1].CreatedAt, second[^1].Id);
+        var ids = first.Concat(second).Concat(third).Where(r => r.CreatedAt == at).Select(r => r.Id).ToList();
+        Assert.Equal(5, ids.Distinct().Count());
+        Assert.Equal(2, second.Count);
+        Assert.Single(third);
+
+        await admin.Client.GetAsync($"/api/v1/admin/reports?afterId={Guid.NewGuid()}", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+        await admin.Client.GetAsync("/api/v1/admin/reports?limit=201", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
     }
 
     [Fact]

@@ -3407,6 +3407,26 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013200, por defecto 100",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Eventos a saltar (paginaci\u00F3n; orden por fecha)",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
           }
         ],
         "responses": {
@@ -3419,6 +3439,16 @@
                   "items": {
                     "$ref": "#/components/schemas/AdminEventDto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -4028,6 +4058,34 @@
               ],
               "type": "string",
               "default": "open"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013200, por defecto 50",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "afterAt",
+            "in": "query",
+            "description": "createdAt del \u00FAltimo reporte recibido (p\u00E1gina siguiente; va con afterId)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "afterId",
+            "in": "query",
+            "description": "id del \u00FAltimo reporte recibido (va con afterAt)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],

@@ -136,6 +136,7 @@ public static class AdminPanelPage
         <div class="card table-wrap"><table>
         <thead><tr><th scope="col">Nombre</th><th scope="col">Fecha (Colombia)</th><th scope="col">Lugar</th><th scope="col">Estado</th><th scope="col">Asistentes</th><th scope="col">Acciones</th></tr></thead>
         <tbody id="ev-body"></tbody></table></div>
+        <div class="actions"><button id="ev-more" class="secondary" type="button" hidden>Cargar más eventos</button></div>
         <form id="ev-form" class="card" hidden novalidate>
         <h2 id="ev-form-title">Nuevo evento</h2>
         <div class="grid">
@@ -200,6 +201,7 @@ public static class AdminPanelPage
         </div>
         <div id="rp-msg" class="msg" role="status"></div>
         <div id="rp-list"></div>
+        <div class="actions"><button id="rp-more" class="secondary" type="button" hidden>Cargar más reportes</button></div>
         </section>
         </div>
         </div>
@@ -406,19 +408,28 @@ public static class AdminPanelPage
         function btn(text, onclick, cls) { return el('button', { type: 'button', class: cls || 'secondary', text, onclick }); }
 
         // ---------- eventos ----------
-        async function loadEvents() {
+        const EVENT_PAGE = 100;
+
+        // more=true agrega la página siguiente; si no, recarga desde el principio con el filtro actual.
+        async function loadEvents(more) {
           const msg = $('ev-list-msg');
-          const includePast = $('ev-filter').value === 'all';
+          const params = new URLSearchParams({
+            includePast: String($('ev-filter').value === 'all'), limit: String(EVENT_PAGE), offset: String(more ? events.length : 0),
+          });
+          $('ev-more').disabled = true;
           try {
-            events = await call('GET', '/admin/events?includePast=' + includePast);
+            const page = await call('GET', '/admin/events?' + params.toString());
+            events = more ? events.concat(page) : page;
+            $('ev-more').hidden = page.length < EVENT_PAGE;
             setMsg(msg, '', '');
             renderEvents();
           } catch (err) {
             if (err.status !== 403) showProblem(msg, err.problem, err.message);
             throw err;
-          }
+          } finally { $('ev-more').disabled = false; }
         }
         $('ev-filter').addEventListener('change', () => loadEvents().catch(() => {}));
+        $('ev-more').addEventListener('click', () => loadEvents(true).catch(() => {}));
 
         function renderEvents() {
           const body = $('ev-body');
@@ -677,15 +688,28 @@ public static class AdminPanelPage
           return el('div', {}, [tag(ev.verified ? 'Verificado' : 'No verificado', ev.verified ? 'good' : 'bad'), el('blockquote', { text })]);
         }
 
-        async function loadReports() {
+        const REPORT_PAGE = 50;
+        let lastReport = null;
+
+        // more=true agrega los siguientes después del último mostrado (cursor, no offset: la cola cambia al moderar).
+        async function loadReports(more) {
           const msg = $('rp-msg');
+          const params = new URLSearchParams({ status: $('rp-status').value, limit: String(REPORT_PAGE) });
+          if (more && lastReport) { params.set('afterAt', lastReport.createdAt); params.set('afterId', lastReport.id); }
+          $('rp-more').disabled = true;
           try {
-            const reports = await call('GET', '/admin/reports?status=' + $('rp-status').value);
-            setMsg(msg, reports.length ? '' : 'No hay reportes en este estado.', '');
-            $('rp-list').replaceChildren(...reports.map(reportCard));
+            const page = await call('GET', '/admin/reports?' + params.toString());
+            if (more) $('rp-list').append(...page.map(reportCard));
+            else $('rp-list').replaceChildren(...page.map(reportCard));
+            if (page.length) lastReport = page[page.length - 1];
+            else if (!more) lastReport = null;
+            $('rp-more').hidden = page.length < REPORT_PAGE;
+            setMsg(msg, $('rp-list').children.length ? '' : 'No hay reportes en este estado.', '');
           } catch (err) { showProblem(msg, err.problem, err.message); }
+          finally { $('rp-more').disabled = false; }
         }
-        $('rp-status').addEventListener('change', loadReports);
+        $('rp-status').addEventListener('change', () => loadReports());
+        $('rp-more').addEventListener('click', () => loadReports(true));
 
         function reportCard(r) {
           const noteId = 'note-' + r.id;

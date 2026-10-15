@@ -16,12 +16,16 @@ namespace Encorely.Api.Features.Admin;
 public sealed class AdminService(
     AppDbContext db, Notifier notifier, SessionRevoker sessions, BannedEmailHasher bannedEmails, TimeProvider clock, ILogger<AdminService> logger)
 {
-    public async Task<IReadOnlyList<AdminEventDto>> ListEventsAsync(bool includePast, CancellationToken ct)
+    public async Task<IReadOnlyList<AdminEventDto>> ListEventsAsync(bool includePast, int limit, int offset, CancellationToken ct)
     {
+        if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (offset is < 0 or > 100_000) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El offset debe estar entre 0 y 100000.");
         var now = clock.GetUtcNow();
+        // Id desempata: dos eventos a la misma hora no deben repetirse ni saltarse entre páginas.
         return await db.Events
             .Where(e => includePast || e.StartsAt > now)
-            .OrderBy(e => e.StartsAt)
+            .OrderBy(e => e.StartsAt).ThenBy(e => e.Id)
+            .Skip(offset).Take(limit)
             .Select(e => new AdminEventDto(e.Id, e.Name, e.ArtistLineup, e.Venue, e.City, e.StartsAt, e.ImageUrl, e.Description,
                 e.IsPublished, db.EventAttendances.Count(a => a.EventId == e.Id), e.CreatedAt))
             .ToListAsync(ct);
@@ -92,9 +96,22 @@ public sealed class AdminService(
         return await GetSongAsync(id, ct);
     }
 
-    public async Task<IReadOnlyList<AdminReportDto>> ListReportsAsync(ReportStatus status, CancellationToken ct)
+    /// <summary>
+    /// De los más antiguos a los más nuevos por (createdAt, id). Cursor y no offset: la cola se vacía mientras se modera y un
+    /// offset se saltaría reportes. Para la página siguiente se pasan createdAt e id del último recibido como afterAt y afterId.
+    /// </summary>
+    public async Task<IReadOnlyList<AdminReportDto>> ListReportsAsync(ReportStatus status, int limit, DateTimeOffset? afterAt, Guid? afterId, CancellationToken ct)
     {
-        var reports = await db.Reports.Where(r => r.Status == status).OrderBy(r => r.CreatedAt).Take(200).ToListAsync(ct);
+        if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (afterAt.HasValue != afterId.HasValue)
+            throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "afterAt y afterId van juntos.");
+        var query = db.Reports.Where(r => r.Status == status);
+        if (afterAt is { } at && afterId is { } id)
+        {
+            var cursorAt = at.ToUniversalTime();
+            query = query.Where(r => r.CreatedAt > cursorAt || (r.CreatedAt == cursorAt && r.Id.CompareTo(id) > 0));
+        }
+        var reports = await query.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).Take(limit).ToListAsync(ct);
         return await ToDtosAsync(reports, ct);
     }
 

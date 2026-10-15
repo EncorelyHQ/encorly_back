@@ -16,7 +16,7 @@ public static class AdminEndpoints
             .RequireAuthorization(AuthSetup.AdminPolicy)
             .AddEndpointFilter<AdminRoleFilter>();
 
-        g.MapGet("/events", ListEvents).WithName("AdminListEvents").WithSummary("Eventos (incluye no publicados y, opcionalmente, pasados)").Problems(401, 403);
+        g.MapGet("/events", ListEvents).WithName("AdminListEvents").WithSummary("Eventos (incluye no publicados y, opcionalmente, pasados)").Problems(400, 401, 403);
         g.MapPost("/events", CreateEvent).WithName("AdminCreateEvent").WithSummary("Crea un evento").Problems(400, 401, 403);
         g.MapPut("/events/{id:guid}", UpdateEvent).WithName("AdminUpdateEvent").WithSummary("Edita un evento").Problems(400, 401, 403, 404);
         g.MapDelete("/events/{id:guid}", DeleteEvent).WithName("AdminDeleteEvent").WithSummary("Borra un evento y sus asistencias").Problems(401, 403, 404);
@@ -33,8 +33,10 @@ public static class AdminEndpoints
     }
 
     private static async Task<Ok<IReadOnlyList<AdminEventDto>>> ListEvents(AdminService admin, CancellationToken ct,
-        [Description("Incluye eventos pasados")] bool includePast = false)
-        => TypedResults.Ok(await admin.ListEventsAsync(includePast, ct));
+        [Description("Incluye eventos pasados")] bool includePast = false,
+        [Description("1–200, por defecto 100")] int limit = 100,
+        [Description("Eventos a saltar (paginación; orden por fecha)")] int offset = 0)
+        => TypedResults.Ok(await admin.ListEventsAsync(includePast, limit, offset, ct));
 
     private static async Task<Created<AdminEventDto>> CreateEvent(AdminEventRequest request, AdminService admin, CancellationToken ct)
     {
@@ -74,8 +76,11 @@ public static class AdminEndpoints
     // string y no ReportStatus: el binder de query usa Enum.TryParse sensible a mayúsculas (no el converter camelCase del body)
     // y aceptaba "Open" o "1" pero rechazaba el "open" que anuncia el contrato.
     private static async Task<Ok<IReadOnlyList<AdminReportDto>>> ListReports(AdminService admin, CancellationToken ct,
-        [Description("Filtra por estado; por defecto open")][AllowedValuesIgnoreCase("open", "resolved", "dismissed")] string status = "open")
-        => TypedResults.Ok(await admin.ListReportsAsync(Enum.Parse<ReportStatus>(status, ignoreCase: true), ct));
+        [Description("Filtra por estado; por defecto open")][AllowedValuesIgnoreCase("open", "resolved", "dismissed")] string status = "open",
+        [Description("1–200, por defecto 50")] int limit = 50,
+        [Description("createdAt del último reporte recibido (página siguiente; va con afterId)")] DateTimeOffset? afterAt = null,
+        [Description("id del último reporte recibido (va con afterAt)")] Guid? afterId = null)
+        => TypedResults.Ok(await admin.ListReportsAsync(Enum.Parse<ReportStatus>(status, ignoreCase: true), limit, afterAt, afterId, ct));
 
     private static async Task<Ok<AdminReportDto>> ResolveReport(Guid id, ResolveReportRequest request, ClaimsPrincipal user, AdminService admin, CancellationToken ct)
         => TypedResults.Ok(await admin.ResolveReportAsync(user.UserId(), id, request, ct));
