@@ -1,3 +1,4 @@
+using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Database;
 using Encorely.Api.Infrastructure.Http;
 using Microsoft.EntityFrameworkCore;
@@ -64,10 +65,13 @@ public sealed class EventService(AppDbContext db, TimeProvider clock)
     private Task<EventDto?> FindAsync(Guid userId, Guid eventId, CancellationToken ct)
         => ProjectDto(Published().Where(e => e.Id == eventId), userId).FirstOrDefaultAsync(ct);
 
-    // Conteo e "yo voy" como subconsultas de la misma proyección: sin N+1.
+    // Conteo e "yo voy" como subconsultas de la misma proyección: sin N+1. El conteo usa el filtro del radar
+    // (cuentas activas, sin bloqueos en ninguna dirección) para no anunciar gente que luego no aparece.
     private IQueryable<EventDto> ProjectDto(IQueryable<Event> events, Guid userId) => events.Select(e => new EventDto(
         e.Id, e.Name, e.ArtistLineup, e.Venue, e.City, e.StartsAt, e.ImageUrl, e.Description,
-        db.EventAttendances.Count(a => a.EventId == e.Id),
+        db.EventAttendances.Count(a => a.EventId == e.Id
+            && (a.UserId == userId || (db.Users.Any(u => u.Id == a.UserId && u.Status == UserStatus.Active)
+                && !db.Blocks.Any(b => (b.BlockerId == userId && b.BlockedId == a.UserId) || (b.BlockerId == a.UserId && b.BlockedId == userId))))),
         db.EventAttendances.Any(a => a.EventId == e.Id && a.UserId == userId)));
 
     private static ApiException EventNotFound() => ApiException.NotFound(ErrorCodes.EventNotFound, "No encontramos ese evento.");

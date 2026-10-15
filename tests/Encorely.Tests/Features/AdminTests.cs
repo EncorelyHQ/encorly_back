@@ -297,6 +297,54 @@ public sealed class AdminTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Resolver_el_mismo_reporte_a_la_vez_aplica_una_sola_accion()
+    {
+        var admin = await AdminAsync();
+        var other = await AdminAsync();
+        var reporter = await api.CreateUserAsync();
+        var reported = await api.CreateUserAsync();
+        var reportId = await api.WithDbAsync(async db =>
+        {
+            var report = new Report { ReporterId = reporter.Id, ReportedUserId = reported.Id, Reason = ReportReason.Harassment };
+            db.Reports.Add(report);
+            await db.SaveChangesAsync(Ct);
+            return report.Id;
+        });
+
+        var results = await Task.WhenAll(
+            admin.Client.PostJson($"/api/v1/admin/reports/{reportId}/resolve", new { action = "ban", note = "Acoso" }),
+            other.Client.PostJson($"/api/v1/admin/reports/{reportId}/resolve", new { action = "dismiss" }));
+
+        Assert.Equal([HttpStatusCode.OK, HttpStatusCode.Conflict], results.Select(r => r.StatusCode).Order());
+        var winner = await results.Single(r => r.IsSuccessStatusCode).Read<AdminReportDto>();
+        // La cuenta queda como dice la acción que ganó: nunca un ban con el reporte descartado.
+        var status = await api.WithDbAsync(db => db.Users.Where(u => u.Id == reported.Id).Select(u => u.Status).SingleAsync(Ct));
+        Assert.Equal(winner.Status == ReportStatus.Resolved ? UserStatus.Banned : UserStatus.Active, status);
+    }
+
+    [Fact]
+    public async Task Admin_no_puede_suspender_a_otro_admin_ni_por_reporte()
+    {
+        var admin = await AdminAsync();
+        var other = await AdminAsync();
+        await admin.Client.PutJson($"/api/v1/admin/users/{other.Id}/status", new { status = "banned" })
+            .ExpectProblem(HttpStatusCode.Forbidden, "cannot_change_admin_status");
+
+        var reportId = await api.WithDbAsync(async db =>
+        {
+            var report = new Report { ReporterId = admin.Id, ReportedUserId = other.Id, Reason = ReportReason.Harassment };
+            db.Reports.Add(report);
+            await db.SaveChangesAsync(Ct);
+            return report.Id;
+        });
+        await admin.Client.PostJson($"/api/v1/admin/reports/{reportId}/resolve", new { action = "ban" })
+            .ExpectProblem(HttpStatusCode.Forbidden, "cannot_change_admin_status");
+        // El rechazo revierte toda la resolución: el reporte sigue abierto.
+        Assert.Equal(ReportStatus.Open, await api.WithDbAsync(db => db.Reports.Where(r => r.Id == reportId).Select(r => r.Status).SingleAsync(Ct)));
+        await other.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Admin_no_puede_suspenderse_a_si_mismo_y_puede_reactivar()
     {
         var admin = await AdminAsync();

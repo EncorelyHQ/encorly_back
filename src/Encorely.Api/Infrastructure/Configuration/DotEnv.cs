@@ -6,6 +6,12 @@ namespace Encorely.Api.Infrastructure.Configuration;
 /// </summary>
 public static class DotEnv
 {
+    /// <summary>Antes del builder no hay IHostEnvironment: se lee la variable como lo hará él (sin valor = Production).</summary>
+    public static bool IsDevelopment()
+        => string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
+            "Development", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Sube desde <paramref name="startDirectory"/> hasta la raíz del repo (la carpeta con <c>.git</c>), no más arriba.</summary>
     public static void LoadFromNearest(string startDirectory, string fileName = ".env")
     {
         var dir = new DirectoryInfo(startDirectory);
@@ -17,6 +23,7 @@ public static class DotEnv
                 Load(candidate);
                 return;
             }
+            if (Directory.Exists(Path.Combine(dir.FullName, ".git")) || File.Exists(Path.Combine(dir.FullName, ".git"))) return;
             dir = dir.Parent;
         }
     }

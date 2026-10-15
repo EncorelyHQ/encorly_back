@@ -141,8 +141,10 @@ afinidad(a, b) = round(100 · coseno(peso_a, peso_b))
 
 Única consulta con Dapper (D4): una CTE calcula el vector de cada asistente y el coseno contra el mío en SQL, con las
 constantes de `Dna` como parámetros. Requisitos: ir al evento, haber calificado al menos `RADAR_MIN_SWIPES` canciones
-(el umbral lo sirve `/me/dna`; el front no lo duplica) y superar `RADAR_MIN_AFFINITY`. Excluye bloqueos en ambas
-direcciones y cuentas suspendidas.
+(el umbral lo sirve `/me/dna`; el front no lo duplica). Muestra a quien alcance `RADAR_MIN_AFFINITY` (≥) y a quien
+no tenga datos para calcularla (`affinity: null`: sin señal propia o sin ningún género con peso positivo). Excluye
+bloqueos en ambas direcciones y cuentas suspendidas, igual que `attendeeCount`. Devuelve hasta 200 asistentes; si había
+más, añade `X-Radar-Truncated: true`.
 
 ### 4.3 Match recíproco
 

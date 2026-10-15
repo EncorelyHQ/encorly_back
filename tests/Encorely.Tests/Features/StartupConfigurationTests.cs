@@ -33,6 +33,55 @@ public sealed class StartupConfigurationTests
     }
 
     [Fact]
+    public void Limites_de_login_se_configuran_por_variable_de_entorno()
+    {
+        // Valores iguales a los de por defecto: la variable de proceso es compartida con las demás pruebas en paralelo.
+        (string Env, string Key, string Value)[] vars =
+        [
+            ("RATE_LIMIT_AUTH_PER_MINUTE", "RateLimit:AuthPermitPerMinute", "10"),
+            ("AUTH_MAX_FAILED_LOGINS", "RateLimit:MaxFailedLogins", "5"),
+            ("AUTH_LOCKOUT_MINUTES", "RateLimit:LockoutMinutes", "15"),
+        ];
+        var previous = vars.Select(v => Environment.GetEnvironmentVariable(v.Env)).ToArray();
+        try
+        {
+            foreach (var v in vars) Environment.SetEnvironmentVariable(v.Env, v.Value);
+            var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddEncorelyEnvironment().Build();
+            foreach (var v in vars) Assert.Equal(v.Value, config[v.Key]);
+        }
+        finally
+        {
+            for (var i = 0; i < vars.Length; i++) Environment.SetEnvironmentVariable(vars[i].Env, previous[i]);
+        }
+    }
+
+    [Fact]
+    public void DotEnv_no_sube_mas_alla_de_la_raiz_del_repo()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"encorely-dotenv-{Guid.NewGuid():N}");
+        var repo = Path.Combine(root, "repo");
+        var api = Path.Combine(repo, "src", "api");
+        Directory.CreateDirectory(api);
+        Directory.CreateDirectory(Path.Combine(repo, ".git"));
+        var key = $"ENCORELY_TEST_{Guid.NewGuid():N}";
+        File.WriteAllText(Path.Combine(root, ".env"), $"{key}=fuera-del-repo");
+        try
+        {
+            DotEnv.LoadFromNearest(api);
+            Assert.Null(Environment.GetEnvironmentVariable(key));
+
+            File.WriteAllText(Path.Combine(repo, ".env"), $"{key}=del-repo");
+            DotEnv.LoadFromNearest(api);
+            Assert.Equal("del-repo", Environment.GetEnvironmentVariable(key));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Environment.SetEnvironmentVariable(key, null);
+        }
+    }
+
+    [Fact]
     public void DotEnv_corta_comentarios_inline_como_docker_compose()
     {
         var prefix = $"ENCORELY_TEST_{Guid.NewGuid():N}_";

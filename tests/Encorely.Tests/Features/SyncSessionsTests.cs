@@ -123,6 +123,17 @@ public sealed class SyncSessionsTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Vinculaciones_concurrentes_no_superan_el_tope()
+    {
+        var a = await api.CreateUserAsync();
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => a.Client.PostJson("/api/v1/keys/link-requests", new { ephemeralKey = Bytes(32) })));
+
+        Assert.Equal(3, responses.Count(r => r.StatusCode == HttpStatusCode.Created));
+        Assert.Equal(5, responses.Count(r => r.StatusCode == HttpStatusCode.TooManyRequests));
+        Assert.Equal(3, await api.WithDbAsync(db => db.Set<DeviceLinkRequest>().CountAsync(l => l.UserId == a.Id, Ct)));
+    }
+
+    [Fact]
     public async Task Vinculacion_limita_buzones_abiertos_y_la_limpieza_borra_los_vencidos()
     {
         var a = await api.CreateUserAsync();

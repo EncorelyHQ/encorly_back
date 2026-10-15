@@ -1,3 +1,4 @@
+using Encorely.Api.Infrastructure.Auth;
 using Encorely.Api.Infrastructure.Database;
 using Encorely.Api.Infrastructure.Http;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,7 @@ using Npgsql;
 
 namespace Encorely.Api.Features.Devices;
 
-public sealed class DeviceService(AppDbContext db, TimeProvider clock)
+public sealed class DeviceService(AppDbContext db, SessionRevoker sessions, TimeProvider clock)
 {
     /// <param name="sessionId">Claim <c>sid</c> del access token: el token push se borra cuando esa sesión se cierra.</param>
     public async Task RegisterAsync(Guid userId, Guid? sessionId, PushTokenRequest request, CancellationToken ct)
@@ -34,6 +35,15 @@ public sealed class DeviceService(AppDbContext db, TimeProvider clock)
     {
         var now = clock.GetUtcNow();
         var existing = await db.DevicePushTokens.FirstOrDefaultAsync(t => t.Token == request.Token, ct);
+        if (existing is not null && existing.UserId != userId)
+        {
+            // El teléfono cambió de cuenta. La app guarda una sola sesión, así que la del dueño anterior en ese dispositivo
+            // ya no se usa: se cierra en vez de dejarla abierta y sin avisos. RevokeAsync también borra la fila del token.
+            if (existing.SessionId is { } previous) await sessions.RevokeAsync(existing.UserId, previous, ct);
+            await db.DevicePushTokens.Where(t => t.Token == request.Token).ExecuteDeleteAsync(ct);
+            db.Entry(existing).State = EntityState.Detached;
+            existing = null;
+        }
         if (existing is null)
         {
             db.DevicePushTokens.Add(new DevicePushToken
@@ -43,7 +53,6 @@ public sealed class DeviceService(AppDbContext db, TimeProvider clock)
         }
         else
         {
-            existing.UserId = userId;
             existing.SessionId = sessionId;
             existing.Platform = request.Platform;
             existing.UpdatedAt = now;

@@ -28,7 +28,7 @@ public static class AdminEndpoints
 
         g.MapGet("/reports", ListReports).WithName("AdminListReports").WithSummary("Reportes, los más antiguos primero").Problems(400, 401, 403);
         g.MapPost("/reports/{id:guid}/resolve", ResolveReport).WithName("AdminResolveReport")
-            .WithSummary("Resuelve un reporte; ban suspende al reportado, cierra sus matches y revoca sus sesiones").Problems(400, 401, 403, 404);
+            .WithSummary("Resuelve un reporte; ban suspende al reportado, cierra sus matches y revoca sus sesiones").Problems(400, 401, 403, 404, 409);
         g.MapPut("/users/{id:guid}/status", SetUserStatus).WithName("AdminSetUserStatus").WithSummary("Suspende o reactiva una cuenta").Problems(400, 401, 403, 404);
     }
 

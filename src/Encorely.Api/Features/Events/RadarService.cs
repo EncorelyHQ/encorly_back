@@ -13,7 +13,8 @@ namespace Encorely.Api.Features.Events;
 /// <summary>Radar por evento. Única consulta con Dapper: afinidad calculada en SQL sobre los asistentes.</summary>
 public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matching, TimeProvider clock)
 {
-    private const int MaxEntries = 200;
+    public const int MaxEntries = 200;
+    public const string TruncatedHeader = "X-Radar-Truncated";
     private static readonly TimeSpan ColombiaOffset = TimeSpan.FromHours(-5);
 
     // El coseno replica Dna.RawWeight/Dna.Affinity; las constantes llegan como parámetros para no duplicarlas.
@@ -63,7 +64,8 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
             SELECT cand.user_id,
                    CASE WHEN NOT EXISTS (SELECT 1 FROM sig WHERE user_id = @me)
                           OR NOT EXISTS (SELECT 1 FROM sig WHERE user_id = cand.user_id) THEN NULL
-                        WHEN nc.norm IS NULL OR (SELECT norm FROM norms WHERE user_id = @me) IS NULL THEN 0
+                        -- Señal sin ningún peso positivo (todo dislikes) no es afinidad 0: es "sin datos", como sin señal.
+                        WHEN nc.norm IS NULL OR (SELECT norm FROM norms WHERE user_id = @me) IS NULL THEN NULL
                         ELSE round((100 * COALESCE(d.dot, 0) / (nc.norm * (SELECT norm FROM norms WHERE user_id = @me)))::numeric)::int
                    END AS affinity
             FROM cand
@@ -82,10 +84,11 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
         JOIN users u ON u.id = sc.user_id
         WHERE sc.affinity IS NULL OR sc.affinity >= @minAffinity
         ORDER BY sc.affinity DESC NULLS LAST, u.display_name, u.id
-        LIMIT @max
+        LIMIT @max + 1
         """;
 
-    public async Task<IReadOnlyList<RadarEntryDto>> GetAsync(Guid userId, Guid eventId, CancellationToken ct)
+    /// <summary>Truncated: había más de <see cref="MaxEntries"/> asistentes y solo van los de más afinidad.</summary>
+    public async Task<(IReadOnlyList<RadarEntryDto> Entries, bool Truncated)> GetAsync(Guid userId, Guid eventId, CancellationToken ct)
     {
         var startsAt = await db.Events.Where(e => e.Id == eventId && e.IsPublished).Select(e => (DateTimeOffset?)e.StartsAt).FirstOrDefaultAsync(ct)
             ?? throw ApiException.NotFound(ErrorCodes.EventNotFound, "No encontramos ese evento.");
@@ -106,10 +109,12 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
         var myDeclared = await db.UserGenres.AsNoTracking().Where(g => g.UserId == userId).Select(g => g.GenreId).ToListAsync(ct);
         var mine = Dna.Vector(myScores, myDeclared);
 
-        var rows = await QueryAsync(userId, eventId, ct);
+        var rows = (await QueryAsync(userId, eventId, ct)).ToList();
+        var truncated = rows.Count > MaxEntries;
+        if (truncated) rows.RemoveAt(MaxEntries);
         var today = DateOnly.FromDateTime(clock.GetUtcNow().ToOffset(ColombiaOffset).Date);
 
-        return rows.Select(r =>
+        var entries = rows.Select(r =>
         {
             var theirs = new Dictionary<int, double>();
             if (r.GenreIds is not null && r.Weights is not null)
@@ -125,6 +130,7 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
                 r.LikedByMe,
                 r.Matched);
         }).ToList();
+        return (entries, truncated);
     }
 
     private async Task<IEnumerable<Row>> QueryAsync(Guid userId, Guid eventId, CancellationToken ct)

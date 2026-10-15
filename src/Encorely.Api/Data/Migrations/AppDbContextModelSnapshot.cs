@@ -78,6 +78,9 @@ namespace Encorely.Api.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_refresh_tokens");
 
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_refresh_tokens_expires_at");
+
                     b.HasIndex("FamilyId")
                         .HasDatabaseName("ix_refresh_tokens_family_id");
 
@@ -141,6 +144,9 @@ namespace Encorely.Api.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_chat_messages");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_chat_messages_created_at");
 
                     b.HasIndex("SenderId")
                         .HasDatabaseName("ix_chat_messages_sender_id");

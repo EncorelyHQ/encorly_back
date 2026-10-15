@@ -15,6 +15,9 @@ public static class SecurityHeaders
             // La API solo sirve JSON; las páginas HTML (swagger, borrado de cuenta) fijan su propia CSP.
             if (!h.ContainsKey("Content-Security-Policy"))
                 h.ContentSecurityPolicy = "default-src 'none'; frame-ancestors 'none'";
+            // Perfiles, mensajes y tokens no deben quedar en la caché de un proxy ni del dispositivo.
+            if (ctx.Request.Path.StartsWithSegments("/api") && !h.ContainsKey("Cache-Control"))
+                h.CacheControl = "no-store";
             return Task.CompletedTask;
         });
         await next();

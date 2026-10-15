@@ -372,6 +372,72 @@ public sealed class EventsTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Radar_sin_generos_con_peso_da_afinidad_null_y_no_cero()
+    {
+        var id = await FutureEventAsync();
+        var me = await api.CreateUserAsync("Yo", null, "reggaeton");
+        var hater = await api.CreateUserAsync("Solo dislikes", u => u.Genres.Clear());
+        await PrepareDnaAsync(me, 3, ("reggaeton", 6, 0, 0));
+        await PrepareDnaAsync(hater, 0, ("salsa", 0, 6, 0));
+        foreach (var u in new[] { me, hater }) await AttendDirectAsync(u.Id, id);
+
+        var radar = await GetRadar(me, id).Expect<List<RadarEntryDto>>(HttpStatusCode.OK);
+        Assert.Null(Assert.Single(radar).Affinity);
+    }
+
+    [Fact]
+    public async Task AttendeeCount_no_cuenta_suspendidos_ni_bloqueados()
+    {
+        var id = await FutureEventAsync();
+        var me = await api.CreateUserAsync();
+        var normal = await api.CreateUserAsync();
+        var banned = await api.CreateUserAsync(configure: u => u.Status = UserStatus.Banned);
+        var blockedMe = await api.CreateUserAsync();
+        foreach (var u in new[] { me, normal, banned, blockedMe }) await AttendDirectAsync(u.Id, id);
+        await api.WithDbAsync(async db =>
+        {
+            db.Blocks.Add(new Block { BlockerId = blockedMe.Id, BlockedId = me.Id });
+            await db.SaveChangesAsync();
+        });
+
+        var ev = await me.Client.GetAsync($"/api/v1/events/{id}", Ct).Expect<EventDto>(HttpStatusCode.OK);
+        Assert.Equal(2, ev.AttendeeCount);
+        Assert.Equal(3, (await normal.Client.GetAsync($"/api/v1/events/{id}", Ct).Expect<EventDto>(HttpStatusCode.OK)).AttendeeCount);
+    }
+
+    [Fact]
+    public async Task Radar_avisa_en_una_cabecera_cuando_trunca()
+    {
+        var id = await FutureEventAsync();
+        var me = await api.CreateUserAsync("Yo", null, "reggaeton");
+        await PrepareDnaAsync(me, 3, ("reggaeton", 6, 0, 0));
+        await AttendDirectAsync(me.Id, id);
+
+        var first = await GetRadar(me, id).Expect(HttpStatusCode.OK);
+        Assert.False(first.Headers.Contains(RadarService.TruncatedHeader));
+
+        await api.WithDbAsync(async db =>
+        {
+            for (var i = 0; i <= RadarService.MaxEntries; i++)
+            {
+                var user = new User
+                {
+                    Email = $"r{Guid.NewGuid():N}@test.encorely.local", PasswordHash = "x", DisplayName = $"Asistente {i:000}",
+                    BirthDate = new DateOnly(1999, 5, 20), City = "Bogotá",
+                };
+                db.Users.Add(user);
+                db.EventAttendances.Add(new EventAttendance { UserId = user.Id, EventId = id });
+            }
+            await db.SaveChangesAsync();
+        });
+
+        var full = await GetRadar(me, id);
+        Assert.Equal(["true"], full.Headers.GetValues(RadarService.TruncatedHeader));
+        Assert.Equal(HttpStatusCode.OK, full.StatusCode);
+        Assert.Equal(RadarService.MaxEntries, (await full.Read<List<RadarEntryDto>>()).Count);
+    }
+
+    [Fact]
     public async Task Radar_respeta_RadarMinAffinity()
     {
         var id = await FutureEventAsync();

@@ -1,7 +1,7 @@
 # Infra local.
 #   Solo BD (desarrollo con `dotnet run`):  docker compose up -d
 #   BD + API en contenedor (sin SDK):        docker compose --profile full up -d --build
-# Antes: cp .env.example .env y completa DB_PASSWORD, JWT_SIGNING_KEY y (opcional) DEMO_USER_PASSWORD.
+# Antes: cp .env.example .env y completa DB_PASSWORD, JWT_SIGNING_KEY, BANNED_EMAIL_KEY y (opcional) DEMO_USER_PASSWORD.
 name: encorely
 
 services:

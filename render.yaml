@@ -35,6 +35,8 @@ services:
         value: "true"
       - key: JWT_SIGNING_KEY
         generateValue: true
+      - key: BANNED_EMAIL_KEY
+        generateValue: true
       - key: PUSH_ENABLED
         value: "true"
       - key: EXPO_PUSH_ACCESS_TOKEN

@@ -38,10 +38,10 @@ public sealed class DevicesPushTests(ApiFixture api)
         await b.Client.SendAsync(Delete(token), Ct).Expect(HttpStatusCode.NoContent);
         Assert.Equal(a.Id.ToString(), await OwnerOf(token));
 
-        // Mismo teléfono, otra cuenta: el token pasa a B.
+        // Mismo teléfono, otra cuenta: el token pasa a B y la sesión de A en ese teléfono se cierra.
         await b.Client.PutJson("/api/v1/devices/push-token", new { token, platform = "android" }).Expect(HttpStatusCode.NoContent);
         Assert.Equal(b.Id.ToString(), await OwnerOf(token));
-        await a.Client.SendAsync(Delete(token), Ct).Expect(HttpStatusCode.NoContent);
+        await a.Client.SendAsync(Delete(token), Ct).ExpectProblem(HttpStatusCode.Unauthorized);
         Assert.Equal(b.Id.ToString(), await OwnerOf(token));
 
         await b.Client.SendAsync(Delete(token), Ct).Expect(HttpStatusCode.NoContent);
@@ -56,6 +56,9 @@ public sealed class DevicesPushTests(ApiFixture api)
         await u.Client.PutJson("/api/v1/devices/push-token", new { token = "", platform = "android" }).ExpectProblem(HttpStatusCode.BadRequest);
         await u.Client.PutJson("/api/v1/devices/push-token", new { token = new string('x', 201), platform = "android" }).ExpectProblem(HttpStatusCode.BadRequest);
         await u.Client.PutJson("/api/v1/devices/push-token", new { token = NewToken(), platform = "symbian" }).ExpectProblem(HttpStatusCode.BadRequest);
+        foreach (var token in new[] { "fcm-crudo-123", "ExponentPushToken[]", "ExponentPushToken[a b]", "ExpoPushToken[abc]x" })
+            await u.Client.PutJson("/api/v1/devices/push-token", new { token, platform = "android" }).ExpectProblem(HttpStatusCode.BadRequest);
+        await u.Client.PutJson("/api/v1/devices/push-token", new { token = "ExpoPushToken[aB3_-x]", platform = "ios" }).Expect(HttpStatusCode.NoContent);
         await u.Client.SendAsync(Delete(new string('x', 201)), Ct).ExpectProblem(HttpStatusCode.BadRequest);
     }
 

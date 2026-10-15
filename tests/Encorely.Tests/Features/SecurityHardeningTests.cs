@@ -86,7 +86,7 @@ public sealed class SecurityHardeningTests(ApiFixture api)
     {
         var admin = await AdminAsync();
         var user = await api.CreateUserAsync();
-        var hash = BannedEmail.HashOf(user.Email);
+        var hash = api.Service<BannedEmailHasher>().Hash(user.Email);
         Task<bool> Vetoed() => api.WithDbAsync(db => db.BannedEmails.AnyAsync(b => b.EmailHash == hash, Ct));
 
         await admin.Client.PutJson($"/api/v1/admin/users/{user.Id}/status", new { status = "banned" }).Expect(HttpStatusCode.NoContent);
@@ -96,6 +96,44 @@ public sealed class SecurityHardeningTests(ApiFixture api)
 
         await admin.Client.PutJson($"/api/v1/admin/users/{user.Id}/status", new { status = "active" }).Expect(HttpStatusCode.NoContent);
         Assert.False(await Vetoed());
+    }
+
+    [Fact]
+    public async Task El_veto_guarda_un_hmac_y_respeta_los_vetos_viejos_en_sha256()
+    {
+        var admin = await AdminAsync();
+        var user = await api.CreateUserAsync();
+        var legacy = BannedEmailHasher.LegacyHash(user.Email);
+        await admin.Client.PutJson($"/api/v1/admin/users/{user.Id}/status", new { status = "banned" }).Expect(HttpStatusCode.NoContent);
+        // Sin la llave, el hash de la tabla no se puede confirmar por diccionario.
+        Assert.False(await api.WithDbAsync(db => db.BannedEmails.AnyAsync(b => b.EmailHash == legacy, Ct)));
+
+        // Un veto anterior a la llave (SHA-256 a secas) sigue bloqueando el registro y se levanta al reactivar.
+        var old = $"{Guid.NewGuid():N}@encorely.test";
+        await api.WithDbAsync(async db =>
+        {
+            db.BannedEmails.Add(new BannedEmail { EmailHash = BannedEmailHasher.LegacyHash(old) });
+            await db.SaveChangesAsync(Ct);
+        });
+        await RegisterRawAsync(old).ExpectProblem(HttpStatusCode.Forbidden, "account_banned");
+
+        await api.WithDbAsync(async db =>
+        {
+            db.BannedEmails.Add(new BannedEmail { EmailHash = legacy });
+            await db.SaveChangesAsync(Ct);
+        });
+        await admin.Client.PutJson($"/api/v1/admin/users/{user.Id}/status", new { status = "active" }).Expect(HttpStatusCode.NoContent);
+        Assert.False(await api.WithDbAsync(db => db.BannedEmails.AnyAsync(b => b.EmailHash == legacy, Ct)));
+    }
+
+    [Fact]
+    public async Task La_api_responde_con_cache_control_no_store()
+    {
+        var user = await api.CreateUserAsync();
+        var me = await user.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
+        Assert.True(me.Headers.CacheControl?.NoStore);
+        var anon = await api.Anonymous().GetAsync("/api/v1/me", Ct);
+        Assert.True(anon.Headers.CacheControl?.NoStore);
     }
 
     // ---------- 2 y 3. Bloqueo por intentos ----------

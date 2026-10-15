@@ -31,7 +31,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-DotEnv.LoadFromNearest(Directory.GetCurrentDirectory());
+// Solo en desarrollo: en producción un .env olvidado en el disco no debe poder cambiar la configuración.
+if (DotEnv.IsDevelopment()) DotEnv.LoadFromNearest(Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
 // Sin esto rige el default de 30 MB en todos los endpoints, también en los anónimos. Los que necesitan más usan MaxBody().
@@ -63,6 +64,8 @@ builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<ProxyO
     foreach (var n in networks) o.KnownIPNetworks.Add(n);
 });
 builder.Services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.Section).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddOptions<ModerationOptions>().BindConfiguration(ModerationOptions.Section).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.AddSingleton<BannedEmailHasher>();
 builder.Services.AddOptions<MatchingOptions>().BindConfiguration(MatchingOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<RateLimitOptions>().BindConfiguration(RateLimitOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddOptions<ChatOptions>().BindConfiguration(ChatOptions.Section).ValidateDataAnnotations().ValidateOnStart();
