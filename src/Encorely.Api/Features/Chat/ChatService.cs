@@ -84,6 +84,11 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
                 // Carrera con un ack entre RejectDeliveredIdAsync y aquí: sin la fila, la evidencia verificaría contra el tag viejo.
                 if (inserted == 0) throw IdConflict();
             }
+            else if (await db.DeliveredMessageIds.AnyAsync(d => d.MessageId == request.Id, ct))
+            {
+                // La misma carrera sin tag: el ack dejó la lápida después de RejectDeliveredIdAsync.
+                throw IdConflict();
+            }
             await tx.CommitAsync(ct);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
@@ -127,9 +132,18 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
     public async Task AckAsync(Guid userId, Guid matchId, AckRequest request, CancellationToken ct)
     {
         await FindMineAsync(userId, matchId, ct);
+        var now = clock.GetUtcNow();
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO delivered_message_ids (message_id, match_id, sender_id, delivered_at)
+            SELECT id, match_id, sender_id, {now} FROM chat_messages
+            WHERE match_id = {matchId} AND sender_id <> {userId} AND seq <= {request.UpToSeq} AND franking_tag IS NULL
+            ON CONFLICT (message_id) DO NOTHING
+            """, ct);
         await db.ChatMessages
             .Where(m => m.MatchId == matchId && m.SenderId != userId && m.Seq <= request.UpToSeq)
             .ExecuteDeleteAsync(ct);
+        await tx.CommitAsync(ct);
     }
 
     private async Task<Match> FindMineAsync(Guid userId, Guid matchId, CancellationToken ct)
@@ -149,16 +163,21 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
     }
 
     /// <summary>
-    /// El ack borra el mensaje pero conserva su compromiso de franking: reusar ese id crearía un duplicado (seq nuevo) cuya
-    /// evidencia se verificaría contra el tag del primero, y el contenido nuevo no se podría probar al reportarlo.
+    /// El ack borra el mensaje pero conserva su compromiso de franking (o su lápida si no tenía tag): reusar ese id crearía un
+    /// duplicado (seq nuevo) cuya evidencia se verificaría contra el tag del primero, y el contenido nuevo no se podría probar.
     /// </summary>
     private async Task RejectDeliveredIdAsync(Guid userId, Guid matchId, SendMessageRequest r, CancellationToken ct)
     {
         var delivered = await db.MessageFrankingRecords.AsNoTracking().Where(f => f.MessageId == r.Id)
-            .Select(f => new { f.MatchId, f.SenderId, f.FrankingTag }).FirstOrDefaultAsync(ct);
+            .Select(f => new { f.MatchId, f.SenderId, FrankingTag = (byte[]?)f.FrankingTag }).FirstOrDefaultAsync(ct)
+            ?? await db.DeliveredMessageIds.AsNoTracking().Where(d => d.MessageId == r.Id)
+                .Select(d => new { d.MatchId, d.SenderId, FrankingTag = (byte[]?)null }).FirstOrDefaultAsync(ct);
         if (delivered is null) return;
+        // Sin tag no hay contenido guardado con qué comparar: mismo match y remitente se trata como reintento.
         var retry = delivered.MatchId == matchId && delivered.SenderId == userId
-            && r.FrankingTag is not null && delivered.FrankingTag.AsSpan().SequenceEqual(r.FrankingTag);
+            && (delivered.FrankingTag is null
+                ? r.FrankingTag is null
+                : r.FrankingTag is not null && delivered.FrankingTag.AsSpan().SequenceEqual(r.FrankingTag));
         throw retry
             ? ApiException.Conflict(ErrorCodes.MessageAlreadyDelivered, "Ese mensaje ya se entregó y el receptor lo confirmó.")
             : IdConflict();

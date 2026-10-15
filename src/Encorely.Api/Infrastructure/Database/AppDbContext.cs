@@ -36,6 +36,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<DevicePushToken> DevicePushTokens => Set<DevicePushToken>();
     public DbSet<BannedEmail> BannedEmails => Set<BannedEmail>();
     public DbSet<MessageFrankingRecord> MessageFrankingRecords => Set<MessageFrankingRecord>();
+    public DbSet<DeliveredMessageId> DeliveredMessageIds => Set<DeliveredMessageId>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
     {
@@ -253,6 +254,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.HasIndex(x => x.CreatedAt);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.RecipientId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<DeliveredMessageId>(e =>
+        {
+            e.HasKey(x => x.MessageId);
+            e.Property(x => x.MessageId).ValueGeneratedNever();
+            e.HasIndex(x => x.DeliveredAt);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

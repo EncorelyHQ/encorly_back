@@ -152,6 +152,36 @@ namespace Encorely.Api.Data.Migrations
                     b.ToTable("chat_messages", (string)null);
                 });
 
+            modelBuilder.Entity("Encorely.Api.Features.Chat.DeliveredMessageId", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<DateTimeOffset>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("match_id");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.HasKey("MessageId")
+                        .HasName("pk_delivered_message_ids");
+
+                    b.HasIndex("DeliveredAt")
+                        .HasDatabaseName("ix_delivered_message_ids_delivered_at");
+
+                    b.HasIndex("SenderId")
+                        .HasDatabaseName("ix_delivered_message_ids_sender_id");
+
+                    b.ToTable("delivered_message_ids", (string)null);
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Chat.MessageFrankingRecord", b =>
                 {
                     b.Property<Guid>("MessageId")
@@ -1104,6 +1134,16 @@ namespace Encorely.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_chat_messages_users_sender_id");
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Chat.DeliveredMessageId", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_delivered_message_ids_users_sender_id");
                 });
 
             modelBuilder.Entity("Encorely.Api.Features.Chat.MessageFrankingRecord", b =>
