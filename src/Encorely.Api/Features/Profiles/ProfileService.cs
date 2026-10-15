@@ -71,7 +71,7 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
 
         ProfileCommonDto common;
         IReadOnlyList<MyReactionDto> myReactions = [];
-        bool likedByMe = false, matched = false;
+        bool likedByMe = false, matched = false, canLike = false;
         if (self)
             common = new ProfileCommonDto(null, [], []);
         else
@@ -89,13 +89,15 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
             likedByMe = await db.UserLikes.AnyAsync(l => l.FromUserId == viewerId && l.ToUserId == targetId, ct);
             var (a, b) = Match.OrderPair(viewerId, targetId);
             matched = await db.Matches.AnyAsync(m => m.UserAId == a && m.UserBId == b && m.Status == MatchStatus.Active, ct);
+            // CanViewAsync ya descartó bloqueos y cuentas no visibles; falta el evento en común que exige el like.
+            canLike = !matched && await MatchingService.SharedEventIds(db, viewerId, targetId, clock.GetUtcNow()).AnyAsync(ct);
         }
 
         return new PublicProfileDto(
             user.Id, user.DisplayName,
             user.BirthDate is { } birth ? User.AgeOn(birth, Today()) : null,
             user.City, user.Bio,
-            theirs.Genres, artists, await StatsAsync(targetId, ct), common, myReactions, likedByMe, matched);
+            theirs.Genres, artists, await StatsAsync(targetId, ct), common, myReactions, likedByMe, matched, canLike);
     }
 
     /// <summary>Lo que <c>/me</c> agrega del perfil social: artistas, estadísticas y reacciones recibidas.</summary>

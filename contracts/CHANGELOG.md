@@ -3,6 +3,11 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-15 · v1.0.0-draft.17 (canLike en el perfil ajeno)
+- **Perfil (aditivo):** `PublicProfileDto` gana `canLike`: true si `POST /likes` hacia esa persona respondería 200 ahora (van
+  a un mismo evento publicado y vigente, con el mismo corte que el like; los bloqueos ya dan 404 en el perfil). False si hay
+  `matched` o en el perfil propio. Con `likedByMe` y sin match sigue en true (el like es idempotente). No expone el evento.
+
 ## 2026-10-15 · v1.0.0-draft.16 (paginación del panel)
 - **`GET /admin/events`:** acepta `limit` (1–200, por defecto 100) y `offset`, como `/admin/songs`. Orden por `startsAt` e `id`.
 - **`GET /admin/reports`:** acepta `limit` (1–200, **por defecto 50**; antes devolvía hasta 200 sin avisar) y el cursor
