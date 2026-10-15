@@ -3,6 +3,12 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.9 (bloqueo por intentos)
+- Cambio de comportamiento (no cambia el esquema): el **429 `account_locked`** de `POST /auth/login`, `POST /account-deletion`
+  y `DELETE /me` con contraseña ahora es por **correo + IP**: tras 5 contraseñas fallidas desde una IP contra un correo, ese
+  par queda bloqueado 15 min; desde otra IP se sigue entrando. Sale también para correos sin cuenta, y durante el bloqueo no se
+  evalúa la contraseña (ni la correcta). El cliente lo trata igual que antes: "Demasiados intentos, espera unos minutos".
+
 ## 2026-10-14 · v1.0.0-draft.8 (login con Spotify)
 - Nuevo: `POST /auth/spotify` `{ code, codeVerifier, redirectUri, acceptTerms, consentVersion }`. La app hace el flujo PKCE
   (scope `user-read-email`) y manda el code **sin canjearlo**; el back lo canjea y lee `/v1/me`. Responde lo mismo que el login

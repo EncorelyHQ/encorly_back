@@ -12,11 +12,11 @@ namespace Encorely.Api.Features.Auth;
 public sealed class AuthService(
     AppDbContext db,
     PasswordHasher hasher,
+    LoginThrottle throttle,
     TokenService tokens,
     SessionRevoker sessions,
     SpotifyClient spotify,
     IOptions<JwtOptions> jwt,
-    IOptions<RateLimitOptions> limits,
     IOptions<LegalOptions> legal,
     TimeProvider clock)
 {
@@ -202,15 +202,15 @@ public sealed class AuthService(
 
     /// <summary>
     /// Única puerta para comprobar correo + contraseña (login y borrado web de cuenta): aplica el bloqueo por intentos
-    /// (429), compara contra un hash ficticio si la cuenta no existe, cuenta el fallo de forma atómica y reinicia el
-    /// contador al acertar. No mira el estado de la cuenta: un suspendido puede borrarla (Ley 1581).
+    /// (429) y compara contra un hash ficticio si la cuenta no existe o no tiene contraseña. No mira el estado de la
+    /// cuenta: un suspendido puede borrarla (Ley 1581).
     /// </summary>
     public async Task<User> VerifyCredentialsAsync(string rawEmail, string password, CancellationToken ct)
     {
         var email = Text.NormalizeEmail(rawEmail);
+        EnsureNotLocked(email);
         var user = await db.Users.AsNoTracking().Include(u => u.Genres).FirstOrDefaultAsync(u => u.Email == email, ct);
-        return await VerifyAsync(user, password,
-            () => ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos."), ct);
+        return Verify(email, user, password, () => ApiException.Unauthorized(ErrorCodes.InvalidCredentials, "Correo o contraseña incorrectos."));
     }
 
     /// <summary>
@@ -219,28 +219,28 @@ public sealed class AuthService(
     /// </summary>
     public async Task VerifyPasswordAsync(Guid userId, string password, CancellationToken ct)
     {
-        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
-        await VerifyAsync(user, password, () => ApiException.Forbidden(ErrorCodes.InvalidPassword, "La contraseña no es correcta."), ct);
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
+        EnsureNotLocked(user.Email);
+        Verify(user.Email, user, password, () => ApiException.Forbidden(ErrorCodes.InvalidPassword, "La contraseña no es correcta."));
     }
 
-    private async Task<User> VerifyAsync(User? user, string password, Func<ApiException> wrongPassword, CancellationToken ct)
+    // El 429 se decide antes del hash y sin saber si la cuenta existe: no delata cuentas ni confirma contraseñas.
+    private void EnsureNotLocked(string email)
     {
-        var now = clock.GetUtcNow();
-
-        if (user?.LockoutEndsAt > now)
+        if (throttle.IsLocked(email))
             throw new ApiException(StatusCodes.Status429TooManyRequests, ErrorCodes.AccountLocked, "Demasiados intentos. Intenta de nuevo en unos minutos.");
+    }
 
+    private User Verify(string email, User? user, string password, Func<ApiException> wrongPassword)
+    {
         if (!hasher.Verify(password, user?.PasswordHash))
         {
-            // Una cuenta sin contraseña (Spotify) responde como una inexistente y no acumula fallos: nada que adivinar.
-            if (user?.HasPassword == true) await RegisterFailureAsync(user.Id, now, ct);
+            throttle.RegisterFailure(email);
             throw wrongPassword();
         }
-
-        if (user!.FailedLoginAttempts != 0 || user.LockoutEndsAt is not null)
-            await db.Users.Where(u => u.Id == user.Id)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.FailedLoginAttempts, 0).SetProperty(u => u.LockoutEndsAt, (DateTimeOffset?)null), ct);
-        return user;
+        throttle.Reset(email);
+        return user!;
     }
 
     public async Task<AuthResponse> RefreshAsync(RefreshRequest request, CancellationToken ct)
@@ -284,22 +284,6 @@ public sealed class AuthService(
         var hash = TokenService.HashRefreshToken(request.RefreshToken);
         var session = await db.RefreshTokens.Where(t => t.TokenHash == hash).Select(t => new { t.UserId, t.FamilyId }).FirstOrDefaultAsync(ct);
         if (session is not null) await sessions.RevokeAsync(session.UserId, session.FamilyId, ct);
-    }
-
-    /// <summary>
-    /// Un solo UPDATE: incrementar sobre la entidad perdía fallos en paralelo (cada petición leía el mismo contador).
-    /// Al llegar al máximo fija el bloqueo y reinicia el contador en la misma sentencia.
-    /// </summary>
-    private async Task RegisterFailureAsync(Guid userId, DateTimeOffset now, CancellationToken ct)
-    {
-        var max = limits.Value.MaxFailedLogins;
-        var lockUntil = now.AddMinutes(limits.Value.LockoutMinutes);
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            UPDATE users SET
-                lockout_ends_at = CASE WHEN failed_login_attempts + 1 >= {max} THEN {lockUntil} ELSE lockout_ends_at END,
-                failed_login_attempts = CASE WHEN failed_login_attempts + 1 >= {max} THEN 0 ELSE failed_login_attempts + 1 END
-            WHERE id = {userId}
-            """, ct);
     }
 
     private (string Token, RefreshToken Entity) NewRefreshToken(Guid userId, Guid familyId, DateTimeOffset now)

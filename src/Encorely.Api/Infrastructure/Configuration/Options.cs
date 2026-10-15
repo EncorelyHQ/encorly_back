@@ -124,7 +124,7 @@ public sealed class RateLimitOptions
 
     /// <summary>Intentos de login/registro por IP y minuto.</summary>
     [Range(1, 10_000)] public int AuthPermitPerMinute { get; set; } = 10;
-    /// <summary>Intentos fallidos seguidos antes de bloquear la cuenta temporalmente.</summary>
+    /// <summary>Contraseñas fallidas seguidas desde una IP contra un correo antes de bloquear ese par (correo, IP).</summary>
     [Range(1, 100)] public int MaxFailedLogins { get; set; } = 5;
     [Range(1, 1440)] public int LockoutMinutes { get; set; } = 15;
     /// <summary>Escrituras por usuario y minuto en acciones que se prestan a spam (likes, mensajes, reportes…).</summary>

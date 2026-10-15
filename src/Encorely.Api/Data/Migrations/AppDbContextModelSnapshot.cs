@@ -879,14 +879,6 @@ namespace Encorely.Api.Data.Migrations
                         .HasColumnType("character varying(254)")
                         .HasColumnName("email");
 
-                    b.Property<int>("FailedLoginAttempts")
-                        .HasColumnType("integer")
-                        .HasColumnName("failed_login_attempts");
-
-                    b.Property<DateTimeOffset?>("LockoutEndsAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lockout_ends_at");
-
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")

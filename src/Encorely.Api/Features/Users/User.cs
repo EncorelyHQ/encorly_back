@@ -21,8 +21,6 @@ public sealed class User
     public string? Bio { get; set; }
     public UserRole Role { get; set; } = UserRole.User;
     public UserStatus Status { get; set; } = UserStatus.Active;
-    public int FailedLoginAttempts { get; set; }
-    public DateTimeOffset? LockoutEndsAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 

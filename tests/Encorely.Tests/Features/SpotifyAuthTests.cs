@@ -124,15 +124,14 @@ public sealed class SpotifyAuthTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task Login_por_correo_de_una_cuenta_sin_contrasena_da_el_401_generico_sin_contar_fallos()
+    public async Task Login_por_correo_de_una_cuenta_sin_contrasena_da_el_401_generico()
     {
         var account = FakeSpotify.NewAccount();
-        var auth = await LoginAsync(account).Expect<SpotifyAuthResponse>(HttpStatusCode.OK);
+        await LoginAsync(account).Expect(HttpStatusCode.OK);
 
-        for (var i = 0; i < 6; i++)
-            await api.Anonymous().PostJson("/api/v1/auth/login", new { email = account.Email, password = "cualquier-cosa-123" })
-                .ExpectProblem(HttpStatusCode.Unauthorized, "invalid_credentials");
-        Assert.Equal(0, await api.WithDbAsync(db => db.Users.Where(u => u.Id == auth.User.Id).Select(u => u.FailedLoginAttempts).SingleAsync(Ct)));
+        var body = await api.Anonymous().PostJson("/api/v1/auth/login", new { email = account.Email, password = "cualquier-cosa-123" })
+            .ExpectProblem(HttpStatusCode.Unauthorized, "invalid_credentials");
+        Assert.Equal("Correo o contraseña incorrectos.", body.GetProperty("title").GetString());
     }
 
     [Fact]

@@ -104,8 +104,8 @@ Reglas que la BD garantiza (no solo el código):
 - Operaciones sin fila natural que bloquear se serializan por usuario con advisory locks de transacción
   (`Infrastructure/Database/AdvisoryLock.cs`): `keys`, `profile`, `dna-import` y `account-state` (compartido en likes,
   exclusivo al suspender, para que un ban concurrente no deje un match activo).
-- El contador de intentos fallidos se incrementa en un solo UPDATE (sin lost update); login y borrado web comparten
-  `AuthService.VerifyCredentialsAsync`.
+- El bloqueo por intentos no vive en la BD: `LoginThrottle` cuenta en memoria por par (correo, IP). Login, borrado web y
+  `DELETE /me` con contraseña pasan por la misma puerta de `AuthService`.
 - El access token lleva `sid` (familia del refresh): los push tokens se ligan a esa sesión y se borran al cerrarla. Cada
   request autenticada comprueba en la misma consulta del estado de la cuenta que esa sesión siga abierta, así que cerrarla
   (`SessionRevoker`: logout, `/me/sessions`, reuso de refresh, ban) corta el access token y el hub en el acto.
@@ -241,7 +241,7 @@ y `@noble/ciphers` (XChaCha20-Poly1305), JS puro y auditadas, sin dev build.
 |---|---|
 | Contraseñas | BCrypt (factor 12), 12 a 72 bytes; se rechaza en vez de truncar |
 | Enumeración | Verificación contra un hash ficticio si el email no existe (mismo tiempo y mismo 401) |
-| Fuerza bruta | Rate limit por IP en registro/login/borrado web y bloqueo temporal de la cuenta tras 5 fallos |
+| Fuerza bruta | Rate limit por IP en registro/login/borrado web y bloqueo temporal del par (correo, IP) tras 5 fallos. El 429 se decide antes del hash y también para correos inexistentes: no delata cuentas ni confirma contraseñas |
 | Sesiones | Access JWT de 15 min (HS256, issuer/audience validados); refresh opaco de 256 bits guardado como SHA-256, rotación en cada uso y revocación de la familia completa si se reutiliza uno viejo |
 | Suspensión | Rol admin confirmado en la BD en cada request de `/admin`; suspender cierra matches, revoca sesiones y corta el JWT vigente |
 | Cabeceras | `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, CSP `default-src 'none'` en la API; las páginas HTML llevan CSP con hashes, sin `unsafe-inline`; HSTS fuera de Development |
@@ -250,6 +250,11 @@ y `@noble/ciphers` (XChaCha20-Poly1305), JS puro y auditadas, sin dev build.
 | Datos personales (Ley 1581) | Consentimiento versionado con fecha, exportación (`/me/export`), borrado en la app y en la web (`/cuenta/eliminar`), mayoría de edad 18+ |
 
 Riesgos residuales aceptados:
+
+- El bloqueo por intentos es por (correo, IP), no por cuenta: así nadie deja a otra persona sin login ni borrado web
+  conociendo solo su correo. A cambio, un ataque distribuido desde muchas IP contra una cuenta no se bloquea; lo frenan
+  el rate limit por IP, bcrypt (factor 12) y el mínimo de 12 caracteres. El contador vive en memoria (una instancia):
+  un reinicio lo pone en cero.
 
 - El registro responde 409 si el email ya existe (no hay verificación por correo en la v1, así que no hay forma de
   ocultarlo sin romper la experiencia). Está limitado por el rate limit.

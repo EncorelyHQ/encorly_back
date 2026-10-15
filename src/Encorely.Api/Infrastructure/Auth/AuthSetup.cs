@@ -17,6 +17,8 @@ public static class AuthSetup
     public static IServiceCollection AddEncorelyAuth(this IServiceCollection services)
     {
         services.AddSingleton<PasswordHasher>();
+        services.AddHttpContextAccessor();
+        services.AddSingleton<LoginThrottle>();
         services.AddSingleton<TokenService>();
         services.AddScoped<SessionRevoker>();
 

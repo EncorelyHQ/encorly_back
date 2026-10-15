@@ -216,7 +216,6 @@ public sealed class ProfileTests(ApiFixture api)
         await a.Client.DeleteJson("/api/v1/me", new { password = "no-es-la-mia-1" }).ExpectProblem(HttpStatusCode.Forbidden, "invalid_password");
 
         await a.Client.GetAsync("/api/v1/me", Ct).Expect(HttpStatusCode.OK);
-        Assert.Equal(1, await api.WithDbAsync(db => db.Users.Where(u => u.Id == a.Id).Select(u => u.FailedLoginAttempts).SingleAsync(Ct)));
         await a.Client.DeleteMe().Expect(HttpStatusCode.NoContent);
     }
 

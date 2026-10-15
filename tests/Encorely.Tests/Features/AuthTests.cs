@@ -142,19 +142,19 @@ public sealed class AuthTests(ApiFixture api)
         for (var i = 0; i < max; i++)
             await LoginAsync(email, "mala-contraseña-1").ExpectProblem(HttpStatusCode.Unauthorized, "invalid_credentials");
 
-        // Bloqueada: ni con la contraseña correcta.
+        // Bloqueada: ni con la contraseña correcta, y sin evaluarla (no confirma si era la buena).
         await LoginAsync(email, "contraseña-segura-1").ExpectProblem(HttpStatusCode.TooManyRequests, "account_locked");
+    }
 
-        await api.WithDbAsync(async db =>
-        {
-            var user = await db.Users.SingleAsync(u => u.Email == email, Ct);
-            Assert.NotNull(user.LockoutEndsAt);
-            Assert.Equal(0, user.FailedLoginAttempts);
-            // Simula que el bloqueo ya venció: vuelve a entrar y se reinician los contadores.
-            user.LockoutEndsAt = DateTimeOffset.UtcNow.AddMinutes(-1);
-            await db.SaveChangesAsync(Ct);
-        });
-        await LoginAsync(email, "contraseña-segura-1").Expect(HttpStatusCode.OK);
+    [Fact]
+    public async Task Un_correo_inexistente_se_bloquea_igual_que_uno_real()
+    {
+        var max = api.Service<IOptions<RateLimitOptions>>().Value.MaxFailedLogins;
+        var ghost = NewEmail();
+
+        for (var i = 0; i < max; i++)
+            await LoginAsync(ghost, "mala-contraseña-1").ExpectProblem(HttpStatusCode.Unauthorized, "invalid_credentials");
+        await LoginAsync(ghost, "mala-contraseña-1").ExpectProblem(HttpStatusCode.TooManyRequests, "account_locked");
     }
 
     [Fact]
@@ -162,10 +162,14 @@ public sealed class AuthTests(ApiFixture api)
     {
         var email = NewEmail();
         await RegisterAsync(email);
-        await LoginAsync(email, "mala-contraseña-1").Expect(HttpStatusCode.Unauthorized);
-        Assert.Equal(1, await api.WithDbAsync(db => db.Users.Where(u => u.Email == email).Select(u => u.FailedLoginAttempts).SingleAsync(Ct)));
-        await LoginAsync(email, "contraseña-segura-1").Expect(HttpStatusCode.OK);
-        Assert.Equal(0, await api.WithDbAsync(db => db.Users.Where(u => u.Email == email).Select(u => u.FailedLoginAttempts).SingleAsync(Ct)));
+        var max = api.Service<IOptions<RateLimitOptions>>().Value.MaxFailedLogins;
+
+        for (var round = 0; round < 2; round++)
+        {
+            for (var i = 0; i < max - 1; i++)
+                await LoginAsync(email, "mala-contraseña-1").Expect(HttpStatusCode.Unauthorized);
+            await LoginAsync(email, "contraseña-segura-1").Expect(HttpStatusCode.OK);
+        }
     }
 
     [Fact]
