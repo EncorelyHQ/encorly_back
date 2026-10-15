@@ -61,6 +61,34 @@ public sealed class PlatformTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Errores_de_binding_dicen_el_campo_sin_eco_del_valor()
+    {
+        var user = await api.CreateUserAsync();
+        var query = await user.Client.GetAsync("/api/v1/matches?limit=abc", TestContext.Current.CancellationToken)
+            .ExpectProblem(HttpStatusCode.BadRequest, "invalid_body");
+        Assert.Equal("La solicitud no es válida.", query.GetProperty("title").GetString());
+        Assert.Contains("campo limit", query.GetProperty("detail").GetString());
+        Assert.DoesNotContain("abc", query.GetProperty("detail").GetString());
+
+        var body = await user.Client.PostJson("/api/v1/swipes", new { songId = "no-es-guid", direction = "like" })
+            .ExpectProblem(HttpStatusCode.BadRequest, "invalid_body");
+        Assert.Contains("campo songId", body.GetProperty("detail").GetString());
+    }
+
+    [Fact]
+    public async Task Errores_405_y_415_llevan_code_y_titulo_en_espanol()
+    {
+        var user = await api.CreateUserAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var method = await user.Client.DeleteAsync("/api/v1/genres", ct).ExpectProblem(HttpStatusCode.MethodNotAllowed, "method_not_allowed");
+        Assert.Equal("Método no permitido.", method.GetProperty("title").GetString());
+
+        var plain = new StringContent("{}", System.Text.Encoding.UTF8, "text/plain");
+        var media = await user.Client.PostAsync("/api/v1/swipes", plain, ct).ExpectProblem(HttpStatusCode.UnsupportedMediaType, "unsupported_media_type");
+        Assert.Equal("Tipo de contenido no soportado.", media.GetProperty("title").GetString());
+    }
+
+    [Fact]
     public async Task Campo_obligatorio_ausente_da_400()
     {
         var user = await api.CreateUserAsync();

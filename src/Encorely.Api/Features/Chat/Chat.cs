@@ -56,3 +56,15 @@ public sealed class MessageFrankingRecord
     public required byte[] FrankingTag { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+
+/// <summary>
+/// Lápida del id de un mensaje sin franking que el receptor confirmó: el ack borra el mensaje y, sin esta fila, el id
+/// quedaría libre para un duplicado con seq nuevo. Los mensajes con tag ya quedan reservados por su <see cref="MessageFrankingRecord"/>.
+/// </summary>
+public sealed class DeliveredMessageId
+{
+    public Guid MessageId { get; set; }
+    public Guid MatchId { get; set; }
+    public Guid SenderId { get; set; }
+    public DateTimeOffset DeliveredAt { get; set; }
+}

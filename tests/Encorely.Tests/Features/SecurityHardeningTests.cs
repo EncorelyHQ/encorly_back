@@ -378,6 +378,27 @@ public sealed class SecurityHardeningTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Reusar_el_id_de_un_mensaje_sin_franking_ya_confirmado_tampoco_crea_un_duplicado()
+    {
+        var (a, b, matchId) = await ChatKit.PairAsync(api);
+        var id = Guid.NewGuid();
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1)).Expect(HttpStatusCode.Created);
+        await a.Client.PostJson($"/api/v1/matches/{matchId}/messages/ack", new { upToSeq = 1 }).Expect(HttpStatusCode.NoContent);
+
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1)).ExpectProblem(HttpStatusCode.Conflict, "message_already_delivered");
+        var key = RandomNumberGenerator.GetBytes(32);
+        var tagged = Tag(key, id, Envelope(id, matchId, b.Id, a.Id, "otro"));
+        await ChatKit.SendAsync(b, matchId, ChatKit.MessageBody(id, 1, 1, franking: tagged)).ExpectProblem(HttpStatusCode.Conflict, "message_id_conflict");
+        await ChatKit.SendAsync(a, matchId, ChatKit.MessageBody(id, 1, 1)).ExpectProblem(HttpStatusCode.Conflict, "message_id_conflict");
+
+        await api.WithDbAsync(async db =>
+        {
+            Assert.True(await db.DeliveredMessageIds.AnyAsync(d => d.MessageId == id, Ct));
+            Assert.Equal(1, await db.Matches.Where(m => m.Id == matchId).Select(m => m.LastSeq).SingleAsync(Ct));
+        });
+    }
+
+    [Fact]
     public async Task Evidencia_de_mensaje_borrado_solo_vale_para_quien_la_recibio_y_de_quien_la_envio()
     {
         var (a, b, matchId) = await ChatKit.PairAsync(api);

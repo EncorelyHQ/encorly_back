@@ -27,6 +27,10 @@ public static class Problems
         [401] = ErrorCodes.Unauthorized,
         [403] = ErrorCodes.Forbidden,
         [404] = ErrorCodes.NotFound,
+        [405] = ErrorCodes.MethodNotAllowed,
+        [409] = ErrorCodes.Conflict,
+        [413] = ErrorCodes.PayloadTooLarge,
+        [415] = ErrorCodes.UnsupportedMediaType,
         [429] = ErrorCodes.RateLimited,
         [500] = ErrorCodes.Internal,
     };
@@ -64,8 +68,12 @@ public static class Problems
         return services;
     }
 
+    // ReasonPhrases todavía usa los nombres de RFC 7231; ProblemDetails y Kestrel ya usan los de RFC 9110.
+    private static readonly Dictionary<int, string> Rfc9110Titles = new() { [413] = "Content Too Large", [422] = "Unprocessable Content" };
+
     private static bool IsFrameworkTitle(string? title, int status) => title is null
         || title == Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status)
+        || title == Rfc9110Titles.GetValueOrDefault(status)
         || title.StartsWith("One or more validation errors", StringComparison.Ordinal)
         || title.StartsWith("An error occurred", StringComparison.Ordinal);
 
@@ -75,7 +83,7 @@ public static class Problems
     public static string TitleFor(int status) => SpanishTitles.GetValueOrDefault(status, "Error");
 }
 
-internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
+internal sealed partial class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception exception, CancellationToken ct)
     {
@@ -92,7 +100,14 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
                 {
                     Status = bad.StatusCode,
                     Title = Problems.TitleFor(bad.StatusCode),
-                    Detail = bad.StatusCode == 400 ? "El cuerpo o los parámetros de la solicitud no tienen el formato esperado." : null,
+                    Detail = bad.StatusCode switch
+                    {
+                        400 => BindingField(bad) is { } field
+                            ? $"Revisa el campo {field}: falta o no tiene el formato esperado."
+                            : "El cuerpo o los parámetros de la solicitud no tienen el formato esperado.",
+                        413 => "Reduce el tamaño de lo que envías.",
+                        _ => null,
+                    },
                 };
                 break;
             case var ex when IsInvalidText(ex):
@@ -116,6 +131,25 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
         http.Response.StatusCode = pd.Status!.Value;
         return await problems.TryWriteAsync(new ProblemDetailsContext { HttpContext = http, ProblemDetails = pd, Exception = exception });
     }
+
+    /// <summary>
+    /// El campo que falló, sin datos del valor: la ruta JSON del cuerpo (<c>kdf.opsLimit</c>) o el nombre del parámetro de
+    /// query o ruta (<c>limit</c>). null si el JSON está mal formado desde la raíz o el framework no lo dice.
+    /// </summary>
+    internal static string? BindingField(BadHttpRequestException bad)
+    {
+        for (Exception? e = bad.InnerException; e is not null; e = e.InnerException)
+            if (e is System.Text.Json.JsonException { Path: { Length: > 2 } path } && path.StartsWith("$.", StringComparison.Ordinal))
+                return path[2..];
+        // 'Failed to bind parameter "int limit" from "abc".' / 'Required parameter "string status" was not provided from query string.'
+        var m = BindingParameter().Match(bad.Message);
+        return m.Success && !bad.Message.Contains("from body", StringComparison.Ordinal) && bad.InnerException is not System.Text.Json.JsonException
+            ? m.Groups["name"].Value
+            : null;
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex("parameter \"(?:[^\" ]+ )?(?<name>[A-Za-z_][A-Za-z0-9_]*)\"")]
+    private static partial System.Text.RegularExpressions.Regex BindingParameter();
 
     // 22021: byte inválido para UTF-8 (U+0000). 22P05: escape Unicode no soportado en jsonb. Puede venir envuelta (DbUpdateException).
     private static bool IsInvalidText(Exception exception)

@@ -42,11 +42,12 @@ public sealed class MaintenanceService(IServiceScopeFactory scopes, IOptions<Cha
         var messages = chat.Value.MessageRetentionDays > 0
             ? await db.ChatMessages.Where(m => m.CreatedAt <= now.AddDays(-chat.Value.MessageRetentionDays)).ExecuteDeleteAsync(ct)
             : 0;
-        var franking = await db.MessageFrankingRecords.Where(f => f.CreatedAt <= now.AddDays(-MessageFrankingRecord.RetentionDays)).ExecuteDeleteAsync(ct);
+        var franking = await db.MessageFrankingRecords.Where(f => f.CreatedAt <= now.AddDays(-MessageFrankingRecord.RetentionDays)).ExecuteDeleteAsync(ct)
+            + await db.DeliveredMessageIds.Where(d => d.DeliveredAt <= now.AddDays(-MessageFrankingRecord.RetentionDays)).ExecuteDeleteAsync(ct);
         var reports = await PurgeReportEvidenceAsync(db, now, ct);
         if (links + tokens + messages + franking + reports > 0)
             logger.LogInformation(
-                "Limpieza: {Links} vinculaciones, {Tokens} refresh tokens, {Messages} mensajes, {Franking} compromisos de franking y {Reports} evidencias de reportes vencidos",
+                "Limpieza: {Links} vinculaciones, {Tokens} refresh tokens, {Messages} mensajes, {Franking} compromisos de franking o ids entregados y {Reports} evidencias de reportes vencidos",
                 links, tokens, messages, franking, reports);
     }
 

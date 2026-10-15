@@ -3,6 +3,19 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-15 · v1.0.0-draft.13 (re-QA: errores, respaldo concurrente y reuso de ids del chat)
+Sin cambios en `openapi.v1.json`; todo es comportamiento.
+- **Errores (FIN-20):** los fallos de binding (tipo equivocado en el cuerpo, query o ruta) responden 400 `invalid_body` con
+  `detail` = "Revisa el campo `<ruta>`: falta o no tiene el formato esperado." (p. ej. `kdf.opsLimit`, `limit`), sin repetir el valor.
+  405, 409, 413 y 415 del framework llevan `code` (`method_not_allowed`, `conflict`, `payload_too_large`,
+  `unsupported_media_type`) y título en español. El 413 ya no sale como "Content Too Large".
+- **Query con valores fijos (FIN-01):** `GET /admin/reports?status=` y `DELETE /users/{id}/reactions?targetKind=` aceptan el
+  valor sin distinguir mayúsculas (`Open` = `open`). Un valor fuera de la lista da 400 `validation_failed` con
+  `errors.<campo>` = "Usa uno de estos valores: …".
+- **Respaldo (FIN-16):** `PUT /me/backup` concurrente desde dos dispositivos ya no da 500 en el primer respaldo; gana el último.
+- **Chat (FIN-04):** reusar el `id` de un mensaje **sin** `frankingTag` que el receptor ya confirmó responde 409
+  `message_already_delivered` (mismo remitente y match) o `message_id_conflict` (otro), igual que con tag. Antes creaba un duplicado.
+
 ## 2026-10-14 · v1.0.0-draft.12 (cierre de FIN pendientes: moderación, cotas, chat, privacidad y listados)
 - **Reportes (FIN-10):** un solo reporte abierto por (quien reporta, reportado). Repetir `POST /reports` contra la misma persona
   devuelve el **mismo `id`**, suma la evidencia nueva (sin repetir `messageId`, tope acumulado 60 → 400 `too_much_evidence`) y

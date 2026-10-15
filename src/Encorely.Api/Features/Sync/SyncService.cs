@@ -23,6 +23,9 @@ public sealed class SyncService(AppDbContext db, TimeProvider clock)
         if (r.Kdf.OpsLimit > maxOps)
             throw ApiException.BadRequest("unsupported_kdf", "Parámetros de derivación fuera de rango.", $"Para {algorithm}, opsLimit hasta {maxOps}.");
 
+        // Dos dispositivos subiendo el primer respaldo a la vez verían null y chocarían en la PK (23505 → 500).
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await AdvisoryLock.AcquireAsync(db, "backup", userId, ct);
         var backup = await db.Set<EncryptedBackup>().FirstOrDefaultAsync(b => b.UserId == userId, ct);
         if (backup is null)
         {
@@ -38,6 +41,7 @@ public sealed class SyncService(AppDbContext db, TimeProvider clock)
         backup.KdfMemLimit = r.Kdf.MemLimit;
         backup.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return new BackupInfoDto(backup.Version, backup.Ciphertext.LongLength, backup.UpdatedAt);
     }
 
