@@ -3,6 +3,11 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-15 · v1.0.0-draft.15 (estado del like en el perfil ajeno)
+- **Perfil (aditivo):** `PublicProfileDto` gana `likedByMe` y `matched`, con la misma semántica que en `RadarEntryDto`:
+  `likedByMe` = quien llama ya le dio like (en cualquier evento), haya o no match; `matched` = hay un match activo. Si `matched`
+  es true, manda sobre `likedByMe` (mostrar "Escribir"). En el perfil propio, los dos son false.
+
 ## 2026-10-15 · v1.0.0-draft.14 (FIN-17 a 29: moderación, radar, push y cabeceras)
 - **Push (FIN-23) · rompe si el cliente manda otra cosa:** `PUT /devices/push-token` exige `ExponentPushToken[…]` o
   `ExpoPushToken[…]` → si no, 400 `validation_failed`. Si el token era de **otra cuenta** (mismo teléfono, otra sesión), pasa a la

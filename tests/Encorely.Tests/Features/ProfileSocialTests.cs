@@ -84,6 +84,38 @@ public sealed class ProfileSocialTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Perfil_dice_si_ya_le_di_like_y_si_hay_match()
+    {
+        var me = await VisibleUserAsync("Ana");
+        var other = await VisibleUserAsync("Beto");
+        async Task<(bool Liked, bool Matched)> State(TestUser viewer, Guid target)
+        {
+            var p = await GetProfile(viewer, target).Expect<PublicProfileDto>(HttpStatusCode.OK);
+            return (p.LikedByMe, p.Matched);
+        }
+
+        Assert.Equal((false, false), await State(me, other.Id));
+        await api.WithDbAsync(async db =>
+        {
+            db.UserLikes.Add(new UserLike { FromUserId = me.Id, ToUserId = other.Id });
+            await db.SaveChangesAsync(Ct);
+        });
+        Assert.Equal((true, false), await State(me, other.Id));
+        // El like es de una sola dirección: el otro no lo ve como suyo.
+        Assert.Equal((false, false), await State(other, me.Id));
+
+        await api.WithDbAsync(async db =>
+        {
+            var (a, b) = Match.OrderPair(me.Id, other.Id);
+            db.Matches.Add(new Match { UserAId = a, UserBId = b });
+            await db.SaveChangesAsync(Ct);
+        });
+        Assert.Equal((true, true), await State(me, other.Id));
+        Assert.Equal((false, true), await State(other, me.Id));
+        Assert.Equal((false, false), await State(me, me.Id));
+    }
+
+    [Fact]
     public async Task Cualquiera_ve_el_perfil_salvo_bloqueo_suspension_interruptor_apagado_o_sin_consentimiento()
     {
         var viewer = await VisibleUserAsync();

@@ -1,3 +1,4 @@
+using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Configuration;
@@ -70,6 +71,7 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
 
         ProfileCommonDto common;
         IReadOnlyList<MyReactionDto> myReactions = [];
+        bool likedByMe = false, matched = false;
         if (self)
             common = new ProfileCommonDto(null, [], []);
         else
@@ -84,13 +86,16 @@ public sealed class ProfileService(AppDbContext db, IOptions<MatchingOptions> ma
                 .OrderBy(r => r.TargetKind).ThenBy(r => r.TargetKey)
                 .Select(r => new MyReactionDto(r.TargetKind, r.TargetKey, r.Reaction))
                 .ToList();
+            likedByMe = await db.UserLikes.AnyAsync(l => l.FromUserId == viewerId && l.ToUserId == targetId, ct);
+            var (a, b) = Match.OrderPair(viewerId, targetId);
+            matched = await db.Matches.AnyAsync(m => m.UserAId == a && m.UserBId == b && m.Status == MatchStatus.Active, ct);
         }
 
         return new PublicProfileDto(
             user.Id, user.DisplayName,
             user.BirthDate is { } birth ? User.AgeOn(birth, Today()) : null,
             user.City, user.Bio,
-            theirs.Genres, artists, await StatsAsync(targetId, ct), common, myReactions);
+            theirs.Genres, artists, await StatsAsync(targetId, ct), common, myReactions, likedByMe, matched);
     }
 
     /// <summary>Lo que <c>/me</c> agrega del perfil social: artistas, estadísticas y reacciones recibidas.</summary>
