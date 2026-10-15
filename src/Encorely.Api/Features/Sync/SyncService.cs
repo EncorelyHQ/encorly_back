@@ -62,6 +62,9 @@ public sealed class SyncService(AppDbContext db, TimeProvider clock)
     public async Task<LinkRequestDto> CreateLinkAsync(Guid userId, CreateLinkRequest r, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
+        // Sin el lock, varias peticiones a la vez cuentan las mismas abiertas y todas pasan el tope.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await AdvisoryLock.AcquireAsync(db, "device-link", userId, ct);
         var open = await db.Set<DeviceLinkRequest>().CountAsync(l => l.UserId == userId && l.ExpiresAt > now, ct);
         if (open >= MaxOpenLinksPerUser)
             throw new ApiException(StatusCodes.Status429TooManyRequests, "too_many_link_requests", "Tienes demasiadas vinculaciones abiertas. Espera unos minutos.");
@@ -69,6 +72,7 @@ public sealed class SyncService(AppDbContext db, TimeProvider clock)
         var link = new DeviceLinkRequest { UserId = userId, NewDeviceEphemeralKey = r.EphemeralKey, CreatedAt = now, ExpiresAt = now + LinkLifetime };
         db.Add(link);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return ToDto(link);
     }
 
