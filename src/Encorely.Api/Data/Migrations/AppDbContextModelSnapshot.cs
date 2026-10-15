@@ -711,6 +711,47 @@ namespace Encorely.Api.Data.Migrations
                     b.ToTable("swipes", (string)null);
                 });
 
+            modelBuilder.Entity("Encorely.Api.Features.Music.UserArtist", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("key");
+
+                    b.PrimitiveCollection<List<string>>("Genres")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("genres");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("image_url");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("imported_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer")
+                        .HasColumnName("rank");
+
+                    b.HasKey("UserId", "Key")
+                        .HasName("pk_user_artists");
+
+                    b.ToTable("user_artists", (string)null);
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Music.UserGenreScore", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -740,6 +781,55 @@ namespace Encorely.Api.Data.Migrations
                         .HasDatabaseName("ix_user_genre_scores_genre_id");
 
                     b.ToTable("user_genre_scores", (string)null);
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Profiles.ProfileReaction", b =>
+                {
+                    b.Property<Guid>("FromUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("from_user_id");
+
+                    b.Property<Guid>("ToUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("to_user_id");
+
+                    b.Property<string>("TargetKind")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("target_kind");
+
+                    b.Property<string>("TargetKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("target_key");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Reaction")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("reaction");
+
+                    b.Property<string>("TargetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("target_name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("FromUserId", "ToUserId", "TargetKind", "TargetKey")
+                        .HasName("pk_profile_reactions");
+
+                    b.HasIndex("ToUserId", "UpdatedAt")
+                        .HasDatabaseName("ix_profile_reactions_to_user_id_updated_at");
+
+                    b.ToTable("profile_reactions", (string)null);
                 });
 
             modelBuilder.Entity("Encorely.Api.Features.Sync.DeviceLinkRequest", b =>
@@ -889,6 +979,12 @@ namespace Encorely.Api.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)")
                         .HasColumnName("role");
+
+                    b.Property<bool>("ShowProfileToOthers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("show_profile_to_others");
 
                     b.Property<string>("SpotifyId")
                         .HasMaxLength(128)
@@ -1203,6 +1299,16 @@ namespace Encorely.Api.Data.Migrations
                         .HasConstraintName("fk_swipes_users_user_id");
                 });
 
+            modelBuilder.Entity("Encorely.Api.Features.Music.UserArtist", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_artists_users_user_id");
+                });
+
             modelBuilder.Entity("Encorely.Api.Features.Music.UserGenreScore", b =>
                 {
                     b.HasOne("Encorely.Api.Features.Music.Genre", null)
@@ -1218,6 +1324,23 @@ namespace Encorely.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_genre_scores_users_user_id");
+                });
+
+            modelBuilder.Entity("Encorely.Api.Features.Profiles.ProfileReaction", b =>
+                {
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_profile_reactions_users_from_user_id");
+
+                    b.HasOne("Encorely.Api.Features.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("ToUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_profile_reactions_users_to_user_id");
                 });
 
             modelBuilder.Entity("Encorely.Api.Features.Sync.DeviceLinkRequest", b =>

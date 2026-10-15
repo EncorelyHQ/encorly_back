@@ -38,7 +38,10 @@ contenido, que reenvía a FCM/APNs).
 - El usuario puede pedir el borrado: **Sí**, en la app (Perfil → Borrar cuenta) y en la web (`/cuenta/eliminar`).
 - Tipos de datos: Información personal (correo, nombre, fecha de nacimiento → edad, ciudad), Mensajes (otros mensajes
   en la app: cifrados de extremo a extremo; el servidor no puede leerlos), Actividad en la app (interacciones: swipes,
-  likes, eventos), Identificadores del dispositivo (token push). Ninguno es opcional para el funcionamiento salvo bio,
+  likes, eventos, reacciones a perfiles), Música (artistas de Spotify importados), Identificadores del dispositivo (token push).
+  El perfil público (nombre, edad, ciudad, bio, géneros, artistas, estadísticas y reacciones con el nombre) se muestra a
+  otras personas usuarias solo con el consentimiento de esa finalidad (versión `2026-10-14`) y el interruptor
+  `showProfileToOthers` encendido. Ninguno es opcional para el funcionamiento salvo bio,
   Spotify, push y respaldo.
 - Propósitos: Funcionalidad de la app, Administración de la cuenta, Seguridad y prevención de fraude.
 
@@ -58,6 +61,7 @@ contenido, que reenvía a FCM/APNs).
 | URL web de borrado (Google Play) | `GET /cuenta/eliminar` → `POST /api/v1/account-deletion` |
 | Reportar y bloquear (contenido generado por usuarios, ambas tiendas) | `POST /api/v1/reports`, `POST /api/v1/blocks`; moderación en `/api/v1/admin/reports` |
 | Mayoría de edad 18+ | Validación de `birthDate` en el perfil |
+| Perfil público con consentimiento propio y opción de apagarlo | Versión `2026-10-14` de `/legal/current`; `PATCH /api/v1/me { showProfileToOthers }` |
 | Política y términos versionados, consentimiento registrado | `/legal/*`, tabla `user_consents`, `POST /api/v1/me/consents` |
 | Acceso a los datos (Ley 1581) | `GET /api/v1/me/export` |
 | Cuenta demo para revisores | `revisor@encorely.demo` (seed con `DEMO_USER_PASSWORD` y `SEED_REVIEWER_ONLY=true`, que no siembra el admin; la contraseña se entrega en la consola de cada tienda, nunca en el repo) |

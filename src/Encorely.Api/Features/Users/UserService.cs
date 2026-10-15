@@ -1,4 +1,5 @@
 using Encorely.Api.Features.Matching;
+using Encorely.Api.Features.Profiles;
 using Encorely.Api.Infrastructure.Configuration;
 using Encorely.Api.Infrastructure.Database;
 using Encorely.Api.Infrastructure.Http;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Encorely.Api.Features.Users;
 
-public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<LegalOptions> legal, TimeProvider clock)
+public sealed class UserService(AppDbContext db, Notifier notifier, ProfileService profiles, IOptions<LegalOptions> legal, TimeProvider clock)
 {
     private static readonly TimeSpan ColombiaOffset = TimeSpan.FromHours(-5);
 
@@ -18,7 +19,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
             ?? throw ApiException.Unauthorized(ErrorCodes.Unauthorized, "Necesitas iniciar sesión.");
         var accepted = await db.UserConsents.AsNoTracking().Where(c => c.UserId == userId)
             .OrderByDescending(c => c.AcceptedAt).ThenByDescending(c => c.Id).Select(c => c.Version).FirstOrDefaultAsync(ct);
-        return ToMe(user, accepted);
+        return ToMe(user, accepted, await profiles.GetOwnAsync(userId, ct), await profiles.IsVisibleAsync(userId, ct));
     }
 
     public async Task<MeResponse> UpdateAsync(Guid userId, UpdateMeRequest request, CancellationToken ct)
@@ -63,6 +64,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
         }
 
         if (request.Genres is not null) await ReplaceGenresAsync(user, request.Genres, ct);
+        if (request.ShowProfileToOthers is { } show) user.ShowProfileToOthers = show;
 
         user.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
@@ -123,6 +125,10 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
 
         var devices = await db.DevicePushTokens.CountAsync(d => d.UserId == userId, ct);
 
+        var reactions = await db.ProfileReactions.AsNoTracking().Where(r => r.FromUserId == userId)
+            .Join(db.Users, r => r.ToUserId, u => u.Id, (r, u) => new { u.DisplayName, r.TargetKind, r.TargetKey, r.Reaction, r.UpdatedAt })
+            .OrderBy(r => r.UpdatedAt).ToListAsync(ct);
+
         return new DataExportResponse(
             profile,
             swipes.Select(s => new ExportSwipe(s.Title, s.Artist, s.Direction.ToString().ToLowerInvariant(), s.CreatedAt)).ToList(),
@@ -131,6 +137,7 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
                 m.Status.ToString().ToLowerInvariant(), m.CreatedAt, sent.GetValueOrDefault(m.Id))).ToList(),
             blocks.Select(b => new ExportBlock(b.DisplayName, b.CreatedAt)).ToList(),
             consents,
+            reactions.Select(r => new ExportReaction(r.DisplayName, r.TargetKind, r.TargetKey, r.Reaction, r.UpdatedAt)).ToList(),
             devices,
             clock.GetUtcNow());
     }
@@ -150,14 +157,16 @@ public sealed class UserService(AppDbContext db, Notifier notifier, IOptions<Leg
         foreach (var id in found.Where(id => !kept.Contains(id))) user.Genres.Add(new UserGenre { UserId = user.Id, GenreId = id });
     }
 
-    private MeResponse ToMe(User user, string? acceptedConsent) => new(
+    private MeResponse ToMe(User user, string? acceptedConsent, OwnProfile social, bool visible) => new(
         user.Id, user.Email, user.DisplayName, user.BirthDate,
         user.BirthDate is { } b ? User.AgeOn(b, Today()) : null,
         user.City, user.Bio,
         user.Genres.Select(g => g.Genre!.Slug).Order().ToList(),
         user.OnboardingCompleted, user.Role, user.CreatedAt,
         acceptedConsent, acceptedConsent == legal.Value.ConsentVersion,
-        user.SpotifyId is not null, user.HasPassword);
+        user.SpotifyId is not null, user.HasPassword,
+        social.Artists, social.Stats, social.ReactionsReceived,
+        user.ShowProfileToOthers, visible);
 
     private DateOnly Today() => DateOnly.FromDateTime(clock.GetUtcNow().ToOffset(ColombiaOffset).DateTime);
 

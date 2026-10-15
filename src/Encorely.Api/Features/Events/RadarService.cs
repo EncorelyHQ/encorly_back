@@ -29,6 +29,13 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
                                  OR (b.blocker_id = ea.user_id AND b.blocked_id = @me))
         ),
         ids AS (SELECT user_id FROM cand UNION ALL SELECT @me),
+        -- Señal propia para la afinidad (replica ProfileService.WithSignalAsync): swipes suficientes o Spotify importado.
+        sig AS (
+            SELECT i.user_id FROM ids i
+            WHERE (SELECT count(*) FROM swipes sw WHERE sw.user_id = i.user_id) >= @minSignalSwipes
+               OR EXISTS (SELECT 1 FROM user_artists ua WHERE ua.user_id = i.user_id)
+               OR EXISTS (SELECT 1 FROM user_genre_scores gs WHERE gs.user_id = i.user_id AND gs.imported_weight > 0)
+        ),
         keys AS (
             SELECT s.user_id, s.genre_id FROM user_genre_scores s JOIN ids i ON i.user_id = s.user_id
             UNION
@@ -54,7 +61,9 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
         ),
         scored AS (
             SELECT cand.user_id,
-                   CASE WHEN nc.norm IS NULL OR (SELECT norm FROM norms WHERE user_id = @me) IS NULL THEN 0
+                   CASE WHEN NOT EXISTS (SELECT 1 FROM sig WHERE user_id = @me)
+                          OR NOT EXISTS (SELECT 1 FROM sig WHERE user_id = cand.user_id) THEN NULL
+                        WHEN nc.norm IS NULL OR (SELECT norm FROM norms WHERE user_id = @me) IS NULL THEN 0
                         ELSE round((100 * COALESCE(d.dot, 0) / (nc.norm * (SELECT norm FROM norms WHERE user_id = @me)))::numeric)::int
                    END AS affinity
             FROM cand
@@ -71,8 +80,8 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
                          AND ((m.user_a_id = @me AND m.user_b_id = u.id) OR (m.user_a_id = u.id AND m.user_b_id = @me))) AS matched
         FROM scored sc
         JOIN users u ON u.id = sc.user_id
-        WHERE sc.affinity >= @minAffinity
-        ORDER BY sc.affinity DESC, u.display_name, u.id
+        WHERE sc.affinity IS NULL OR sc.affinity >= @minAffinity
+        ORDER BY sc.affinity DESC NULLS LAST, u.display_name, u.id
         LIMIT @max
         """;
 
@@ -133,6 +142,7 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
                 dislikePenalty = Dna.DislikePenalty,
                 declaredBonus = Dna.DeclaredBonus,
                 minAffinity = matching.Value.RadarMinAffinity,
+                minSignalSwipes = matching.Value.AffinityMinSwipes,
                 max = MaxEntries,
             }, cancellationToken: ct));
         }
@@ -149,7 +159,7 @@ public sealed class RadarService(AppDbContext db, IOptions<MatchingOptions> matc
         public string DisplayName { get; set; } = "";
         public DateTime? BirthDate { get; set; }
         public string? City { get; set; }
-        public int Affinity { get; set; }
+        public int? Affinity { get; set; }
         public int[]? GenreIds { get; set; }
         public double[]? Weights { get; set; }
         public bool LikedByMe { get; set; }

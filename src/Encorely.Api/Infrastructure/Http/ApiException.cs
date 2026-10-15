@@ -60,6 +60,8 @@ public static class ErrorCodes
     public const string Blocked = "blocked";
     public const string MatchNotFound = "match_not_found";
     public const string MatchClosed = "match_closed";
+    public const string CannotReactSelf = "cannot_react_self";
+    public const string ReactionTargetNotFound = "reaction_target_not_found";
 
     public const string KeysMissing = "keys_missing";
     public const string PeerKeysMissing = "peer_keys_missing";

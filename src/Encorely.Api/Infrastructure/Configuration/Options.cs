@@ -103,7 +103,12 @@ public sealed class MatchingOptions
 
     /// <summary>Swipes mínimos para desbloquear el radar. Lo sirve la API (/me/dna); el front no lo duplica.</summary>
     [Range(0, 500)] public int RadarMinSwipes { get; set; } = 15;
-    /// <summary>Afinidad mínima (0–100) para aparecer en el radar.</summary>
+    /// <summary>
+    /// Swipes con los que una persona tiene señal propia para calcular afinidad (o haber importado Spotify). Sin señal en
+    /// alguna de las dos, la afinidad es null: con pocos swipes el coseno lo deciden los géneros declarados en el onboarding.
+    /// </summary>
+    [Range(0, 1000)] public int AffinityMinSwipes { get; set; } = 25;
+    /// <summary>Afinidad mínima (0–100) para aparecer en el radar. Las entradas sin afinidad (null) no se filtran.</summary>
     [Range(0, 100)] public int RadarMinAffinity { get; set; }
 }
 
@@ -174,8 +179,8 @@ public sealed class LegalOptions
     public const string Section = "Legal";
 
     /// <summary>Versión vigente de términos + política de tratamiento de datos (Ley 1581).</summary>
-    [Required] public string ConsentVersion { get; set; } = "2026-10-13";
-    public DateOnly EffectiveDate { get; set; } = new(2026, 10, 13);
+    [Required] public string ConsentVersion { get; set; } = "2026-10-14";
+    public DateOnly EffectiveDate { get; set; } = new(2026, 10, 14);
     /// <summary>Base de las URLs públicas. Sin valor: se deriva del scheme y host de cada request (sirve desde el emulador, 10.0.2.2).</summary>
     public string? PublicBaseUrl { get; set; }
     /// <summary>Canal de consultas y reclamos de datos personales (Ley 1581). Opcional; si viene, debe ser un email válido.</summary>

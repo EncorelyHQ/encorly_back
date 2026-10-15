@@ -24,6 +24,8 @@ public sealed record DnaResponse(IReadOnlyList<DnaGenreDto> Genres, int SwipeCou
 public sealed record SpotifyImportRequest(
     [Required(ErrorMessage = Msg.Required), MaxLength(50, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<SpotifyArtist> TopArtists);
 
+/// <param name="ImageUrl">Opcional: <c>images[0].url</c> de Spotify. Solo se guarda si es https de i.scdn.co; si no, se ignora.</param>
 public sealed record SpotifyArtist(
     [Required(ErrorMessage = Msg.Required), MaxLength(200, ErrorMessage = Msg.MaxLength)] string Name,
-    [Required(ErrorMessage = Msg.Required), MaxLength(20, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string> Genres);
+    [Required(ErrorMessage = Msg.Required), MaxLength(20, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string> Genres,
+    [MaxLength(500, ErrorMessage = Msg.MaxLength)] string? ImageUrl = null);

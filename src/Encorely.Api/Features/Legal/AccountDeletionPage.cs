@@ -122,7 +122,7 @@ public static class AccountDeletionPage
         <h2>Qué se elimina</h2>
         <ul>
           <li>Tu perfil: correo, nombre, fecha de nacimiento, ciudad, biografía y géneros.</li>
-          <li>Tus canciones deslizadas, tus likes y tus eventos.</li>
+          <li>Tus canciones deslizadas, tus likes, tus eventos, tus artistas importados y las reacciones que dejaste y recibiste.</li>
           <li>Tus matches y los mensajes de esos chats, incluidos los que recibieron las otras personas.</li>
           <li>Tus llaves públicas de cifrado, tokens de sesión, dispositivos de notificaciones y registros de consentimiento.</li>
         </ul>
@@ -191,7 +191,8 @@ public static class AccountDeletionPage
         <ul>
           <li>Cuenta: correo electrónico, nombre para mostrar y contraseña (guardada únicamente como hash, nunca en claro).</li>
           <li>Perfil: fecha de nacimiento, ciudad, biografía y géneros musicales favoritos.</li>
-          <li>Uso: canciones que te gustan o descartas, eventos a los que dices asistir, likes, matches, bloqueos y reportes.</li>
+          <li>Uso: canciones que te gustan o descartas, eventos a los que dices asistir, likes, matches, reacciones que dejas y recibes, bloqueos y reportes.</li>
+          <li>Spotify, si lo conectas: tus artistas más escuchados (nombre, imagen y géneros) y, si entras con Spotify, tu identificador de Spotify y el correo de esa cuenta. No guardamos tus tokens de Spotify.</li>
           <li>Técnicos: tokens de sesión, token de notificaciones push del dispositivo y registros de consentimiento (versión y fecha).</li>
           <li>Chats: los mensajes están <strong>cifrados de extremo a extremo</strong>. El servidor solo almacena texto cifrado y metadatos (quién, cuándo); <strong>no puede leer el contenido</strong>.</li>
         </ul>
@@ -200,6 +201,7 @@ public static class AccountDeletionPage
         <ul>
           <li>Crear y administrar tu cuenta y autenticarte.</li>
           <li>Calcular tu afinidad musical y sugerirte personas compatibles.</li>
+          <li><strong>Perfil público:</strong> mostrar a cualquier otra persona usuaria de Encorely tu nombre, edad, ciudad, biografía, géneros, artistas y estadísticas (canciones calificadas, géneros explorados y eventos marcados), y tu nombre junto a las reacciones que dejes en otros perfiles. Puedes apagarlo cuando quieras en tu perfil («Mostrar mi perfil a otros»): apagado, nadie más lo ve ni puede reaccionarle, y tus reacciones dejan de mostrarse. Quien te bloquea o a quien bloqueas no ve tu perfil.</li>
           <li>Permitir el chat entre personas con match y enviarte avisos (nuevo match, nuevo mensaje).</li>
           <li>Moderación y seguridad: atender reportes, bloqueos y suspender cuentas que incumplan los términos.</li>
           <li>Cumplir obligaciones legales y acreditar tu consentimiento.</li>

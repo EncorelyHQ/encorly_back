@@ -5,6 +5,7 @@ using Encorely.Api.Features.Events;
 using Encorely.Api.Features.Matching;
 using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Profiles;
 using Encorely.Api.Features.Sync;
 using Encorely.Api.Features.Users;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Song> Songs => Set<Song>();
     public DbSet<Swipe> Swipes => Set<Swipe>();
     public DbSet<UserGenreScore> UserGenreScores => Set<UserGenreScore>();
+    public DbSet<UserArtist> UserArtists => Set<UserArtist>();
+    public DbSet<ProfileReaction> ProfileReactions => Set<ProfileReaction>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventAttendance> EventAttendances => Set<EventAttendance>();
     public DbSet<UserLike> UserLikes => Set<UserLike>();
@@ -49,6 +52,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(x => x.PasswordHash).HasMaxLength(100);
             e.Property(x => x.SpotifyId).HasMaxLength(128);
             e.HasIndex(x => x.SpotifyId).IsUnique();
+            e.Property(x => x.ShowProfileToOthers).HasDefaultValue(true);
             e.Property(x => x.DisplayName).HasMaxLength(50);
             e.Property(x => x.City).HasMaxLength(80);
             e.Property(x => x.Bio).HasMaxLength(300);
@@ -107,6 +111,25 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.HasKey(x => new { x.UserId, x.GenreId });
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<Genre>().WithMany().HasForeignKey(x => x.GenreId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<UserArtist>(e =>
+        {
+            e.HasKey(x => new { x.UserId, x.Key });
+            e.Property(x => x.Key).HasMaxLength(ArtistKey.MaxLength);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.ImageUrl).HasMaxLength(500);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<ProfileReaction>(e =>
+        {
+            e.HasKey(x => new { x.FromUserId, x.ToUserId, x.TargetKind, x.TargetKey });
+            e.Property(x => x.TargetKey).HasMaxLength(100);
+            e.Property(x => x.TargetName).HasMaxLength(200);
+            e.HasIndex(x => new { x.ToUserId, x.UpdatedAt });
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.FromUserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.ToUserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Event>(e =>

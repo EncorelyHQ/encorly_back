@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Encorely.Api.Features.Auth;
+using Encorely.Api.Features.Profiles;
 using Encorely.Api.Infrastructure.Http;
 
 namespace Encorely.Api.Features.Users;
@@ -10,6 +11,10 @@ namespace Encorely.Api.Features.Users;
 /// <param name="ConsentUpToDate">true si <c>AcceptedConsentVersion</c> es la vigente (<c>GET /legal/current</c>); false: pedir aceptar de nuevo.</param>
 /// <param name="SpotifyLinked">true si hay una cuenta de Spotify vinculada (sirve para entrar).</param>
 /// <param name="HasPassword">false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify.</param>
+/// <param name="ShowProfileToOthers">Interruptor del perfil público (PATCH /me lo cambia).</param>
+/// <param name="ProfileVisible">true si otros ven mi perfil ahora: interruptor encendido y la versión de consentimiento con esa finalidad aceptada.</param>
+/// <param name="Artists">Mi top de artistas importado de Spotify (máx. 12), como lo ven los demás.</param>
+/// <param name="ReactionsReceived">Resumen de reacciones a mi perfil, agregado por objetivo y tipo. Quién reaccionó: <c>GET /me/reactions/received</c>.</param>
 public sealed record MeResponse(
     Guid Id,
     string Email,
@@ -25,9 +30,15 @@ public sealed record MeResponse(
     string? AcceptedConsentVersion,
     bool ConsentUpToDate,
     bool SpotifyLinked,
-    bool HasPassword);
+    bool HasPassword,
+    IReadOnlyList<ProfileArtistDto> Artists,
+    ProfileStatsDto Stats,
+    IReadOnlyList<ReceivedReactionDto> ReactionsReceived,
+    bool ShowProfileToOthers,
+    bool ProfileVisible);
 
 /// <summary>PATCH: los campos null no cambian. Bio vacía ("") la borra.</summary>
+/// <param name="ShowProfileToOthers">Apagado: nadie más ve mi perfil ni puede reaccionarle, y mis reacciones dejan de mostrarse.</param>
 /// <param name="BirthDate">yyyy-MM-dd; 18 años o más.</param>
 /// <param name="Genres">Reemplaza la lista completa de géneros declarados (slugs, 1 a 10).</param>
 public sealed record UpdateMeRequest(
@@ -35,7 +46,8 @@ public sealed record UpdateMeRequest(
     DateOnly? BirthDate = null,
     [StringLength(80, MinimumLength = 2, ErrorMessage = Msg.Length)] string? City = null,
     [MaxLength(300, ErrorMessage = Msg.MaxLength)] string? Bio = null,
-    [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string>? Genres = null);
+    [MinLength(1, ErrorMessage = "Elige al menos un género."), MaxLength(10, ErrorMessage = Msg.MaxItems), NoNullItems] IReadOnlyList<string>? Genres = null,
+    bool? ShowProfileToOthers = null);
 
 /// <summary>
 /// Borrar la cuenta reconfirma la identidad: un access token robado no basta para una operación irreversible.
@@ -53,6 +65,7 @@ public sealed record DataExportResponse(
     IReadOnlyList<ExportMatch> Matches,
     IReadOnlyList<ExportBlock> Blocks,
     IReadOnlyList<ExportConsent> Consents,
+    IReadOnlyList<ExportReaction> Reactions,
     int PushDevices,
     DateTimeOffset GeneratedAt);
 
@@ -61,3 +74,5 @@ public sealed record ExportEvent(string Name, DateTimeOffset StartsAt);
 public sealed record ExportMatch(string PeerDisplayName, string Status, DateTimeOffset CreatedAt, int MessagesSent);
 public sealed record ExportBlock(string DisplayName, DateTimeOffset CreatedAt);
 public sealed record ExportConsent(string Version, DateTimeOffset AcceptedAt);
+/// <summary>Reacción que dejé en el perfil de otra persona.</summary>
+public sealed record ExportReaction(string PeerDisplayName, ReactionTargetKind TargetKind, string TargetKey, ReactionType Reaction, DateTimeOffset UpdatedAt);
