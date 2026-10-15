@@ -57,6 +57,16 @@ public sealed class SyncSessionsTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Primer_respaldo_concurrente_no_da_500()
+    {
+        var a = await api.CreateUserAsync();
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => a.Client.PutJson("/api/v1/me/backup", Backup(64))));
+
+        Assert.All(responses, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        await a.Client.GetAsync("/api/v1/me/backup/info", Ct).Expect(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Cotas_de_tamano_y_de_parametros()
     {
         var a = await api.CreateUserAsync();
