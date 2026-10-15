@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: dev
+    groups:
+      # Los paquetes de .NET salen juntos en cada servicing; un PR por versión, no uno por paquete.
+      dotnet:
+        patterns: ["Microsoft.*", "System.*", "Npgsql*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: dev
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: dev
