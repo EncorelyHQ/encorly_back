@@ -24,7 +24,8 @@ public static class PushServiceCollectionExtensions
     {
         services.AddSingleton<PushQueue>();
         services.AddSingleton<PushReceiptTracker>();
-        services.AddHttpClient(HttpClientName);
+        // Sin esto queda el default de 100 s: un Expo lento frena al dispatcher, que envía de uno en uno.
+        services.AddHttpClient(HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(10));
         services.AddHostedService<PushDispatcher>();
         services.AddHostedService<PushReceiptChecker>();
         return services;

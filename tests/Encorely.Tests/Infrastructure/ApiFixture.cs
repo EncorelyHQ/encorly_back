@@ -26,6 +26,7 @@ namespace Encorely.Tests.Infrastructure;
 public sealed class ApiFixture : IAsyncLifetime
 {
     public const string JwtKey = "clave-de-pruebas-solo-para-tests-0123456789abcdef";
+    public const string BannedEmailKey = "llave-de-vetos-solo-para-tests-0123456789abcdef";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine").Build();
 
@@ -53,6 +54,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 ["Seed:Catalog"] = "false",
                 ["Seed:DemoUserPassword"] = "",
                 ["Jwt:SigningKey"] = JwtKey,
+                ["Moderation:BannedEmailKey"] = BannedEmailKey,
                 ["RateLimit:AuthPermitPerMinute"] = "10000",
                 ["RateLimit:UserWritesPerMinute"] = "100000",
                 ["RateLimit:ReportsPerHour"] = "100000",

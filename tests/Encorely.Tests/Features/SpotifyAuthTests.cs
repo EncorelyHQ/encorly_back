@@ -79,7 +79,7 @@ public sealed class SpotifyAuthTests(ApiFixture api)
         var banned = FakeSpotify.NewAccount();
         await api.WithDbAsync(async db =>
         {
-            db.BannedEmails.Add(new BannedEmail { EmailHash = BannedEmail.HashOf(banned.Email!) });
+            db.BannedEmails.Add(new BannedEmail { EmailHash = api.Service<BannedEmailHasher>().Hash(banned.Email!) });
             await db.SaveChangesAsync(Ct);
         });
         await LoginAsync(banned).ExpectProblem(HttpStatusCode.Forbidden, "account_banned");

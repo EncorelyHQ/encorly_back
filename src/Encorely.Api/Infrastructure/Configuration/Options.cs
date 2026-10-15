@@ -97,6 +97,14 @@ public sealed class JwtOptions
     [Range(1, 90)] public int RefreshTokenDays { get; set; } = 30;
 }
 
+public sealed class ModerationOptions
+{
+    public const string Section = "Moderation";
+
+    /// <summary>Llave del HMAC de los correos vetados. Sin valor por defecto; cambiarla deja sin efecto los vetos existentes.</summary>
+    [Required, MinLength(32)] public string BannedEmailKey { get; set; } = "";
+}
+
 public sealed class MatchingOptions
 {
     public const string Section = "Matching";

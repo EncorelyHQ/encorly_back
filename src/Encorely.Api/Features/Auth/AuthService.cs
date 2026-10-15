@@ -15,6 +15,7 @@ public sealed class AuthService(
     LoginThrottle throttle,
     TokenService tokens,
     SessionRevoker sessions,
+    BannedEmailHasher bannedEmails,
     SpotifyClient spotify,
     IOptions<JwtOptions> jwt,
     IOptions<LegalOptions> legal,
@@ -187,8 +188,9 @@ public sealed class AuthService(
 
     private async Task EnsureEmailNotBannedAsync(string email, CancellationToken ct)
     {
-        var emailHash = BannedEmail.HashOf(email);
-        if (await db.BannedEmails.AnyAsync(b => b.EmailHash == emailHash, ct))
+        var emailHash = bannedEmails.Hash(email);
+        var legacy = BannedEmailHasher.LegacyHash(email);
+        if (await db.BannedEmails.AnyAsync(b => b.EmailHash == emailHash || b.EmailHash == legacy, ct))
             throw ApiException.Forbidden(ErrorCodes.AccountBanned, "No puedes crear una cuenta con este correo.");
     }
 

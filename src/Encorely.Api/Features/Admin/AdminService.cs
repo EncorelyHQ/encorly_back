@@ -13,7 +13,8 @@ using Npgsql;
 
 namespace Encorely.Api.Features.Admin;
 
-public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevoker sessions, TimeProvider clock, ILogger<AdminService> logger)
+public sealed class AdminService(
+    AppDbContext db, Notifier notifier, SessionRevoker sessions, BannedEmailHasher bannedEmails, TimeProvider clock, ILogger<AdminService> logger)
 {
     public async Task<IReadOnlyList<AdminEventDto>> ListEventsAsync(bool includePast, CancellationToken ct)
     {
@@ -99,76 +100,106 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
 
     public async Task<AdminReportDto> ResolveReportAsync(Guid adminId, Guid reportId, ResolveReportRequest request, CancellationToken ct)
     {
-        var report = await db.Reports.FirstOrDefaultAsync(r => r.Id == reportId, ct)
-            ?? throw ApiException.NotFound("report_not_found", "No encontramos ese reporte.");
-        if (report.Status != ReportStatus.Open)
-            throw ApiException.Conflict("report_already_resolved", "Ese reporte ya fue resuelto.");
-
-        if (request.Action == ReportAction.Ban)
+        // Una sola transacción: dos admins a la vez no aplican dos acciones al mismo reporte, y el ban no queda
+        // confirmado si la resolución falla después.
+        Report report;
+        StatusChange? change = null;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
-            if (report.ReportedUserId is not { } reported)
-                throw ApiException.BadRequest("reported_user_deleted", "La cuenta reportada ya no existe.");
-            await SetUserStatusAsync(adminId, reported, UserStatus.Banned, ct);
+            await AdvisoryLock.AcquireAsync(db, "report", reportId, ct);
+            report = await db.Reports.FirstOrDefaultAsync(r => r.Id == reportId, ct)
+                ?? throw ApiException.NotFound("report_not_found", "No encontramos ese reporte.");
+            if (report.Status != ReportStatus.Open)
+                throw ApiException.Conflict("report_already_resolved", "Ese reporte ya fue resuelto.");
+
+            if (request.Action == ReportAction.Ban)
+            {
+                if (report.ReportedUserId is not { } reported)
+                    throw ApiException.BadRequest("reported_user_deleted", "La cuenta reportada ya no existe.");
+                change = await ApplyStatusAsync(adminId, reported, UserStatus.Banned, ct);
+            }
+
+            report.Status = request.Action == ReportAction.Dismiss ? ReportStatus.Dismissed : ReportStatus.Resolved;
+            report.ResolutionNote = Text.Clean(request.Note);
+            report.ResolvedByUserId = adminId;
+            report.ResolvedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
         }
 
-        report.Status = request.Action == ReportAction.Dismiss ? ReportStatus.Dismissed : ReportStatus.Resolved;
-        report.ResolutionNote = Text.Clean(request.Note);
-        report.ResolvedByUserId = adminId;
-        report.ResolvedAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(ct);
+        if (change is not null) await AfterCommitAsync(adminId, change);
         return (await ToDtosAsync([report], ct))[0];
     }
 
     /// <summary>Suspender: cierra todos sus matches activos, revoca sus sesiones y el JWT vigente deja de servir (UseActiveUserCheck).</summary>
     public async Task SetUserStatusAsync(Guid adminId, Guid userId, UserStatus status, CancellationToken ct)
     {
-        if (userId == adminId) throw ApiException.BadRequest("cannot_change_own_status", "No puedes cambiar el estado de tu propia cuenta.");
-        var now = clock.GetUtcNow();
-        List<Match> closed = [];
+        StatusChange? change;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
-            // Exclusivo: un like en vuelo (que toma este mismo lock compartido) termina antes de suspender o ve la cuenta ya suspendida.
-            await AdvisoryLock.AcquireAsync(db, MatchingService.AccountStateScope, userId, ct);
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
-                ?? throw ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos esa cuenta.");
-            if (user.Status == status) return;
-
-            user.Status = status;
-            user.UpdatedAt = now;
-            if (status == UserStatus.Active)
-            {
-                // Reactivar levanta también el veto de re-registro.
-                var hash = BannedEmail.HashOf(user.Email);
-                await db.BannedEmails.Where(b => b.EmailHash == hash).ExecuteDeleteAsync(ct);
-            }
-            if (status == UserStatus.Banned)
-            {
-                var emailHash = BannedEmail.HashOf(user.Email);
-                await db.Database.ExecuteSqlInterpolatedAsync(
-                    $"INSERT INTO banned_emails (email_hash, created_at) VALUES ({emailHash}, {now}) ON CONFLICT (email_hash) DO NOTHING", ct);
-                closed = await db.Matches.Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId)).ToListAsync(ct);
-                foreach (var m in closed)
-                {
-                    m.Status = MatchStatus.Closed;
-                    m.CloseReason = MatchCloseReason.Banned;
-                    m.ClosedAt = now;
-                    m.ClosedByUserId = adminId;
-                }
-                // Como en unmatch y bloqueo: si se reactiva, volver a hacer match exige dos likes nuevos (un like viejo de
-                // quien lo reportó no debe bastar para rehacer el contacto).
-                await db.UserLikes.Where(l => l.FromUserId == userId || l.ToUserId == userId).ExecuteDeleteAsync(ct);
-                await db.ProfileReactions.Where(r => r.FromUserId == userId || r.ToUserId == userId).ExecuteDeleteAsync(ct);
-                // Sesiones y avisos push del suspendido terminan con su acceso. El corte del hub de RevokeAllAsync puede
-                // adelantarse al commit (y reconectar con la cuenta aún activa): por eso se repite el Disconnect tras el commit.
-                await sessions.RevokeAllAsync(userId, ct);
-            }
+            change = await ApplyStatusAsync(adminId, userId, status, ct);
+            if (change is null) return;
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
         }
+        await AfterCommitAsync(adminId, change);
+    }
 
-        logger.LogInformation("Cuenta {UserId} pasó a {Status} por el admin {AdminId}", userId, status, adminId);
-        if (status == UserStatus.Banned) notifier.Disconnect(userId);
-        foreach (var m in closed) await notifier.MatchClosedAsync(m.Id, m.UserAId, m.UserBId);
+    private sealed record StatusChange(Guid UserId, UserStatus Status, List<Match> Closed);
+
+    /// <summary>Exige una transacción abierta y no confirma: quien llama decide el commit. Null si no hubo cambio.</summary>
+    private async Task<StatusChange?> ApplyStatusAsync(Guid adminId, Guid userId, UserStatus status, CancellationToken ct)
+    {
+        if (userId == adminId) throw ApiException.BadRequest("cannot_change_own_status", "No puedes cambiar el estado de tu propia cuenta.");
+        var now = clock.GetUtcNow();
+        // Exclusivo: un like en vuelo (que toma este mismo lock compartido) termina antes de suspender o ve la cuenta ya suspendida.
+        await AdvisoryLock.AcquireAsync(db, MatchingService.AccountStateScope, userId, ct);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos esa cuenta.");
+        // Un admin comprometido no debe poder sacar a los demás; eso se hace en la base, no desde el panel.
+        if (user.Role == UserRole.Admin)
+            throw ApiException.Forbidden("cannot_change_admin_status", "No puedes cambiar el estado de otro administrador.");
+        if (user.Status == status) return null;
+
+        user.Status = status;
+        user.UpdatedAt = now;
+        List<Match> closed = [];
+        if (status == UserStatus.Active)
+        {
+            // Reactivar levanta también el veto de re-registro.
+            var hash = bannedEmails.Hash(user.Email);
+            var legacy = BannedEmailHasher.LegacyHash(user.Email);
+            await db.BannedEmails.Where(b => b.EmailHash == hash || b.EmailHash == legacy).ExecuteDeleteAsync(ct);
+        }
+        if (status == UserStatus.Banned)
+        {
+            var emailHash = bannedEmails.Hash(user.Email);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"INSERT INTO banned_emails (email_hash, created_at) VALUES ({emailHash}, {now}) ON CONFLICT (email_hash) DO NOTHING", ct);
+            closed = await db.Matches.Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId)).ToListAsync(ct);
+            foreach (var m in closed)
+            {
+                m.Status = MatchStatus.Closed;
+                m.CloseReason = MatchCloseReason.Banned;
+                m.ClosedAt = now;
+                m.ClosedByUserId = adminId;
+            }
+            // Como en unmatch y bloqueo: si se reactiva, volver a hacer match exige dos likes nuevos (un like viejo de
+            // quien lo reportó no debe bastar para rehacer el contacto).
+            await db.UserLikes.Where(l => l.FromUserId == userId || l.ToUserId == userId).ExecuteDeleteAsync(ct);
+            await db.ProfileReactions.Where(r => r.FromUserId == userId || r.ToUserId == userId).ExecuteDeleteAsync(ct);
+            // Sesiones y avisos push del suspendido terminan con su acceso. El corte del hub de RevokeAllAsync puede
+            // adelantarse al commit (y reconectar con la cuenta aún activa): por eso se repite el Disconnect tras el commit.
+            await sessions.RevokeAllAsync(userId, ct);
+        }
+        return new StatusChange(userId, status, closed);
+    }
+
+    private async Task AfterCommitAsync(Guid adminId, StatusChange change)
+    {
+        logger.LogInformation("Cuenta {UserId} pasó a {Status} por el admin {AdminId}", change.UserId, change.Status, adminId);
+        if (change.Status == UserStatus.Banned) notifier.Disconnect(change.UserId);
+        foreach (var m in change.Closed) await notifier.MatchClosedAsync(m.Id, m.UserAId, m.UserBId);
     }
 
     private async Task<List<AdminReportDto>> ToDtosAsync(List<Report> reports, CancellationToken ct)

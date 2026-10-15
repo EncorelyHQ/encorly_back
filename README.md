@@ -18,6 +18,7 @@ cp .env.example .env
 #    Completa en .env:
 #      DB_PASSWORD         la que quieras (crea la BD local con ella)
 #      JWT_SIGNING_KEY     openssl rand -base64 48
+#      BANNED_EMAIL_KEY    openssl rand -base64 48 (otra distinta)
 #      DEMO_USER_PASSWORD  (opcional) contraseña de las 16 cuentas demo @encorely.demo
 
 # 2. Postgres
@@ -91,7 +92,7 @@ En Development se aplican al arrancar (`DB_MIGRATE_ON_STARTUP=true`). En producc
 ## Configuración
 
 Todas las variables están documentadas en [`.env.example`](.env.example). Ningún secreto tiene valor por defecto en el
-código: si falta `JWT_SIGNING_KEY` o un dato de la BD, la API no arranca. `DB_SSL_MODE` acepta
+código: si falta `JWT_SIGNING_KEY`, `BANNED_EMAIL_KEY` o un dato de la BD, la API no arranca. `DB_SSL_MODE` acepta
 `Disable | Allow | Prefer | Require | VerifyCA | VerifyFull` (local: `Prefer`; producción: `Require` o superior).
 Fuera de Development la API tampoco arranca sin `FORWARDED_TRUSTED_NETWORKS` (redes del proxy) ni sin `PUBLIC_BASE_URL`
 (https). En el `.env`, un `#` precedido de espacio abre un comentario, como en docker compose.
