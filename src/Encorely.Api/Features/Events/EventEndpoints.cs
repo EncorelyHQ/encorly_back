@@ -19,6 +19,7 @@ public static class EventEndpoints
         g.MapGet("/me/events", MyEvents).WithName("GetMyEvents").WithSummary("Eventos futuros a los que voy").Problems(401);
         g.MapGet("/events/{id:guid}/radar", Radar).WithName("GetEventRadar")
             .WithSummary("Asistentes del evento ordenados por afinidad real. Requiere ir al evento y haber desbloqueado el radar")
+            .WithDescription($"Devuelve hasta {RadarService.MaxEntries} asistentes; si había más, responde con la cabecera `{RadarService.TruncatedHeader}: true`.")
             .Problems(400, 401, 403, 404);
     }
 
@@ -40,6 +41,11 @@ public static class EventEndpoints
     private static async Task<Ok<IReadOnlyList<EventDto>>> MyEvents(ClaimsPrincipal user, EventService events, CancellationToken ct)
         => TypedResults.Ok(await events.MyEventsAsync(user.UserId(), ct));
 
-    private static async Task<Ok<IReadOnlyList<RadarEntryDto>>> Radar(Guid id, ClaimsPrincipal user, RadarService radar, CancellationToken ct)
-        => TypedResults.Ok(await radar.GetAsync(user.UserId(), id, ct));
+    // El tope va en una cabecera y no en el cuerpo para no romper el contrato (lista plana).
+    private static async Task<Ok<IReadOnlyList<RadarEntryDto>>> Radar(Guid id, ClaimsPrincipal user, RadarService radar, HttpResponse response, CancellationToken ct)
+    {
+        var (entries, truncated) = await radar.GetAsync(user.UserId(), id, ct);
+        if (truncated) response.Headers[RadarService.TruncatedHeader] = "true";
+        return TypedResults.Ok(entries);
+    }
 }
