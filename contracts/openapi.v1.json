@@ -5990,7 +5990,9 @@
           "artists",
           "stats",
           "common",
-          "myReactions"
+          "myReactions",
+          "likedByMe",
+          "matched"
         ],
         "type": "object",
         "properties": {
@@ -6046,6 +6048,14 @@
               "$ref": "#/components/schemas/MyReactionDto"
             },
             "description": "Las reacciones que quien llama dej\u00F3 en este perfil."
+          },
+          "likedByMe": {
+            "type": "boolean",
+            "description": "Quien llama ya le dio like (en cualquier evento), haya o no match. Igual que en el radar. False en el perfil propio."
+          },
+          "matched": {
+            "type": "boolean",
+            "description": "Hay un match activo entre los dos: manda sobre LikedByMe. False en el perfil propio."
           }
         },
         "description": "Perfil de otra persona visto por quien llama."

@@ -26,6 +26,8 @@ public sealed record MyReactionDto(ReactionTargetKind TargetKind, string TargetK
 /// <param name="Genres">Géneros con más peso en su ADN (máx. 8).</param>
 /// <param name="Artists">Su top de artistas (máx. 12).</param>
 /// <param name="MyReactions">Las reacciones que quien llama dejó en este perfil.</param>
+/// <param name="LikedByMe">Quien llama ya le dio like (en cualquier evento), haya o no match. Igual que en el radar. False en el perfil propio.</param>
+/// <param name="Matched">Hay un match activo entre los dos: manda sobre LikedByMe. False en el perfil propio.</param>
 public sealed record PublicProfileDto(
     Guid Id,
     string DisplayName,
@@ -36,7 +38,9 @@ public sealed record PublicProfileDto(
     IReadOnlyList<ProfileArtistDto> Artists,
     ProfileStatsDto Stats,
     ProfileCommonDto Common,
-    IReadOnlyList<MyReactionDto> MyReactions);
+    IReadOnlyList<MyReactionDto> MyReactions,
+    bool LikedByMe,
+    bool Matched);
 
 /// <param name="TargetKey">Slug del género o key del artista; debe estar en el perfil de esa persona.</param>
 public sealed record ReactionRequest(
