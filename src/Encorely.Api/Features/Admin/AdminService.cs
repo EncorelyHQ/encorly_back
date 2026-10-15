@@ -48,9 +48,10 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         if (await db.Events.Where(e => e.Id == id).ExecuteDeleteAsync(ct) == 0) throw EventNotFound();
     }
 
-    public async Task<IReadOnlyList<AdminSongDto>> ListSongsAsync(string? query, string? genre, int limit, CancellationToken ct)
+    public async Task<IReadOnlyList<AdminSongDto>> ListSongsAsync(string? query, string? genre, int limit, int offset, CancellationToken ct)
     {
         if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (offset is < 0 or > 100_000) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El offset debe estar entre 0 y 100000.");
         var songs = db.Songs.AsQueryable();
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -59,7 +60,8 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         }
         if (!string.IsNullOrWhiteSpace(genre)) songs = songs.Where(s => s.Genre!.Slug == genre);
 
-        return await songs.OrderBy(s => s.Artist).ThenBy(s => s.Title).Take(limit)
+        // Id desempata: sin un orden total, dos páginas con offset podrían repetir o saltarse canciones.
+        return await songs.OrderBy(s => s.Artist).ThenBy(s => s.Title).ThenBy(s => s.Id).Skip(offset).Take(limit)
             .Select(s => new AdminSongDto(s.Id, s.Title, s.Artist, s.Genre!.Slug, s.CoverUrl, s.PreviewUrl, s.ITunesTrackId, s.IsActive,
                 db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Like),
                 db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Dislike)))
@@ -175,8 +177,13 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         var users = await db.Users.Where(u => userIds.Contains(u.Id))
             .Select(u => new AdminUserRef(u.Id, u.DisplayName, u.Email, u.Status)).ToDictionaryAsync(u => u.Id, ct);
         var reportedIds = reports.Select(r => r.ReportedUserId).OfType<Guid>().Distinct().ToList();
-        var counts = await db.Reports.Where(r => r.ReportedUserId != null && reportedIds.Contains(r.ReportedUserId.Value))
-            .GroupBy(r => r.ReportedUserId!.Value).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+        // Se cuentan personas, no reportes: insistir no infla el historial. Un reporte de una cuenta ya borrada cuenta solo.
+        var reporters = (await db.Reports.Where(r => r.ReportedUserId != null && reportedIds.Contains(r.ReportedUserId.Value))
+                .Select(r => new { Reported = r.ReportedUserId!.Value, r.ReporterId, r.Id }).ToListAsync(ct))
+            .ToLookup(x => x.Reported, x => x.ReporterId?.ToString() ?? x.Id.ToString());
+        int OthersReporting(Report r) => r.ReportedUserId is { } reported
+            ? reporters[reported].Where(k => k != (r.ReporterId?.ToString() ?? r.Id.ToString())).Distinct().Count()
+            : 0;
 
         return reports.Select(r => new AdminReportDto(
             r.Id,
@@ -190,7 +197,8 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
             r.ResolutionNote,
             r.CreatedAt,
             r.ResolvedAt,
-            r.ReportedUserId is { } c ? counts.GetValueOrDefault(c) - 1 : 0)).ToList();
+            OthersReporting(r),
+            r.EvidencePurgedAt)).ToList();
     }
 
     private static void Apply(Event e, AdminEventRequest r)

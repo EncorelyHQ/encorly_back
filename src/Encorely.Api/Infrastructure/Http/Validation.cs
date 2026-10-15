@@ -28,6 +28,15 @@ public sealed class MaxUtf8BytesAttribute(int max) : ValidationAttribute
     public override string FormatErrorMessage(string name) => $"No puede superar {max} bytes.";
 }
 
+/// <summary>Largo máximo de cada texto de una lista (MaxLength sobre la lista solo cuenta elementos).</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Field)]
+public sealed class ItemMaxLengthAttribute(int max) : ValidationAttribute
+{
+    public override bool IsValid(object? value) => value is not IEnumerable<string?> items || items.All(i => i is null || i.Length <= max);
+
+    public override string FormatErrorMessage(string name) => $"Cada elemento puede tener hasta {max} caracteres.";
+}
+
 /// <summary>Guid obligatorio y distinto de 00000000-….</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Field)]
 public sealed class NotEmptyGuidAttribute : ValidationAttribute

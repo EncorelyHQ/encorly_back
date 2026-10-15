@@ -23,7 +23,7 @@ public static class UserEndpoints
         g.MapDelete("/spotify/link", UnlinkSpotify).WithName("UnlinkSpotify").WithSummary("Desvincula Spotify (no si es mi única forma de entrar)")
             .Problems(401, 409);
         g.MapPost("/consents", AcceptConsent).WithName("AcceptConsent").WithSummary("Acepta una nueva versión de términos y política").Problems(400, 401);
-        g.MapGet("/export", Export).WithName("ExportMyData").WithSummary("Descarga mis datos personales (Ley 1581)").Problems(401);
+        g.MapGet("/export", Export).WithName("ExportMyData").WithSummary("Descarga mis datos personales (Ley 1581)").Problems(401).UserWrites();
     }
 
     private static async Task<Ok<MeResponse>> GetMe(ClaimsPrincipal user, UserService users, CancellationToken ct)

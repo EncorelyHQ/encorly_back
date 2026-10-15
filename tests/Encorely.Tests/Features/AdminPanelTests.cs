@@ -53,4 +53,19 @@ public sealed partial class AdminPanelTests(ApiFixture api)
         Assert.Contains("id=\"sec-reports\"", html);
         Assert.Contains("Tu cuenta no tiene permisos de administración.", html);
     }
+
+    [Fact]
+    public async Task Suspender_pide_confirmacion_y_el_panel_permite_reactivar()
+    {
+        var html = await api.Anonymous().GetStringAsync("/admin", Ct);
+
+        // El botón de la tarjeta solo abre el paso de confirmación; el ban sale de "Sí, suspender".
+        Assert.Contains("btn('Suspender cuenta', () => confirmIn(", html);
+        Assert.Contains("'Sí, suspender', act('ban')", html);
+        Assert.Contains("los matches no se recuperan al reactivarla", html);
+        Assert.Contains("'/admin/users/' + r.reported.id + '/status', { status: 'active' }", html);
+        // El catálogo pasa de 100 canciones: el panel pagina en vez de cortar.
+        Assert.Contains("id=\"sg-more\"", html);
+        Assert.Contains("offset: String(more ? songs.length : 0)", html);
+    }
 }

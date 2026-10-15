@@ -30,16 +30,23 @@ public static class RequestLogging
     public static IApplicationBuilder UseSafeRequestLogging(this IApplicationBuilder app) => app.Use(async (ctx, next) =>
     {
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        int? failed = null;
         try
         {
             await next();
+        }
+        catch
+        {
+            // Si una excepción llega hasta aquí el servidor responderá 500, pero StatusCode todavía dice 200.
+            failed = StatusCodes.Status500InternalServerError;
+            throw;
         }
         finally
         {
             var logger = ctx.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Encorely.Http");
             var elapsed = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
-            logger.LogInformation("{Method} {Path} -> {Status} en {Elapsed:0.0} ms",
-                ctx.Request.Method, ctx.Request.Path.Value, ctx.Response.StatusCode, elapsed);
+            logger.LogInformation("{Method} {Path} -> {Status} en {Elapsed:0.0} ms [{TraceId}]",
+                ctx.Request.Method, ctx.Request.Path.Value, failed ?? ctx.Response.StatusCode, elapsed, ctx.TraceIdentifier);
         }
     });
 }

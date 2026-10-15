@@ -108,7 +108,7 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problems, ILogg
             case OperationCanceledException when http.RequestAborted.IsCancellationRequested:
                 return true;
             default:
-                logger.LogError(exception, "Error no controlado en {Method} {Path}", http.Request.Method, http.Request.Path);
+                logger.LogError(exception, "Error no controlado en {Method} {Path} [{TraceId}]", http.Request.Method, http.Request.Path, http.TraceIdentifier);
                 pd = new ProblemDetails { Status = 500, Title = Problems.TitleFor(500) };
                 break;
         }

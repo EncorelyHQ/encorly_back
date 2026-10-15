@@ -19,9 +19,9 @@ public static class AuthEndpoints
             .WithSummary("Entra con Spotify (canjea el code PKCE). Crea la cuenta si el Spotify no está vinculado")
             .RequireRateLimiting(RateLimitPolicy).Problems(400, 403, 409, 429, 502);
         g.MapPost("/refresh", Refresh).WithName("Refresh").WithSummary("Rota el refresh token y emite un access token nuevo")
-            .Problems(400, 401);
+            .RequireRateLimiting(EndpointExtensions.TokensPolicy).Problems(400, 401, 429);
         g.MapPost("/logout", Logout).WithName("Logout").WithSummary("Revoca el refresh token (y su familia)")
-            .Problems(400);
+            .RequireRateLimiting(EndpointExtensions.TokensPolicy).Problems(400, 429);
     }
 
     private static async Task<Ok<AuthResponse>> Register(RegisterRequest request, AuthService auth, CancellationToken ct)

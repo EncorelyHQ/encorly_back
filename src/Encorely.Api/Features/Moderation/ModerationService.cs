@@ -13,11 +13,15 @@ public static class ModerationErrors
 {
     public const string CannotBlockSelf = "cannot_block_self";
     public const string InvalidEvidence = "invalid_evidence";
+    public const string TooMuchEvidence = "too_much_evidence";
 }
 
 public sealed class ModerationService(AppDbContext db, Notifier notifier, TimeProvider clock)
 {
     private const string FrankingContext = "ENCORELY-FRANK-v1";
+    private const string ReportScope = "report";
+    /// <summary>Tope acumulado de un reporte abierto (cada petición admite 20).</summary>
+    public const int MaxEvidencePerReport = 60;
 
     public async Task BlockAsync(Guid userId, BlockRequest request, CancellationToken ct)
     {
@@ -74,18 +78,43 @@ public sealed class ModerationService(AppDbContext db, Notifier notifier, TimePr
         var evidence = await BuildEvidenceAsync(userId, reportedId, a, b, request.Evidence ?? [], ct);
 
         var detail = request.Detail?.Trim();
-        var report = new Report
+        detail = string.IsNullOrEmpty(detail) ? null : detail;
+        var now = clock.GetUtcNow();
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Un reporte abierto por (quien reporta, reportado): insistir suma evidencia al mismo en vez de inflar la cola.
+        await AdvisoryLock.AcquireAsync(db, ReportScope, userId, ct);
+        var report = await db.Reports.FirstOrDefaultAsync(
+            r => r.ReporterId == userId && r.ReportedUserId == reportedId && r.Status == ReportStatus.Open, ct);
+        if (report is null)
         {
-            ReporterId = userId,
-            ReportedUserId = reportedId,
-            MatchId = request.MatchId,
-            Reason = request.Reason,
-            Detail = string.IsNullOrEmpty(detail) ? null : detail,
-            Evidence = evidence,
-            CreatedAt = clock.GetUtcNow(),
-        };
-        db.Reports.Add(report);
+            report = new Report
+            {
+                ReporterId = userId,
+                ReportedUserId = reportedId,
+                MatchId = request.MatchId,
+                Reason = request.Reason,
+                Detail = detail,
+                Evidence = evidence,
+                CreatedAt = now,
+            };
+            db.Reports.Add(report);
+        }
+        else
+        {
+            // CreatedAt no cambia: repetir el reporte no lo adelanta en la cola.
+            report.Reason = request.Reason;
+            report.Detail = detail ?? report.Detail;
+            report.MatchId = request.MatchId ?? report.MatchId;
+            var known = report.Evidence.Select(e => e.MessageId).ToHashSet();
+            var added = evidence.Where(e => known.Add(e.MessageId)).ToList();
+            if (report.Evidence.Count + added.Count > MaxEvidencePerReport)
+                throw ApiException.BadRequest(ModerationErrors.TooMuchEvidence,
+                    $"Un reporte admite hasta {MaxEvidencePerReport} mensajes de evidencia.");
+            report.Evidence.AddRange(added);
+        }
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return new ReportCreatedDto(report.Id);
     }
 

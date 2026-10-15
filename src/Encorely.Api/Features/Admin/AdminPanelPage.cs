@@ -67,6 +67,7 @@ public static class AdminPanelPage
         .row>*{flex:1 1 12rem}
         .row>button{flex:0 0 auto}
         .actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+        .actions>p{flex:1 0 100%;margin:0}
         .grid{display:grid;gap:0 1rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
         [role=tablist]{display:flex;flex-wrap:wrap;gap:.25rem;border-bottom:1px solid var(--line);margin-bottom:1rem}
         [role=tab]{background:transparent;color:var(--fg);border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0}
@@ -160,6 +161,7 @@ public static class AdminPanelPage
         <div class="card table-wrap"><table>
         <thead><tr><th scope="col">Portada</th><th scope="col">Título</th><th scope="col">Artista</th><th scope="col">Género</th><th scope="col">Likes / Dislikes</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
         <tbody id="sg-body"></tbody></table></div>
+        <div class="actions"><button id="sg-more" class="secondary" type="button" hidden>Cargar más canciones</button></div>
         <div id="sg-panel" class="card" hidden>
         <h2>Buscar en iTunes</h2>
         <form id="it-form" class="row">
@@ -497,17 +499,25 @@ public static class AdminPanelPage
           }
         }
 
-        async function loadSongs() {
+        const SONG_PAGE = 100;
+
+        // more=true agrega la página siguiente a la tabla; si no, recarga desde el principio con los filtros actuales.
+        async function loadSongs(more) {
           const msg = $('sg-list-msg');
-          const params = new URLSearchParams();
+          const params = new URLSearchParams({ limit: String(SONG_PAGE), offset: String(more ? songs.length : 0) });
           if ($('sg-q').value.trim()) params.set('query', $('sg-q').value.trim());
           if ($('sg-genre-filter').value) params.set('genre', $('sg-genre-filter').value);
+          $('sg-more').disabled = true;
           try {
-            songs = await call('GET', '/admin/songs?' + params.toString());
+            const page = await call('GET', '/admin/songs?' + params.toString());
+            songs = more ? songs.concat(page) : page;
+            $('sg-more').hidden = page.length < SONG_PAGE;
             setMsg(msg, '', '');
             renderSongs();
           } catch (err) { showProblem(msg, err.problem, err.message); }
+          finally { $('sg-more').disabled = false; }
         }
+        $('sg-more').addEventListener('click', () => loadSongs(true));
         $('sg-search').addEventListener('submit', (e) => { e.preventDefault(); loadSongs(); });
 
         function renderSongs() {
@@ -528,12 +538,19 @@ public static class AdminPanelPage
           }
         }
 
+        // Se reemplaza en el sitio: recargar devolvería la tabla a la primera página.
+        function replaceSong(updated) {
+          const i = songs.findIndex((x) => x.id === updated.id);
+          if (i >= 0) songs[i] = updated;
+          renderSongs();
+        }
+
         function songPayload(s, overrides) {
           return Object.assign({ title: s.title, artist: s.artist, genre: s.genre, coverUrl: s.coverUrl,
             previewUrl: s.previewUrl || null, iTunesTrackId: s.iTunesTrackId || null, isActive: s.isActive }, overrides);
         }
         async function toggleSong(s) {
-          try { await call('PUT', '/admin/songs/' + s.id, songPayload(s, { isActive: !s.isActive })); await loadSongs(); }
+          try { replaceSong(await call('PUT', '/admin/songs/' + s.id, songPayload(s, { isActive: !s.isActive }))); }
           catch (err) { showProblem($('sg-list-msg'), err.problem, err.message); }
         }
 
@@ -602,11 +619,14 @@ public static class AdminPanelPage
           };
           $('sg-save').disabled = true;
           try {
-            if (editingSong) await call('PUT', '/admin/songs/' + editingSong.id, payload);
-            else await call('POST', '/admin/songs', payload);
+            if (editingSong) {
+              replaceSong(await call('PUT', '/admin/songs/' + editingSong.id, payload));
+            } else {
+              await call('POST', '/admin/songs', payload);
+              await loadSongs();
+            }
             setPreview(null);
             $('sg-panel').hidden = true;
-            await loadSongs();
             setMsg($('sg-list-msg'), 'Canción guardada.', 'ok');
           } catch (err) {
             showProblem(msg, err.problem, err.message);
@@ -618,9 +638,20 @@ public static class AdminPanelPage
         // ---------- reportes ----------
         const REASONS = { spam: 'Spam', harassment: 'Acoso', inappropriate: 'Contenido inapropiado', fakeProfile: 'Perfil falso', underage: 'Menor de edad', other: 'Otro' };
         const STATUSES = { open: 'Abierto', resolved: 'Resuelto', dismissed: 'Descartado' };
+        const ACCOUNT = { active: 'activa', banned: 'suspendida' };
 
         function userLine(label, u) {
-          return el('p', { class: 'muted', text: label + ': ' + (u ? u.displayName + ' <' + u.email + '> · ' + u.status : 'cuenta eliminada') });
+          return el('p', { class: 'muted', text: label + ': ' + (u ? u.displayName + ' <' + u.email + '> · ' + (ACCOUNT[u.status] || u.status) : 'cuenta eliminada') });
+        }
+
+        // Confirmación en el sitio y no con el diálogo nativo: no bloquea la página y la lee un lector de pantalla.
+        function confirmIn(box, question, yesText, onYes, restore) {
+          const yes = btn(yesText, async () => {
+            yes.disabled = true;
+            try { await onYes(); } finally { yes.disabled = false; }
+          }, 'danger');
+          box.replaceChildren(el('p', { text: question }), yes, btn('Cancelar', restore));
+          yes.focus();
         }
 
         function evidenceNode(ev) {
@@ -646,32 +677,48 @@ public static class AdminPanelPage
           const noteId = 'note-' + r.id;
           const note = el('textarea', { id: noteId, maxlength: 1000 });
           const err = el('div', { class: 'msg', role: 'alert' });
+          const who = r.reported ? r.reported.displayName : 'esta cuenta';
           const act = (action) => async () => {
             try {
               await call('POST', '/admin/reports/' + r.id + '/resolve', { action, note: note.value.trim() || null });
               await loadReports();
-            } catch (e2) { showProblem(err, e2.problem, e2.message); }
+            } catch (e2) { showProblem(err, e2.problem, e2.message); showActions(); }
           };
+          const actions = el('div', { class: 'actions' });
+          const showActions = () => {
+            const buttons = [];
+            if (r.status === 'open') buttons.push(
+              btn('Descartar', act('dismiss')),
+              btn('Resuelto', act('resolve')),
+              btn('Suspender cuenta', () => confirmIn(actions,
+                '¿Suspender a ' + who + '? Cierra todos sus matches, revoca sus sesiones y los matches no se recuperan al reactivarla.',
+                'Sí, suspender', act('ban'), showActions), 'danger'));
+            if (r.reported && r.reported.status === 'banned') buttons.push(
+              btn('Reactivar cuenta', () => confirmIn(actions,
+                '¿Reactivar a ' + who + '? Podrá volver a entrar y registrarse con su correo; sus matches cerrados siguen cerrados.',
+                'Sí, reactivar', async () => {
+                  try {
+                    await call('PUT', '/admin/users/' + r.reported.id + '/status', { status: 'active' });
+                    await loadReports();
+                  } catch (e2) { showProblem(err, e2.problem, e2.message); showActions(); }
+                }, showActions)));
+            actions.replaceChildren(...buttons);
+          };
+          showActions();
           const children = [
             el('h2', { text: (REASONS[r.reason] || r.reason) + ' · ' + (STATUSES[r.status] || r.status) }),
             el('p', { class: 'muted', text: fmt.format(new Date(r.createdAt)) }),
             userLine('Reporta', r.reporter),
             userLine('Reportado', r.reported),
-            el('p', { class: 'muted', text: 'Reportes previos contra esta cuenta: ' + r.priorReportsAgainstUser }),
+            el('p', { class: 'muted', text: 'Otras personas que reportaron esta cuenta: ' + r.priorReportsAgainstUser }),
           ];
           if (r.detail) children.push(el('p', { text: r.detail }));
-          if (r.evidence.length) children.push(el('h3', { text: 'Evidencia' }), ...r.evidence.map(evidenceNode));
-          if (r.status === 'open') {
-            children.push(
-              el('label', { for: noteId, text: 'Nota de resolución (opcional)' }), note,
-              el('div', { class: 'actions' }, [
-                btn('Descartar', act('dismiss')),
-                btn('Resuelto', act('resolve')),
-                btn('Suspender cuenta', act('ban'), 'danger')]),
-              err);
-          } else if (r.resolutionNote) {
-            children.push(el('p', { text: 'Nota: ' + r.resolutionNote }));
-          }
+          if (r.evidencePurgedAt) children.push(el('p', { class: 'muted',
+            text: 'El detalle y el texto de la evidencia se borraron por retención el ' + fmt.format(new Date(r.evidencePurgedAt)) + '.' }));
+          else if (r.evidence.length) children.push(el('h3', { text: 'Evidencia' }), ...r.evidence.map(evidenceNode));
+          if (r.status === 'open') children.push(el('label', { for: noteId, text: 'Nota de resolución (opcional)' }), note);
+          else if (r.resolutionNote) children.push(el('p', { text: 'Nota: ' + r.resolutionNote }));
+          if (actions.childElementCount) children.push(actions, err);
           return el('article', { class: 'card' }, children);
         }
         """;

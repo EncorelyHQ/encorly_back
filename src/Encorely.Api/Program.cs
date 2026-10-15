@@ -34,6 +34,16 @@ using Microsoft.Extensions.Options;
 DotEnv.LoadFromNearest(Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
+// Sin esto rige el default de 30 MB en todos los endpoints, también en los anónimos. Los que necesitan más usan MaxBody().
+// Fuera de desarrollo, una línea JSON por evento: el proveedor de logs la indexa y se puede buscar por traceId.
+if (!builder.Environment.IsDevelopment())
+    builder.Logging.ClearProviders().AddJsonConsole(o =>
+    {
+        o.IncludeScopes = true;
+        o.UseUtcTimestamp = true;
+        o.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ ";
+    });
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = EndpointExtensions.DefaultMaxBodyBytes);
 builder.Configuration.AddEncorelyEnvironment();
 
 // Configuración validada al arrancar: si falta un secreto, la API no levanta (sin valores de respaldo).
@@ -126,6 +136,22 @@ builder.Services.AddRateLimiter(o =>
             PermitLimit = limits.UserWritesPerMinute, Window = TimeSpan.FromMinutes(1), SegmentsPerWindow = 6, QueueLimit = 0,
         });
     });
+    o.AddPolicy(EndpointExtensions.TokensPolicy, ctx =>
+    {
+        var limits = ctx.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+        return RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = limits.TokenPermitPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 });
+    });
+    o.AddPolicy(EndpointExtensions.ReportsPolicy, ctx =>
+    {
+        var limits = ctx.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+        var key = ctx.User.TryUserId()?.ToString() ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "desconocida";
+        return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = limits.ReportsPerHour, Window = TimeSpan.FromHours(1), SegmentsPerWindow = 6, QueueLimit = 0,
+        });
+    });
     o.OnRejected = async (ctx, ct) =>
     {
         ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -149,11 +175,12 @@ var app = builder.Build();
 // Primero: el rate limit y el log de acceso deben ver la IP real del cliente, y solo si el proxy es de confianza.
 if (!string.IsNullOrWhiteSpace(app.Configuration[$"{ProxyOptions.Section}:{nameof(ProxyOptions.TrustedNetworks)}"]))
     app.UseForwardedHeaders();
+// Por fuera del manejador de errores: así registra el status final (un 500 sale como 500, no como el 200 por defecto).
+app.UseSafeRequestLogging();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseSecurityHeaders();
 if (!app.Environment.IsDevelopment()) app.UseHsts();
-app.UseSafeRequestLogging();
 app.UseCors();
 app.UseAuthentication();
 app.UseActiveUserCheck();

@@ -10,7 +10,8 @@ public static class SyncEndpoints
     public static void MapSync(this IEndpointRouteBuilder api)
     {
         var backup = api.MapGroup("/me/backup").WithTags("Respaldo cifrado");
-        backup.MapPut("", PutBackup).WithName("PutBackup").WithSummary("Sube (reemplaza) mi respaldo cifrado en el dispositivo").Problems(400, 401, 413);
+        backup.MapPut("", PutBackup).WithName("PutBackup").WithSummary("Sube (reemplaza) mi respaldo cifrado en el dispositivo").Problems(400, 401)
+            .MaxBody(15 * 1024 * 1024).UserWrites();
         backup.MapGet("", GetBackup).WithName("GetBackup").WithSummary("Descarga mi respaldo cifrado").Problems(401, 404);
         backup.MapGet("/info", GetBackupInfo).WithName("GetBackupInfo").WithSummary("Tamaño y fecha de mi respaldo, sin descargarlo").Problems(401, 404);
         backup.MapDelete("", DeleteBackup).WithName("DeleteBackup").WithSummary("Borra mi respaldo").Problems(401);
@@ -20,7 +21,7 @@ public static class SyncEndpoints
             .WithSummary("Dispositivo NUEVO: abre un buzón de vinculación (vence en 10 min)").Problems(400, 401, 429).UserWrites();
         link.MapGet("/{id:guid}", Get).WithName("GetLinkRequest").WithSummary("Consulta el buzón (el nuevo lo sondea hasta que esté ready)").Problems(401, 404);
         link.MapPut("/{id:guid}", Fulfill).WithName("FulfillLinkRequest")
-            .WithSummary("Dispositivo VIEJO: deja el material de llaves cifrado hacia la llave efímera del nuevo (una sola vez)").Problems(400, 401, 404, 409);
+            .WithSummary("Dispositivo VIEJO: deja el material de llaves cifrado hacia la llave efímera del nuevo (una sola vez)").Problems(400, 401, 404, 409).UserWrites();
         link.MapDelete("/{id:guid}", Consume).WithName("DeleteLinkRequest").WithSummary("El nuevo ya recogió el material: se destruye el buzón").Problems(401);
     }
 

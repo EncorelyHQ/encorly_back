@@ -6,8 +6,8 @@ namespace Encorely.Api.Features.Sync;
 /// <param name="Algorithm">argon2id (recomendado) | scrypt | pbkdf2-sha256.</param>
 public sealed record KdfParams(
     [Required(ErrorMessage = Msg.Required), MaxLength(20, ErrorMessage = Msg.MaxLength)] string Algorithm,
-    [Range(1, long.MaxValue, ErrorMessage = Msg.Range)] long OpsLimit,
-    [Range(1, long.MaxValue, ErrorMessage = Msg.Range)] long MemLimit);
+    [Range(1, uint.MaxValue, ErrorMessage = Msg.Range)] long OpsLimit,
+    [Range(1, SyncService.MaxKdfMemLimit, ErrorMessage = Msg.Range)] long MemLimit);
 
 /// <param name="Ciphertext">Máx. 10 MiB. Cifrado en el dispositivo con una llave derivada de la passphrase.</param>
 /// <param name="Nonce">24 B.</param>

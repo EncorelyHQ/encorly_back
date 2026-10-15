@@ -19,7 +19,7 @@ public static class MusicEndpoints
             .WithSummary("Califica una canción (like/dislike). Repetir la misma canción no suma").Problems(400, 401, 404).UserWrites();
         g.MapGet("/me/dna", GetDna).WithName("GetMyDna").WithSummary("Mi ADN musical (vector de géneros) y estado del radar").Problems(401);
         g.MapPost("/me/spotify/import", ImportSpotify).WithName("ImportSpotify")
-            .WithSummary("Importa top artistas de Spotify (leídos en el dispositivo) para enriquecer el ADN").Problems(400, 401);
+            .WithSummary("Importa top artistas de Spotify (leídos en el dispositivo) para enriquecer el ADN; avisa los géneros que no mapean").Problems(400, 401).UserWrites();
     }
 
     private static async Task<Ok<IReadOnlyList<GenreDto>>> GetGenres(MusicService music, CancellationToken ct)
@@ -35,6 +35,6 @@ public static class MusicEndpoints
     private static async Task<Ok<DnaResponse>> GetDna(ClaimsPrincipal user, MusicService music, CancellationToken ct)
         => TypedResults.Ok(await music.GetDnaAsync(user.UserId(), ct));
 
-    private static async Task<Ok<DnaResponse>> ImportSpotify(SpotifyImportRequest request, ClaimsPrincipal user, MusicService music, CancellationToken ct)
+    private static async Task<Ok<SpotifyImportResponse>> ImportSpotify(SpotifyImportRequest request, ClaimsPrincipal user, MusicService music, CancellationToken ct)
         => TypedResults.Ok(await music.ImportSpotifyAsync(user.UserId(), request, ct));
 }

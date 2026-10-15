@@ -10,6 +10,11 @@ namespace Encorely.Api.Features.Chat;
 /// <summary>El servidor NUNCA descifra ni registra en logs contenido de mensajes: solo ids, seq y tamaños.</summary>
 public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider clock)
 {
+    /// <summary>Bytes cifrados que un remitente puede tener sin recoger en un match: el ack del otro libera espacio.</summary>
+    public const long MaxPendingBytesPerSender = 50L * 1024 * 1024;
+    /// <summary>Una página de historial se corta al pasar este tamaño aunque no llegue a limit (hasta 100 × 64 KiB serían ~9 MB).</summary>
+    public const long MaxPageBytes = 1024 * 1024;
+
     public async Task<(MessageAcceptedDto Accepted, bool Created)> SendAsync(Guid userId, Guid matchId, SendMessageRequest request, CancellationToken ct)
     {
         var match = await FindMineAsync(userId, matchId, ct);
@@ -45,6 +50,13 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
                 .ToListAsync(ct);
             if (seqs.Count == 0) throw ApiException.Forbidden(ErrorCodes.MatchClosed, "Este chat ya está cerrado.");
             seq = seqs[0];
+
+            // Dentro de la transacción: el lock de la fila del match serializa los envíos, así que la suma es exacta.
+            var pending = await db.ChatMessages.Where(m => m.MatchId == matchId && m.SenderId == userId)
+                .SumAsync(m => (long)m.Ciphertext.Length, ct);
+            if (pending + request.Ciphertext.Length > MaxPendingBytesPerSender)
+                throw new ApiException(StatusCodes.Status429TooManyRequests, ErrorCodes.ChatQuotaExceeded,
+                    "Este chat tiene demasiados mensajes sin recibir.", "Cuando la otra persona los descargue podrás seguir escribiendo.");
 
             db.ChatMessages.Add(new ChatMessage
             {
@@ -99,8 +111,16 @@ public sealed class ChatService(AppDbContext db, Notifier notifier, TimeProvider
             : (before is not null ? query.Where(m => m.Seq < before.Value) : query).OrderByDescending(m => m.Seq);
 
         var rows = await query.Take(limit + 1).ToListAsync(ct);
-        var hasMore = rows.Count > limit;
-        var items = rows.Take(limit).Select(ToDto).ToList();
+        var items = new List<MessageDto>(Math.Min(rows.Count, limit));
+        long bytes = 0;
+        foreach (var row in rows.Take(limit))
+        {
+            // Siempre al menos uno, para que la paginación avance.
+            if (items.Count > 0 && bytes + row.Ciphertext.Length > MaxPageBytes) break;
+            bytes += row.Ciphertext.Length;
+            items.Add(ToDto(row));
+        }
+        var hasMore = rows.Count > items.Count;
         return new MessagePage(items, hasMore ? items[^1].Seq : null);
     }
 

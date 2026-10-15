@@ -57,6 +57,39 @@ public sealed class SyncSessionsTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Cotas_de_tamano_y_de_parametros()
+    {
+        var a = await api.CreateUserAsync();
+        object Kdf(string algorithm, long ops, long mem) => new { version = 1, ciphertext = Bytes(32), nonce = Bytes(24), salt = Bytes(16), kdf = new { algorithm, opsLimit = ops, memLimit = mem } };
+
+        // El respaldo admite su máximo de 10 MiB aunque el tope general sea 256 KiB.
+        await a.Client.PutJson("/api/v1/me/backup", Backup(10 * 1024 * 1024)).Expect(HttpStatusCode.OK);
+        await a.Client.PutJson("/api/v1/me/backup", Kdf("argon2id", 21, 67108864)).ExpectProblem(HttpStatusCode.BadRequest, "unsupported_kdf");
+        await a.Client.PutJson("/api/v1/me/backup", Kdf("pbkdf2-sha256", 10_000_001, 1)).ExpectProblem(HttpStatusCode.BadRequest, "unsupported_kdf");
+        await a.Client.PutJson("/api/v1/me/backup", Kdf("scrypt", 1, (1L << 30) + 1)).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+        await a.Client.PutJson("/api/v1/me/backup", Kdf("scrypt", 1L << 20, 1L << 30)).Expect(HttpStatusCode.OK);
+
+        await a.Client.PostJson("/api/v1/me/spotify/import", new { topArtists = new[] { new { name = "x", genres = new[] { new string('g', 101) } } } })
+            .ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+
+    }
+
+    [Fact]
+    public void Tope_de_cuerpo_de_256_KiB_salvo_respaldo_y_reportes()
+    {
+        // TestServer no aplica los límites de Kestrel: se verifica la configuración que Kestrel y el routing sí aplican.
+        var kestrel = api.Service<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>>().Value;
+        Assert.Equal(256 * 1024, kestrel.Limits.MaxRequestBodySize);
+
+        var limits = api.Service<Microsoft.AspNetCore.Routing.EndpointDataSource>().Endpoints
+            .Select(e => (Name: e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.IEndpointNameMetadata>()?.EndpointName,
+                Limit: e.Metadata.GetMetadata<Microsoft.AspNetCore.Http.Metadata.IRequestSizeLimitMetadata>()?.MaxRequestBodySize))
+            .Where(e => e.Limit is not null)
+            .ToDictionary(e => e.Name!, e => e.Limit);
+        Assert.Equal(new Dictionary<string, long?> { ["PutBackup"] = 15 * 1024 * 1024, ["ReportUser"] = 1024 * 1024 }, limits);
+    }
+
+    [Fact]
     public async Task Vinculacion_de_dispositivo_es_de_un_solo_uso_y_solo_del_mismo_usuario()
     {
         var a = await api.CreateUserAsync();

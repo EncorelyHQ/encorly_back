@@ -256,6 +256,16 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -283,6 +293,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -731,6 +751,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -1234,7 +1264,7 @@
         "tags": [
           "M\u00FAsica"
         ],
-        "summary": "Importa top artistas de Spotify (le\u00EDdos en el dispositivo) para enriquecer el ADN",
+        "summary": "Importa top artistas de Spotify (le\u00EDdos en el dispositivo) para enriquecer el ADN; avisa los g\u00E9neros que no mapean",
         "operationId": "ImportSpotify",
         "requestBody": {
           "content": {
@@ -1252,7 +1282,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DnaResponse"
+                  "$ref": "#/components/schemas/SpotifyImportResponse"
                 }
               }
             }
@@ -1269,6 +1299,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -1462,6 +1502,16 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -1743,8 +1793,37 @@
         "tags": [
           "Match"
         ],
-        "summary": "Mis matches activos, el m\u00E1s reciente primero",
+        "summary": "Mis matches activos, el m\u00E1s reciente primero; paginable con limit, beforeAt y beforeId",
         "operationId": "ListMatches",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013100. Sin \u00E9l responde todos (hasta 500), como antes",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "beforeAt",
+            "in": "query",
+            "description": "lastMessageAt ?? createdAt del \u00FAltimo match recibido (con beforeId)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "description": "id del \u00FAltimo match recibido (con beforeAt)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1755,6 +1834,16 @@
                   "items": {
                     "$ref": "#/components/schemas/MatchDto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2556,7 +2645,7 @@
         "tags": [
           "Moderaci\u00F3n"
         ],
-        "summary": "Reporta a un usuario para revisi\u00F3n",
+        "summary": "Reporta a un usuario para revisi\u00F3n; si ya tengo uno abierto contra esa persona, le suma la evidencia (mismo id)",
         "operationId": "ReportUser",
         "requestBody": {
           "content": {
@@ -2618,6 +2707,16 @@
                 }
               }
             }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2660,6 +2759,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -2773,6 +2882,16 @@
           },
           "413": {
             "description": "Payload Too Large",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -3091,6 +3210,16 @@
           },
           "409": {
             "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -3562,6 +3691,16 @@
               "type": "integer",
               "format": "int32",
               "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Canciones a saltar (paginaci\u00F3n; orden por artista y t\u00EDtulo)",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
             }
           }
         ],
@@ -4287,7 +4426,8 @@
           "resolutionNote",
           "createdAt",
           "resolvedAt",
-          "priorReportsAgainstUser"
+          "priorReportsAgainstUser",
+          "evidencePurgedAt"
         ],
         "type": "object",
         "properties": {
@@ -4359,7 +4499,16 @@
           },
           "priorReportsAgainstUser": {
             "type": "integer",
+            "description": "Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.",
             "format": "int32"
+          },
+          "evidencePurgedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Si tiene valor, ya se borraron el detalle y el texto de la evidencia (retenci\u00F3n).",
+            "format": "date-time"
           }
         }
       },
@@ -6502,6 +6651,43 @@
           }
         },
         "description": "Gustos importados de Spotify por el cliente (PKCE en el dispositivo; el token nunca llega al servidor)."
+      },
+      "SpotifyImportResponse": {
+        "required": [
+          "genres",
+          "swipeCount",
+          "radarThreshold",
+          "radarUnlocked",
+          "unmappedGenres"
+        ],
+        "type": "object",
+        "properties": {
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnaGenreDto"
+            }
+          },
+          "swipeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarThreshold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarUnlocked": {
+            "type": "boolean"
+          },
+          "unmappedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "G\u00E9neros recibidos que no aportaron al ADN (sin repetidos, en el orden en que llegaron, m\u00E1x. 50). Si todos\n    quedan aqu\u00ED, la importaci\u00F3n no cambi\u00F3 el ADN y conviene avisarlo."
+          }
+        },
+        "description": "El ADN tras importar, m\u00E1s los g\u00E9neros de Spotify que no se pudieron llevar a ning\u00FAn g\u00E9nero del cat\u00E1logo."
       },
       "SpotifyLoginRequest": {
         "required": [

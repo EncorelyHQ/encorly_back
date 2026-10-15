@@ -14,7 +14,7 @@ public static class EventEndpoints
 
         g.MapGet("/events", List).WithName("ListEvents").WithSummary("Eventos futuros publicados, por fecha").Problems(400, 401);
         g.MapGet("/events/{id:guid}", Get).WithName("GetEvent").WithSummary("Detalle de un evento").Problems(401, 404);
-        g.MapPut("/events/{id:guid}/attendance", Attend).WithName("AttendEvent").WithSummary("Marco que voy al evento (idempotente)").Problems(400, 401, 404);
+        g.MapPut("/events/{id:guid}/attendance", Attend).WithName("AttendEvent").WithSummary("Marco que voy al evento (idempotente)").Problems(400, 401, 404).UserWrites();
         g.MapDelete("/events/{id:guid}/attendance", Unattend).WithName("UnattendEvent").WithSummary("Ya no voy al evento (idempotente)").Problems(401, 404);
         g.MapGet("/me/events", MyEvents).WithName("GetMyEvents").WithSummary("Eventos futuros a los que voy").Problems(401);
         g.MapGet("/events/{id:guid}/radar", Radar).WithName("GetEventRadar")

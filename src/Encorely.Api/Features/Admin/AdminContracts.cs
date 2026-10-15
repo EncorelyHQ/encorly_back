@@ -58,6 +58,8 @@ public sealed record AdminUserRef(Guid Id, string DisplayName, string Email, Use
 
 public sealed record AdminEvidenceDto(Guid MessageId, string Plaintext, bool Verified);
 
+/// <param name="EvidencePurgedAt">Si tiene valor, ya se borraron el detalle y el texto de la evidencia (retención).</param>
+/// <param name="PriorReportsAgainstUser">Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.</param>
 public sealed record AdminReportDto(
     Guid Id,
     AdminUserRef? Reporter,
@@ -70,7 +72,8 @@ public sealed record AdminReportDto(
     string? ResolutionNote,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ResolvedAt,
-    int PriorReportsAgainstUser);
+    int PriorReportsAgainstUser,
+    DateTimeOffset? EvidencePurgedAt);
 
 public enum ReportAction { Dismiss, Resolve, Ban }
 

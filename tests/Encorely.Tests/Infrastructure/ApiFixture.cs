@@ -55,6 +55,8 @@ public sealed class ApiFixture : IAsyncLifetime
                 ["Jwt:SigningKey"] = JwtKey,
                 ["RateLimit:AuthPermitPerMinute"] = "10000",
                 ["RateLimit:UserWritesPerMinute"] = "100000",
+                ["RateLimit:ReportsPerHour"] = "100000",
+                ["RateLimit:TokenPermitPerMinute"] = "100000",
                 ["Push:Enabled"] = "false",
                 ["Matching:RadarMinSwipes"] = "3",
                 // Todos con señal: los tests de afinidad arman el ADN directo en la BD, sin swipes. El umbral se prueba aparte.

@@ -3,6 +3,34 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-14 · v1.0.0-draft.12 (cierre de FIN pendientes: moderación, cotas, chat, privacidad y listados)
+- **Reportes (FIN-10):** un solo reporte abierto por (quien reporta, reportado). Repetir `POST /reports` contra la misma persona
+  devuelve el **mismo `id`**, suma la evidencia nueva (sin repetir `messageId`, tope acumulado 60 → 400 `too_much_evidence`) y
+  actualiza `reason`, `detail` (si viene) y `matchId` (si viene). Ya resuelto, el siguiente abre otro. `POST /reports` pasa a
+  **10 por hora** por usuario (`RATE_LIMIT_REPORTS_PER_HOUR`) → 429. En el panel, `priorReportsAgainstUser` cuenta **personas**.
+- **Retención de evidencia (FIN-11):** `AdminReportDto` gana `evidencePurgedAt` (aditivo). 180 días después de resolverse un
+  reporte, o en cuanto se borra la cuenta reportada, se borran `detail` y el `plaintext` de la evidencia (queda `""`); se
+  conservan `messageId` y `verified`. Un reporte abierto cuya cuenta reportada ya no existe se descarta solo. La política
+  (`/legal/privacidad` §6 y §8, `/cuenta/eliminar`) documenta el plazo; **no** cambia `consentVersion` (reduce retención).
+- **Cotas (FIN-08):** cuerpo máximo **256 KiB** en todos los endpoints → 413; `PUT /me/backup` admite 15 MB y `POST /reports` 1 MB.
+  `POST /auth/refresh` y `/auth/logout` pasan a **60 por minuto por IP** (`RATE_LIMIT_TOKENS_PER_MINUTE`) → 429. Se suman al límite
+  por usuario (429): `PUT /me/backup`, `PUT /keys/link-requests/{id}`, `PUT /events/{id}/attendance`, `PUT /devices/push-token`,
+  `POST /me/spotify/import` y `GET /me/export`. Cada género de `topArtists[].genres` admite hasta 100 caracteres. KDF del respaldo:
+  `memLimit` hasta 1 GiB, `opsLimit` hasta 2^32−1, y por algoritmo argon2id ≤ 20 y pbkdf2-sha256 ≤ 10 000 000 (si no, 400 `unsupported_kdf`).
+- **Chat (FIN-12):** `POST /matches/{id}/messages` responde **429 `chat_quota_exceeded`** si el remitente ya tiene 50 MiB cifrados
+  sin recoger en ese match (el ack del otro libera espacio; la cuota es por remitente). `GET …/messages` corta la página al llegar a
+  1 MiB de ciphertext aunque no llegue a `limit` (siempre trae al menos uno y `nextCursor` sigue funcionando igual).
+  `CHAT_MESSAGE_RETENTION_DAYS` pasa a **30** por defecto: un cliente sin base local (sin ack) pierde lo que tenga más de 30 días.
+- **Spotify (FIN-15):** `POST /me/spotify/import` responde `SpotifyImportResponse` = los campos de `DnaResponse` **+ `unmappedGenres`**
+  (aditivo): géneros recibidos que no aportaron al ADN, sin repetidos y en orden de llegada (máx. 50). Si todos caen ahí, el ADN no
+  cambió y conviene avisarlo. El mapeo ahora reconoce `rock`, `colombian rock`, `alternative rock`, `corridos` y `corridos bélicos`, y
+  `dance pop`/`pop rock` van a `pop-latino` (antes caían en electrónica o en nada).
+- **Listados (FIN-13), aditivo:** `GET /matches?limit=&beforeAt=&beforeId=` pagina por keyset del más reciente al más viejo por
+  (`lastMessageAt ?? createdAt`, `id`): para la página siguiente se pasan esos dos valores del último match recibido. `limit` 1–100;
+  `beforeAt` y `beforeId` van juntos (si no, 400). **Sin `limit` responde como antes** (todos, con tope de 500). `GET /admin/songs`
+  gana `offset` (0–100000) y el panel muestra "Cargar más canciones". Siguen sin paginar `/admin/events`, `/me/events`, la cola de
+  `/admin/reports` (200) y `/me/export` (en memoria).
+
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).
 - **Consentimiento nuevo:** `GET /legal/current` pasa a `consentVersion: "2026-10-14"`. `/legal/privacidad` gana la finalidad

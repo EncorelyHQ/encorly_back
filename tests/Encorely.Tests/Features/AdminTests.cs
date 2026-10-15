@@ -7,6 +7,7 @@ using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Auth;
+using Encorely.Api.Infrastructure.Database;
 using Encorely.Tests.Infrastructure;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -188,6 +189,98 @@ public sealed class AdminTests(ApiFixture api)
         await reported.Client.GetAsync("/api/v1/me", Ct).ExpectProblem(HttpStatusCode.Forbidden, "account_banned");
         await admin.Client.PostJson($"/api/v1/admin/reports/{reportId}/resolve", new { action = "dismiss" })
             .ExpectProblem(HttpStatusCode.Conflict, "report_already_resolved");
+    }
+
+    [Fact]
+    public async Task El_historial_del_reportado_cuenta_personas_y_no_reportes()
+    {
+        var admin = await AdminAsync();
+        var reported = await api.CreateUserAsync("Troll");
+        var insistent = await api.CreateUserAsync("Insistente");
+        var other = await api.CreateUserAsync("Otra");
+        var openId = Guid.Empty;
+        await api.WithDbAsync(async db =>
+        {
+            // La misma persona ya tuvo 3 reportes cerrados contra él; otra persona tiene uno abierto.
+            for (var i = 0; i < 3; i++)
+                db.Reports.Add(new Report { ReporterId = insistent.Id, ReportedUserId = reported.Id, Reason = ReportReason.Spam, Status = ReportStatus.Dismissed });
+            var open = new Report { ReporterId = other.Id, ReportedUserId = reported.Id, Reason = ReportReason.Harassment };
+            db.Reports.Add(open);
+            await db.SaveChangesAsync(Ct);
+            openId = open.Id;
+        });
+
+        var queue = await admin.Client.GetAsync("/api/v1/admin/reports?status=open", Ct).Expect<List<AdminReportDto>>(HttpStatusCode.OK);
+        Assert.Equal(1, Assert.Single(queue, r => r.Id == openId).PriorReportsAgainstUser);
+    }
+
+    [Fact]
+    public async Task La_evidencia_se_borra_a_los_180_dias_de_resolver_o_al_borrarse_la_cuenta_reportada()
+    {
+        var reporter = await api.CreateUserAsync("Ana");
+        var reported = await api.CreateUserAsync("Troll");
+        var now = DateTimeOffset.UtcNow;
+        Report Make(ReportStatus status, DateTimeOffset? resolvedAt, Guid? reportedId) => new()
+        {
+            ReporterId = reporter.Id, ReportedUserId = reportedId, Reason = ReportReason.Harassment, Detail = "me insulta",
+            Status = status, ResolvedAt = resolvedAt, CreatedAt = now.AddDays(-400),
+            Evidence = [new ReportEvidence { MessageId = Guid.NewGuid(), Plaintext = "{\"b\":\"insulto\"}", Verified = true }],
+        };
+        var old = Make(ReportStatus.Resolved, now.AddDays(-Report.EvidenceRetentionDays - 1), reported.Id);
+        var recent = Make(ReportStatus.Dismissed, now.AddDays(-10), reported.Id);
+        var openOld = Make(ReportStatus.Open, null, reported.Id);
+        var orphan = Make(ReportStatus.Open, null, null);   // la cuenta reportada ya se borró
+        await api.WithDbAsync(async db =>
+        {
+            db.Reports.AddRange(old, recent, openOld, orphan);
+            await db.SaveChangesAsync(Ct);
+        });
+
+        await api.Service<MaintenanceService>().RunOnceAsync(Ct);
+
+        await api.WithDbAsync(async db =>
+        {
+            var byId = await db.Reports.AsNoTracking().Where(r => new[] { old.Id, recent.Id, openOld.Id, orphan.Id }.Contains(r.Id))
+                .ToDictionaryAsync(r => r.Id, Ct);
+            foreach (var purged in new[] { byId[old.Id], byId[orphan.Id] })
+            {
+                Assert.NotNull(purged.EvidencePurgedAt);
+                Assert.Null(purged.Detail);
+                var ev = Assert.Single(purged.Evidence);
+                Assert.Equal("", ev.Plaintext);
+                Assert.True(ev.Verified);   // queda el resultado de la verificación
+            }
+            Assert.Equal(ReportStatus.Dismissed, byId[orphan.Id].Status);
+            Assert.NotNull(byId[orphan.Id].ResolvedAt);
+            foreach (var kept in new[] { byId[recent.Id], byId[openOld.Id] })
+            {
+                Assert.Null(kept.EvidencePurgedAt);
+                Assert.Equal("me insulta", kept.Detail);
+                Assert.Equal("{\"b\":\"insulto\"}", Assert.Single(kept.Evidence).Plaintext);
+            }
+        });
+    }
+
+    [Fact]
+    public async Task Canciones_se_paginan_con_offset_sin_repetir_ni_saltar()
+    {
+        var admin = await AdminAsync();
+        var prefix = "Paginado" + Guid.NewGuid().ToString("N")[..8];
+        await api.WithDbAsync(async db =>
+        {
+            var genreId = await db.Genres.Select(g => g.Id).FirstAsync(Ct);
+            // Mismo artista y título: solo el id desempata el orden.
+            for (var i = 0; i < 5; i++)
+                db.Songs.Add(new Song { Title = "Igual", Artist = prefix, GenreId = genreId, CoverUrl = "https://example.com/c.jpg" });
+            await db.SaveChangesAsync(Ct);
+        });
+
+        async Task<List<AdminSongDto>> Page(int offset) => await admin.Client
+            .GetAsync($"/api/v1/admin/songs?query={prefix}&limit=2&offset={offset}", Ct).Expect<List<AdminSongDto>>(HttpStatusCode.OK);
+        var all = (await Page(0)).Concat(await Page(2)).Concat(await Page(4)).Select(s => s.Id).ToList();
+        Assert.Equal(5, all.Distinct().Count());
+        Assert.Empty(await Page(6));
+        await admin.Client.GetAsync("/api/v1/admin/songs?offset=-1", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
     }
 
     [Fact]

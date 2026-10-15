@@ -97,14 +97,22 @@ public sealed class MusicService(AppDbContext db, IOptions<MatchingOptions> matc
         return new DnaResponse(list, swipes, threshold, swipes >= threshold);
     }
 
-    public async Task<DnaResponse> ImportSpotifyAsync(Guid userId, SpotifyImportRequest request, CancellationToken ct)
+    public async Task<SpotifyImportResponse> ImportSpotifyAsync(Guid userId, SpotifyImportRequest request, CancellationToken ct)
     {
         var slugWeights = new Dictionary<string, double>();
+        var unmapped = new List<string>();
+        var seenUnmapped = new HashSet<string>();
         for (var rank = 0; rank < request.TopArtists.Count; rank++)
         {
             var weight = 1 / (1 + RankDecay * rank);
-            foreach (var slug in SpotifyGenreMap.Map(request.TopArtists[rank].Genres))
-                slugWeights[slug] = slugWeights.GetValueOrDefault(slug) + weight;
+            var slugs = new HashSet<string>();
+            foreach (var genre in request.TopArtists[rank].Genres)
+            {
+                if (SpotifyGenreMap.SlugOf(genre) is { } slug) slugs.Add(slug);
+                else if (genre.Trim() is { Length: > 0 } name && unmapped.Count < 50 && seenUnmapped.Add(SpotifyGenreMap.Normalize(name)))
+                    unmapped.Add(name);
+            }
+            foreach (var slug in slugs) slugWeights[slug] = slugWeights.GetValueOrDefault(slug) + weight;
         }
 
         var total = slugWeights.Values.Sum();
@@ -129,7 +137,8 @@ public sealed class MusicService(AppDbContext db, IOptions<MatchingOptions> matc
         await ReplaceArtistsAsync(userId, request.TopArtists, ct);
         await tx.CommitAsync(ct);
 
-        return await GetDnaAsync(userId, ct);
+        var dna = await GetDnaAsync(userId, ct);
+        return new SpotifyImportResponse(dna.Genres, dna.SwipeCount, dna.RadarThreshold, dna.RadarUnlocked, unmapped);
     }
 
     private async Task ReplaceArtistsAsync(Guid userId, IReadOnlyList<SpotifyArtist> artists, CancellationToken ct)

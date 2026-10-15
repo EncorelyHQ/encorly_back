@@ -186,6 +186,45 @@ public sealed class ChatTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Una_pagina_se_corta_en_1_MiB_aunque_no_llegue_a_limit()
+    {
+        var (a, _, matchId) = await PairAsync(api);
+        for (var i = 0; i < 20; i++)
+            await SendAsync(a, matchId, MessageBody(Guid.NewGuid(), 1, 1, ciphertext: Rand(65536))).Expect(HttpStatusCode.Created);
+
+        var page = await a.Client.GetAsync(Messages(matchId) + "?after=0&limit=100", Ct).Expect<MessagePage>(HttpStatusCode.OK);
+        Assert.Equal(16, page.Items.Count);   // 16 × 64 KiB = 1 MiB
+        Assert.Equal(16, page.NextCursor);
+        var rest = await a.Client.GetAsync(Messages(matchId) + "?after=16&limit=100", Ct).Expect<MessagePage>(HttpStatusCode.OK);
+        Assert.Equal([17L, 18L, 19L, 20L], rest.Items.Select(m => m.Seq));
+        Assert.Null(rest.NextCursor);
+    }
+
+    [Fact]
+    public async Task Con_50_MiB_sin_recoger_el_remitente_recibe_429_hasta_que_el_otro_haga_ack()
+    {
+        var (a, b, matchId) = await PairAsync(api);
+        await SendAsync(a, matchId, MessageBody(Guid.NewGuid(), 1, 1)).Expect(HttpStatusCode.Created);   // seq 1
+        await api.WithDbAsync(async db =>
+        {
+            db.ChatMessages.Add(new ChatMessage
+            {
+                Id = Guid.NewGuid(), MatchId = matchId, SenderId = a.Id, Seq = 1000, Version = 1,
+                Nonce = Rand(24), Ciphertext = new byte[ChatService.MaxPendingBytesPerSender - 100],
+            });
+            await db.SaveChangesAsync(Ct);
+        });
+
+        await SendAsync(a, matchId, MessageBody(Guid.NewGuid(), 1, 1, ciphertext: Rand(200)))
+            .ExpectProblem(HttpStatusCode.TooManyRequests, "chat_quota_exceeded");
+        // La cuota es por remitente: el otro sigue escribiendo.
+        await SendAsync(b, matchId, MessageBody(Guid.NewGuid(), 1, 1)).Expect(HttpStatusCode.Created);
+
+        await b.Client.PostJson(Messages(matchId) + "/ack", new { upToSeq = 1000 }).Expect(HttpStatusCode.NoContent);
+        await SendAsync(a, matchId, MessageBody(Guid.NewGuid(), 1, 1, ciphertext: Rand(200))).Expect(HttpStatusCode.Created);
+    }
+
+    [Fact]
     public async Task Ack_borra_solo_lo_recibido_no_lo_enviado_por_mi()
     {
         var (a, b, matchId) = await PairAsync(api);

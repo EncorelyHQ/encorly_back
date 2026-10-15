@@ -117,10 +117,10 @@ public sealed class ChatOptions
     public const string Section = "Chat";
 
     /// <summary>
-    /// Días que el servidor conserva un mensaje cifrado. 0 = sin límite (v1: el historial vive en el servidor).
-    /// Cuando la app guarde el historial local y haga ack, conviene 30 (los no entregados vencen).
+    /// Días que el servidor conserva un mensaje cifrado que nadie recogió (con ack se borra antes). 0 = sin límite.
+    /// 30 por defecto: los sobres no entregados vencen (05-S6) y el almacenamiento queda acotado.
     /// </summary>
-    [Range(0, 3650)] public int MessageRetentionDays { get; set; }
+    [Range(0, 3650)] public int MessageRetentionDays { get; set; } = 30;
 }
 
 public sealed class RateLimitOptions
@@ -134,6 +134,10 @@ public sealed class RateLimitOptions
     [Range(1, 1440)] public int LockoutMinutes { get; set; } = 15;
     /// <summary>Escrituras por usuario y minuto en acciones que se prestan a spam (likes, mensajes, reportes…).</summary>
     [Range(1, 100_000)] public int UserWritesPerMinute { get; set; } = 120;
+    /// <summary>Refresh y logout por IP y minuto: más holgado que login porque en una red compartida (NAT) refrescan todos.</summary>
+    [Range(1, 100_000)] public int TokenPermitPerMinute { get; set; } = 60;
+    /// <summary>Reportes por usuario y hora: más que eso es inundar la cola de moderación.</summary>
+    [Range(1, 100_000)] public int ReportsPerHour { get; set; } = 10;
 }
 
 public sealed class SeedOptions
