@@ -1628,6 +1628,7 @@
           "Eventos"
         ],
         "summary": "Asistentes del evento ordenados por afinidad real. Requiere ir al evento y haber desbloqueado el radar",
+        "description": "Devuelve hasta 200 asistentes; si hab\u00EDa m\u00E1s, responde con la cabecera \u0060X-Radar-Truncated: true\u0060.",
         "operationId": "GetEventRadar",
         "parameters": [
           {
@@ -4160,6 +4161,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -6048,7 +6059,7 @@
         "properties": {
           "token": {
             "type": "string",
-            "description": "ExpoPushToken[...]."
+            "description": "ExponentPushToken[...] o ExpoPushToken[...]."
           },
           "platform": {
             "$ref": "#/components/schemas/DevicePlatform"
@@ -6127,7 +6138,7 @@
               "null",
               "integer"
             ],
-            "description": "Afinidad 0\u2013100 (coseno entre vectores de g\u00E9neros), o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify).",
+            "description": "Afinidad 0\u2013100 (coseno entre vectores de g\u00E9neros), o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify) o ning\u00FAn g\u00E9nero con peso positivo.",
             "format": "int32"
           },
           "sharedGenres": {

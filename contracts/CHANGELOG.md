@@ -3,6 +3,19 @@
 El archivo se genera desde el código (`scripts/update-contract.sh`) y un test falla si queda desactualizado.
 Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe** = el cliente debe ajustarse.
 
+## 2026-10-15 · v1.0.0-draft.14 (FIN-17 a 29: moderación, radar, push y cabeceras)
+- **Push (FIN-23) · rompe si el cliente manda otra cosa:** `PUT /devices/push-token` exige `ExponentPushToken[…]` o
+  `ExpoPushToken[…]` → si no, 400 `validation_failed`. Si el token era de **otra cuenta** (mismo teléfono, otra sesión), pasa a la
+  nueva y la sesión anterior en ese teléfono se **cierra** (su access token da 401).
+- **Radar (FIN-22):** `affinity` es `null` también cuando alguno no tiene ningún género con peso positivo (antes salía `0`). El
+  umbral `RADAR_MIN_AFFINITY` se aplica con ≥. Si hay más de 200 asistentes, responde con la cabecera `X-Radar-Truncated: true`
+  (el cuerpo sigue siendo la lista). `attendeeCount` ya no cuenta cuentas suspendidas ni bloqueos en ninguna dirección.
+- **Admin (FIN-17, FIN-21):** `POST /admin/reports/{id}/resolve` concurrente sobre el mismo reporte aplica una sola acción; la otra
+  da 409 `report_already_resolved` (ahora declarado en el contrato). Suspender a otro admin (directo o por reporte) da 403
+  `cannot_change_admin_status` y deja el reporte abierto.
+- **Vinculación (FIN-18):** el tope de 3 vinculaciones abiertas se respeta también con peticiones simultáneas (el resto, 429).
+- **Cabeceras (FIN-24):** toda respuesta bajo `/api` lleva `Cache-Control: no-store`.
+
 ## 2026-10-15 · v1.0.0-draft.13 (re-QA: errores, respaldo concurrente y reuso de ids del chat)
 Sin cambios en `openapi.v1.json`; todo es comportamiento.
 - **Errores (FIN-20):** los fallos de binding (tipo equivocado en el cuerpo, query o ruta) responden 400 `invalid_body` con
