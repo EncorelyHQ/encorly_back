@@ -77,6 +77,10 @@ public static class AdminPanelPage
         th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
         th{color:var(--muted);font-weight:600;white-space:nowrap}
         td button{min-height:36px;padding:.2rem .7rem;margin:0 .25rem .25rem 0}
+        /* El foco del botón de confirmar es programático: tras un clic, :focus-visible no se aplica y el anillo no se veía. */
+        button.confirm-yes:focus{outline:3px solid var(--accent);outline-offset:2px}
+        /* En celular la tabla se desplaza: las acciones quedan fijas a la derecha y con el alto táctil completo. */
+        @media (max-width:40rem){td:last-child,th:last-child{position:sticky;right:0;background:var(--card);box-shadow:-1px 0 0 var(--line)}td button{min-height:44px}}
         .muted{color:var(--muted);font-size:.875rem}
         .msg{margin:.75rem 0;padding:.6rem .9rem;border-radius:6px;border:1px solid var(--line)}
         .msg:empty{display:none}
@@ -238,6 +242,15 @@ public static class AdminPanelPage
           node.replaceChildren(text ? document.createTextNode(text) : '');
         }
 
+        // Los errores de validación vienen con el nombre JSON del campo; se muestran con la etiqueta del formulario.
+        const FIELD_LABELS = {
+          name: 'Nombre', artistLineup: 'Lineup', venue: 'Lugar', city: 'Ciudad', startsAt: 'Fecha y hora',
+          imageUrl: 'Imagen', description: 'Descripción', isPublished: 'Publicado',
+          title: 'Título', artist: 'Artista', genre: 'Género', coverUrl: 'Portada', previewUrl: 'Preview',
+          iTunesTrackId: 'iTunesTrackId', isActive: 'Activa', note: 'Nota', status: 'Estado',
+        };
+        const fieldLabel = (field) => FIELD_LABELS[field.split(/[.[]/)[0]] || field;
+
         function showProblem(node, problem, fallback) {
           node.className = 'msg err';
           const title = (problem && problem.title) || fallback || 'No se pudo completar la operación.';
@@ -247,7 +260,7 @@ public static class AdminPanelPage
             const list = el('ul');
             for (const field of Object.keys(errors)) {
               const msgs = Array.isArray(errors[field]) ? errors[field] : [errors[field]];
-              list.append(el('li', { text: field + ': ' + msgs.join(' ') }));
+              list.append(el('li', { text: fieldLabel(field) + ': ' + msgs.join(' ') }));
             }
             if (list.childNodes.length) parts.push(list);
           }
@@ -650,8 +663,9 @@ public static class AdminPanelPage
             yes.disabled = true;
             try { await onYes(); } finally { yes.disabled = false; }
           }, 'danger');
+          yes.classList.add('confirm-yes');
           box.replaceChildren(el('p', { text: question }), yes, btn('Cancelar', restore));
-          yes.focus();
+          yes.focus({ focusVisible: true });
         }
 
         function evidenceNode(ev) {
@@ -687,13 +701,14 @@ public static class AdminPanelPage
           const actions = el('div', { class: 'actions' });
           const showActions = () => {
             const buttons = [];
-            if (r.status === 'open') buttons.push(
-              btn('Descartar', act('dismiss')),
-              btn('Resuelto', act('resolve')),
+            const banned = r.reported && r.reported.status === 'banned';
+            if (r.status === 'open') buttons.push(btn('Descartar', act('dismiss')), btn('Resuelto', act('resolve')));
+            // Una cuenta ya suspendida no se vuelve a suspender: re-suspender respondía 200 sin hacer nada.
+            if (r.status === 'open' && !banned) buttons.push(
               btn('Suspender cuenta', () => confirmIn(actions,
                 '¿Suspender a ' + who + '? Cierra todos sus matches, revoca sus sesiones y los matches no se recuperan al reactivarla.',
                 'Sí, suspender', act('ban'), showActions), 'danger'));
-            if (r.reported && r.reported.status === 'banned') buttons.push(
+            if (banned) buttons.push(
               btn('Reactivar cuenta', () => confirmIn(actions,
                 '¿Reactivar a ' + who + '? Podrá volver a entrar y registrarse con su correo; sus matches cerrados siguen cerrados.',
                 'Sí, reactivar', async () => {
