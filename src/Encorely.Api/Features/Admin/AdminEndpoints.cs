@@ -54,8 +54,9 @@ public static class AdminEndpoints
     private static async Task<Ok<IReadOnlyList<AdminSongDto>>> ListSongs(AdminService admin, CancellationToken ct,
         [Description("Busca en título o artista")] string? query = null,
         [Description("Slug de género")] string? genre = null,
-        [Description("1–200, por defecto 100")] int limit = 100)
-        => TypedResults.Ok(await admin.ListSongsAsync(query, genre, limit, ct));
+        [Description("1–200, por defecto 100")] int limit = 100,
+        [Description("Canciones a saltar (paginación; orden por artista y título)")] int offset = 0)
+        => TypedResults.Ok(await admin.ListSongsAsync(query, genre, limit, offset, ct));
 
     private static async Task<Created<AdminSongDto>> CreateSong(AdminSongRequest request, AdminService admin, CancellationToken ct)
     {

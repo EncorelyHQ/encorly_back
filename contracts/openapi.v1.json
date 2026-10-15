@@ -1793,8 +1793,37 @@
         "tags": [
           "Match"
         ],
-        "summary": "Mis matches activos, el m\u00E1s reciente primero",
+        "summary": "Mis matches activos, el m\u00E1s reciente primero; paginable con limit, beforeAt y beforeId",
         "operationId": "ListMatches",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013100. Sin \u00E9l responde todos (hasta 500), como antes",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "beforeAt",
+            "in": "query",
+            "description": "lastMessageAt ?? createdAt del \u00FAltimo match recibido (con beforeId)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "description": "id del \u00FAltimo match recibido (con beforeAt)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1805,6 +1834,16 @@
                   "items": {
                     "$ref": "#/components/schemas/MatchDto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3652,6 +3691,16 @@
               "type": "integer",
               "format": "int32",
               "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Canciones a saltar (paginaci\u00F3n; orden por artista y t\u00EDtulo)",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
             }
           }
         ],

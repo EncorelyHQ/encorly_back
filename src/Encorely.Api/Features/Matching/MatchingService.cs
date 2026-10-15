@@ -79,11 +79,30 @@ public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProv
         return new LikeResponse(true, match.Id);
     }
 
-    public async Task<IReadOnlyList<MatchDto>> ListAsync(Guid userId, CancellationToken ct)
+    /// <summary>Sin limit responde como antes de paginar, con este tope: el cliente que no pagina no nota el cambio.</summary>
+    public const int MaxMatchesWithoutLimit = 500;
+
+    /// <summary>
+    /// Del más reciente al más viejo por (lastMessageAt ?? createdAt, id). Para la página siguiente se pasan esos dos valores
+    /// del último match recibido como beforeAt y beforeId.
+    /// </summary>
+    public async Task<IReadOnlyList<MatchDto>> ListAsync(Guid userId, int? limit, DateTimeOffset? beforeAt, Guid? beforeId, CancellationToken ct)
     {
-        var matches = await db.Matches.AsNoTracking()
-            .Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId))
-            .OrderByDescending(m => m.LastMessageAt ?? m.CreatedAt)
+        if (limit is < 1 or > 100) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "limit debe estar entre 1 y 100.");
+        if (beforeAt.HasValue != beforeId.HasValue)
+            throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "beforeAt y beforeId van juntos.");
+
+        var query = db.Matches.AsNoTracking()
+            .Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId));
+        if (beforeAt is { } at && beforeId is { } id)
+        {
+            var cursorAt = at.ToUniversalTime();
+            query = query.Where(m => (m.LastMessageAt ?? m.CreatedAt) < cursorAt
+                || ((m.LastMessageAt ?? m.CreatedAt) == cursorAt && m.Id.CompareTo(id) < 0));
+        }
+        var matches = await query
+            .OrderByDescending(m => m.LastMessageAt ?? m.CreatedAt).ThenByDescending(m => m.Id)
+            .Take(limit ?? MaxMatchesWithoutLimit)
             .ToListAsync(ct);
         return await ToDtosAsync(userId, matches, ct);
     }

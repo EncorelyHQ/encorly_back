@@ -161,6 +161,7 @@ public static class AdminPanelPage
         <div class="card table-wrap"><table>
         <thead><tr><th scope="col">Portada</th><th scope="col">Título</th><th scope="col">Artista</th><th scope="col">Género</th><th scope="col">Likes / Dislikes</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
         <tbody id="sg-body"></tbody></table></div>
+        <div class="actions"><button id="sg-more" class="secondary" type="button" hidden>Cargar más canciones</button></div>
         <div id="sg-panel" class="card" hidden>
         <h2>Buscar en iTunes</h2>
         <form id="it-form" class="row">
@@ -498,17 +499,25 @@ public static class AdminPanelPage
           }
         }
 
-        async function loadSongs() {
+        const SONG_PAGE = 100;
+
+        // more=true agrega la página siguiente a la tabla; si no, recarga desde el principio con los filtros actuales.
+        async function loadSongs(more) {
           const msg = $('sg-list-msg');
-          const params = new URLSearchParams();
+          const params = new URLSearchParams({ limit: String(SONG_PAGE), offset: String(more ? songs.length : 0) });
           if ($('sg-q').value.trim()) params.set('query', $('sg-q').value.trim());
           if ($('sg-genre-filter').value) params.set('genre', $('sg-genre-filter').value);
+          $('sg-more').disabled = true;
           try {
-            songs = await call('GET', '/admin/songs?' + params.toString());
+            const page = await call('GET', '/admin/songs?' + params.toString());
+            songs = more ? songs.concat(page) : page;
+            $('sg-more').hidden = page.length < SONG_PAGE;
             setMsg(msg, '', '');
             renderSongs();
           } catch (err) { showProblem(msg, err.problem, err.message); }
+          finally { $('sg-more').disabled = false; }
         }
+        $('sg-more').addEventListener('click', () => loadSongs(true));
         $('sg-search').addEventListener('submit', (e) => { e.preventDefault(); loadSongs(); });
 
         function renderSongs() {
@@ -529,12 +538,19 @@ public static class AdminPanelPage
           }
         }
 
+        // Se reemplaza en el sitio: recargar devolvería la tabla a la primera página.
+        function replaceSong(updated) {
+          const i = songs.findIndex((x) => x.id === updated.id);
+          if (i >= 0) songs[i] = updated;
+          renderSongs();
+        }
+
         function songPayload(s, overrides) {
           return Object.assign({ title: s.title, artist: s.artist, genre: s.genre, coverUrl: s.coverUrl,
             previewUrl: s.previewUrl || null, iTunesTrackId: s.iTunesTrackId || null, isActive: s.isActive }, overrides);
         }
         async function toggleSong(s) {
-          try { await call('PUT', '/admin/songs/' + s.id, songPayload(s, { isActive: !s.isActive })); await loadSongs(); }
+          try { replaceSong(await call('PUT', '/admin/songs/' + s.id, songPayload(s, { isActive: !s.isActive }))); }
           catch (err) { showProblem($('sg-list-msg'), err.problem, err.message); }
         }
 
@@ -603,11 +619,14 @@ public static class AdminPanelPage
           };
           $('sg-save').disabled = true;
           try {
-            if (editingSong) await call('PUT', '/admin/songs/' + editingSong.id, payload);
-            else await call('POST', '/admin/songs', payload);
+            if (editingSong) {
+              replaceSong(await call('PUT', '/admin/songs/' + editingSong.id, payload));
+            } else {
+              await call('POST', '/admin/songs', payload);
+              await loadSongs();
+            }
             setPreview(null);
             $('sg-panel').hidden = true;
-            await loadSongs();
             setMsg($('sg-list-msg'), 'Canción guardada.', 'ok');
           } catch (err) {
             showProblem(msg, err.problem, err.message);

@@ -25,6 +25,11 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   (aditivo): géneros recibidos que no aportaron al ADN, sin repetidos y en orden de llegada (máx. 50). Si todos caen ahí, el ADN no
   cambió y conviene avisarlo. El mapeo ahora reconoce `rock`, `colombian rock`, `alternative rock`, `corridos` y `corridos bélicos`, y
   `dance pop`/`pop rock` van a `pop-latino` (antes caían en electrónica o en nada).
+- **Listados (FIN-13), aditivo:** `GET /matches?limit=&beforeAt=&beforeId=` pagina por keyset del más reciente al más viejo por
+  (`lastMessageAt ?? createdAt`, `id`): para la página siguiente se pasan esos dos valores del último match recibido. `limit` 1–100;
+  `beforeAt` y `beforeId` van juntos (si no, 400). **Sin `limit` responde como antes** (todos, con tope de 500). `GET /admin/songs`
+  gana `offset` (0–100000) y el panel muestra "Cargar más canciones". Siguen sin paginar `/admin/events`, `/me/events`, la cola de
+  `/admin/reports` (200) y `/me/export` (en memoria).
 
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).

@@ -64,5 +64,8 @@ public sealed partial class AdminPanelTests(ApiFixture api)
         Assert.Contains("'Sí, suspender', act('ban')", html);
         Assert.Contains("los matches no se recuperan al reactivarla", html);
         Assert.Contains("'/admin/users/' + r.reported.id + '/status', { status: 'active' }", html);
+        // El catálogo pasa de 100 canciones: el panel pagina en vez de cortar.
+        Assert.Contains("id=\"sg-more\"", html);
+        Assert.Contains("offset: String(more ? songs.length : 0)", html);
     }
 }

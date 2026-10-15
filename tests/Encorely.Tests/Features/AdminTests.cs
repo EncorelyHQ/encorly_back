@@ -262,6 +262,28 @@ public sealed class AdminTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Canciones_se_paginan_con_offset_sin_repetir_ni_saltar()
+    {
+        var admin = await AdminAsync();
+        var prefix = "Paginado" + Guid.NewGuid().ToString("N")[..8];
+        await api.WithDbAsync(async db =>
+        {
+            var genreId = await db.Genres.Select(g => g.Id).FirstAsync(Ct);
+            // Mismo artista y título: solo el id desempata el orden.
+            for (var i = 0; i < 5; i++)
+                db.Songs.Add(new Song { Title = "Igual", Artist = prefix, GenreId = genreId, CoverUrl = "https://example.com/c.jpg" });
+            await db.SaveChangesAsync(Ct);
+        });
+
+        async Task<List<AdminSongDto>> Page(int offset) => await admin.Client
+            .GetAsync($"/api/v1/admin/songs?query={prefix}&limit=2&offset={offset}", Ct).Expect<List<AdminSongDto>>(HttpStatusCode.OK);
+        var all = (await Page(0)).Concat(await Page(2)).Concat(await Page(4)).Select(s => s.Id).ToList();
+        Assert.Equal(5, all.Distinct().Count());
+        Assert.Empty(await Page(6));
+        await admin.Client.GetAsync("/api/v1/admin/songs?offset=-1", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+    }
+
+    [Fact]
     public async Task Reportes_filtra_por_status_en_minusculas_como_anuncia_el_contrato()
     {
         var admin = await AdminAsync();

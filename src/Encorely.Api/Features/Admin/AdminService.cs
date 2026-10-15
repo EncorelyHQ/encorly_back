@@ -48,9 +48,10 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         if (await db.Events.Where(e => e.Id == id).ExecuteDeleteAsync(ct) == 0) throw EventNotFound();
     }
 
-    public async Task<IReadOnlyList<AdminSongDto>> ListSongsAsync(string? query, string? genre, int limit, CancellationToken ct)
+    public async Task<IReadOnlyList<AdminSongDto>> ListSongsAsync(string? query, string? genre, int limit, int offset, CancellationToken ct)
     {
         if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (offset is < 0 or > 100_000) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El offset debe estar entre 0 y 100000.");
         var songs = db.Songs.AsQueryable();
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -59,7 +60,8 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
         }
         if (!string.IsNullOrWhiteSpace(genre)) songs = songs.Where(s => s.Genre!.Slug == genre);
 
-        return await songs.OrderBy(s => s.Artist).ThenBy(s => s.Title).Take(limit)
+        // Id desempata: sin un orden total, dos páginas con offset podrían repetir o saltarse canciones.
+        return await songs.OrderBy(s => s.Artist).ThenBy(s => s.Title).ThenBy(s => s.Id).Skip(offset).Take(limit)
             .Select(s => new AdminSongDto(s.Id, s.Title, s.Artist, s.Genre!.Slug, s.CoverUrl, s.PreviewUrl, s.ITunesTrackId, s.IsActive,
                 db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Like),
                 db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Dislike)))

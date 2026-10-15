@@ -456,6 +456,45 @@ public sealed class MatchingModerationTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Matches_se_paginan_por_keyset_y_sin_limit_responden_como_antes()
+    {
+        var me = await api.CreateUserAsync("Paginadora");
+        var at = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var ids = new List<Guid>();
+        for (var i = 0; i < 5; i++)
+        {
+            var other = await api.CreateUserAsync();
+            ids.Add(await ChatKit.CreateMatchAsync(api, me, other));
+        }
+        // Tres empatan en la misma fecha: el id desempata.
+        await api.WithDbAsync(async db =>
+        {
+            await db.Matches.Where(m => ids.Contains(m.Id)).ExecuteUpdateAsync(u => u.SetProperty(m => m.CreatedAt, at), Ct);
+            await db.Matches.Where(m => m.Id == ids[0]).ExecuteUpdateAsync(u => u.SetProperty(m => m.LastMessageAt, at.AddMinutes(2)), Ct);
+            await db.Matches.Where(m => m.Id == ids[1]).ExecuteUpdateAsync(u => u.SetProperty(m => m.LastMessageAt, at.AddMinutes(1)), Ct);
+        });
+
+        var everything = await me.Client.GetAsync("/api/v1/matches", Ct).Expect<List<MatchDto>>(HttpStatusCode.OK);
+        Assert.Equal(5, everything.Count);
+
+        var paged = new List<MatchDto>();
+        var query = "?limit=2";
+        while (true)
+        {
+            var page = await me.Client.GetAsync("/api/v1/matches" + query, Ct).Expect<List<MatchDto>>(HttpStatusCode.OK);
+            paged.AddRange(page);
+            if (page.Count < 2) break;
+            var last = page[^1];
+            query = $"?limit=2&beforeAt={Uri.EscapeDataString((last.LastMessageAt ?? last.CreatedAt).ToString("O"))}&beforeId={last.Id}";
+        }
+        Assert.Equal(everything.Select(m => m.Id), paged.Select(m => m.Id));
+        Assert.Equal([ids[0], ids[1]], paged.Take(2).Select(m => m.Id));
+
+        await me.Client.GetAsync($"/api/v1/matches?beforeId={ids[0]}", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+        await me.Client.GetAsync("/api/v1/matches?limit=0", Ct).ExpectProblem(HttpStatusCode.BadRequest, "validation_failed");
+    }
+
+    [Fact]
     public async Task Reportar_otra_vez_a_la_misma_persona_suma_al_reporte_abierto()
     {
         var (a, b, matchId) = await MatchedPairAsync();
