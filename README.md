@@ -28,6 +28,7 @@ dotnet run --project src/Encorely.Api
 ```
 
 Opción B, todo en contenedores (sin SDK): `docker compose --profile full up -d --build` → API en `http://localhost:5000`.
+La API del contenedor corre en `Development`, igual que con `dotnet run`: usa el mismo `.env` local.
 
 Comprobar:
 
@@ -92,6 +93,8 @@ En Development se aplican al arrancar (`DB_MIGRATE_ON_STARTUP=true`). En producc
 Todas las variables están documentadas en [`.env.example`](.env.example). Ningún secreto tiene valor por defecto en el
 código: si falta `JWT_SIGNING_KEY` o un dato de la BD, la API no arranca. `DB_SSL_MODE` acepta
 `Disable | Allow | Prefer | Require | VerifyCA | VerifyFull` (local: `Prefer`; producción: `Require` o superior).
+Fuera de Development la API tampoco arranca sin `FORWARDED_TRUSTED_NETWORKS` (redes del proxy) ni sin `PUBLIC_BASE_URL`
+(https). En el `.env`, un `#` precedido de espacio abre un comentario, como en docker compose.
 
 ## Despliegue
 

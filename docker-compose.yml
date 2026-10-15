@@ -33,9 +33,11 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_MIGRATE_ON_STARTUP: "true"
-      ASPNETCORE_ENVIRONMENT: Production
+      # Development: el .env local trae DB_SSL_MODE=Prefer (postgres:16-alpine no tiene TLS) y no hay proxy ni URL pública,
+      # que Production exige. appsettings.Development.json escucha en 0.0.0.0:5000.
+      ASPNETCORE_ENVIRONMENT: Development
     ports:
-      - "5000:8080"
+      - "5000:5000"
 
 volumes:
   encorely_pg:

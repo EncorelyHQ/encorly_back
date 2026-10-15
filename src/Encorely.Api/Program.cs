@@ -38,7 +38,8 @@ builder.Configuration.AddEncorelyEnvironment();
 // Configuración validada al arrancar: si falta un secreto, la API no levanta (sin valores de respaldo).
 builder.Services.AddOptions<DatabaseOptions>().BindConfiguration(DatabaseOptions.Section).ValidateDataAnnotations().ValidateOnStart();
 builder.Services.AddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidator>();
-builder.Services.AddOptions<ProxyOptions>().BindConfiguration(ProxyOptions.Section);
+builder.Services.AddOptions<ProxyOptions>().BindConfiguration(ProxyOptions.Section).ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<ProxyOptions>, ProxyOptionsValidator>();
 builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<ProxyOptions>>((o, proxy) =>
 {
     var networks = proxy.Value.ParseNetworks();

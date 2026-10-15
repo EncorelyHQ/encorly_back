@@ -149,14 +149,6 @@ public sealed class UserRateLimitTests(ApiFixture api)
 
 public sealed class SeedTests(ApiFixture api)
 {
-    private sealed class Env(string name) : Microsoft.Extensions.Hosting.IHostEnvironment
-    {
-        public string EnvironmentName { get; set; } = name;
-        public string ApplicationName { get; set; } = "Encorely.Api";
-        public string ContentRootPath { get; set; } = "";
-        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
-    }
-
     [Theory]
     [InlineData("Production", "clave", false, false)]
     [InlineData("Production", "clave", true, true)]
@@ -165,7 +157,7 @@ public sealed class SeedTests(ApiFixture api)
     [InlineData("Development", "clave", false, true)]
     public void Usuarios_demo_fuera_de_desarrollo_exigen_modo_revisor(string environment, string password, bool reviewerOnly, bool ok)
     {
-        var result = new Encorely.Api.Infrastructure.Configuration.SeedOptionsValidator(new Env(environment))
+        var result = new Encorely.Api.Infrastructure.Configuration.SeedOptionsValidator(new TestEnvironment(environment))
             .Validate(null, new Encorely.Api.Infrastructure.Configuration.SeedOptions { DemoUserPassword = password, ReviewerOnly = reviewerOnly });
         Assert.Equal(ok, result.Succeeded);
     }

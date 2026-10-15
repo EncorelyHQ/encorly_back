@@ -36,9 +36,22 @@ public static class DotEnv
             var value = line[(eq + 1)..].Trim();
             if (value.Length >= 2 && (value[0] == '"' && value[^1] == '"' || value[0] == '\'' && value[^1] == '\''))
                 value = value[1..^1];
+            else
+                value = StripInlineComment(value);
 
             if (Environment.GetEnvironmentVariable(key) is null)
                 Environment.SetEnvironmentVariable(key, value);
         }
+    }
+
+    /// <summary>
+    /// Como docker compose: en un valor sin comillas, un <c>#</c> al inicio o precedido de espacio abre un comentario. Sin esto, la
+    /// API y el Postgres de compose leían contraseñas distintas de la misma línea.
+    /// </summary>
+    private static string StripInlineComment(string value)
+    {
+        for (var i = 0; i < value.Length; i++)
+            if (value[i] == '#' && (i == 0 || char.IsWhiteSpace(value[i - 1]))) return value[..i].TrimEnd();
+        return value;
     }
 }
