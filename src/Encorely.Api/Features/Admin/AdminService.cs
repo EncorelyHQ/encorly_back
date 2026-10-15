@@ -195,7 +195,8 @@ public sealed class AdminService(AppDbContext db, Notifier notifier, SessionRevo
             r.ResolutionNote,
             r.CreatedAt,
             r.ResolvedAt,
-            OthersReporting(r))).ToList();
+            OthersReporting(r),
+            r.EvidencePurgedAt)).ToList();
     }
 
     private static void Apply(Event e, AdminEventRequest r)

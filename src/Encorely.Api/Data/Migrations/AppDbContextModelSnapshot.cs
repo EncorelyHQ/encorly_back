@@ -537,6 +537,10 @@ namespace Encorely.Api.Data.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("detail");
 
+                    b.Property<DateTimeOffset?>("EvidencePurgedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("evidence_purged_at");
+
                     b.Property<Guid?>("MatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("match_id");
@@ -585,6 +589,10 @@ namespace Encorely.Api.Data.Migrations
 
                     b.HasIndex("ReporterId")
                         .HasDatabaseName("ix_reports_reporter_id");
+
+                    b.HasIndex("ResolvedAt")
+                        .HasDatabaseName("ix_reports_resolved_at")
+                        .HasFilter("evidence_purged_at IS NULL");
 
                     b.HasIndex("ReporterId", "ReportedUserId")
                         .IsUnique()

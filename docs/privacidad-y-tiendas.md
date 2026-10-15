@@ -23,7 +23,7 @@ Inventario de lo que la API recolecta y guarda, para llenar el formulario **Data
 | Respaldo cifrado | Restaurar historial y llaves | No | Hasta que el usuario lo borre o borre la cuenta | No (cifrado con su passphrase) |
 | Token push (Expo) | Avisar "mensaje nuevo" o "match nuevo" sin contenido | No | Hasta cerrar sesión o borrar la cuenta | No |
 | Sesiones (refresh tokens) | Mantener la sesión | Sí | Solo su hash; 30 días tras vencer se borran | No |
-| Bloqueos y reportes | Seguridad y moderación | No | Los reportes se conservan (anonimizados si se borra la cuenta) | No |
+| Bloqueos y reportes | Seguridad y moderación | No | El reporte se conserva sin la identidad de quien borra su cuenta; el detalle y el texto de la evidencia se borran 180 días después de resolverse, o al borrarse la cuenta reportada (`MaintenanceService`) | No |
 | Aceptación de términos | Prueba del consentimiento | Sí | Hasta borrar la cuenta | No |
 | Dirección IP | Límite de intentos | — | **No se guarda**: solo en memoria para el rate limit | No |
 

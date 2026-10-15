@@ -8,6 +8,10 @@ Cada cambio de endpoints o DTOs se anota aquí, el más reciente arriba. **Rompe
   devuelve el **mismo `id`**, suma la evidencia nueva (sin repetir `messageId`, tope acumulado 60 → 400 `too_much_evidence`) y
   actualiza `reason`, `detail` (si viene) y `matchId` (si viene). Ya resuelto, el siguiente abre otro. `POST /reports` pasa a
   **10 por hora** por usuario (`RATE_LIMIT_REPORTS_PER_HOUR`) → 429. En el panel, `priorReportsAgainstUser` cuenta **personas**.
+- **Retención de evidencia (FIN-11):** `AdminReportDto` gana `evidencePurgedAt` (aditivo). 180 días después de resolverse un
+  reporte, o en cuanto se borra la cuenta reportada, se borran `detail` y el `plaintext` de la evidencia (queda `""`); se
+  conservan `messageId` y `verified`. Un reporte abierto cuya cuenta reportada ya no existe se descarta solo. La política
+  (`/legal/privacidad` §6 y §8, `/cuenta/eliminar`) documenta el plazo; **no** cambia `consentVersion` (reduce retención).
 
 ## 2026-10-14 · v1.0.0-draft.11 (decisiones del perfil social y consentimiento del perfil público)
 Decisiones de Camilo sobre el draft.10, más la §6 del pedido (privacidad).

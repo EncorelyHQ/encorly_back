@@ -4287,7 +4287,8 @@
           "resolutionNote",
           "createdAt",
           "resolvedAt",
-          "priorReportsAgainstUser"
+          "priorReportsAgainstUser",
+          "evidencePurgedAt"
         ],
         "type": "object",
         "properties": {
@@ -4361,6 +4362,14 @@
             "type": "integer",
             "description": "Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.",
             "format": "int32"
+          },
+          "evidencePurgedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Si tiene valor, ya se borraron el detalle y el texto de la evidencia (retenci\u00F3n).",
+            "format": "date-time"
           }
         }
       },

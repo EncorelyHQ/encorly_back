@@ -694,7 +694,9 @@ public static class AdminPanelPage
             el('p', { class: 'muted', text: 'Otras personas que reportaron esta cuenta: ' + r.priorReportsAgainstUser }),
           ];
           if (r.detail) children.push(el('p', { text: r.detail }));
-          if (r.evidence.length) children.push(el('h3', { text: 'Evidencia' }), ...r.evidence.map(evidenceNode));
+          if (r.evidencePurgedAt) children.push(el('p', { class: 'muted',
+            text: 'El detalle y el texto de la evidencia se borraron por retención el ' + fmt.format(new Date(r.evidencePurgedAt)) + '.' }));
+          else if (r.evidence.length) children.push(el('h3', { text: 'Evidencia' }), ...r.evidence.map(evidenceNode));
           if (r.status === 'open') children.push(el('label', { for: noteId, text: 'Nota de resolución (opcional)' }), note);
           else if (r.resolutionNote) children.push(el('p', { text: 'Nota: ' + r.resolutionNote }));
           if (actions.childElementCount) children.push(actions, err);

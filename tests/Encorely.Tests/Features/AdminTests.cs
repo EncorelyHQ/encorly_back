@@ -7,6 +7,7 @@ using Encorely.Api.Features.Moderation;
 using Encorely.Api.Features.Music;
 using Encorely.Api.Features.Users;
 using Encorely.Api.Infrastructure.Auth;
+using Encorely.Api.Infrastructure.Database;
 using Encorely.Tests.Infrastructure;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -211,6 +212,53 @@ public sealed class AdminTests(ApiFixture api)
 
         var queue = await admin.Client.GetAsync("/api/v1/admin/reports?status=open", Ct).Expect<List<AdminReportDto>>(HttpStatusCode.OK);
         Assert.Equal(1, Assert.Single(queue, r => r.Id == openId).PriorReportsAgainstUser);
+    }
+
+    [Fact]
+    public async Task La_evidencia_se_borra_a_los_180_dias_de_resolver_o_al_borrarse_la_cuenta_reportada()
+    {
+        var reporter = await api.CreateUserAsync("Ana");
+        var reported = await api.CreateUserAsync("Troll");
+        var now = DateTimeOffset.UtcNow;
+        Report Make(ReportStatus status, DateTimeOffset? resolvedAt, Guid? reportedId) => new()
+        {
+            ReporterId = reporter.Id, ReportedUserId = reportedId, Reason = ReportReason.Harassment, Detail = "me insulta",
+            Status = status, ResolvedAt = resolvedAt, CreatedAt = now.AddDays(-400),
+            Evidence = [new ReportEvidence { MessageId = Guid.NewGuid(), Plaintext = "{\"b\":\"insulto\"}", Verified = true }],
+        };
+        var old = Make(ReportStatus.Resolved, now.AddDays(-Report.EvidenceRetentionDays - 1), reported.Id);
+        var recent = Make(ReportStatus.Dismissed, now.AddDays(-10), reported.Id);
+        var openOld = Make(ReportStatus.Open, null, reported.Id);
+        var orphan = Make(ReportStatus.Open, null, null);   // la cuenta reportada ya se borró
+        await api.WithDbAsync(async db =>
+        {
+            db.Reports.AddRange(old, recent, openOld, orphan);
+            await db.SaveChangesAsync(Ct);
+        });
+
+        await api.Service<MaintenanceService>().RunOnceAsync(Ct);
+
+        await api.WithDbAsync(async db =>
+        {
+            var byId = await db.Reports.AsNoTracking().Where(r => new[] { old.Id, recent.Id, openOld.Id, orphan.Id }.Contains(r.Id))
+                .ToDictionaryAsync(r => r.Id, Ct);
+            foreach (var purged in new[] { byId[old.Id], byId[orphan.Id] })
+            {
+                Assert.NotNull(purged.EvidencePurgedAt);
+                Assert.Null(purged.Detail);
+                var ev = Assert.Single(purged.Evidence);
+                Assert.Equal("", ev.Plaintext);
+                Assert.True(ev.Verified);   // queda el resultado de la verificación
+            }
+            Assert.Equal(ReportStatus.Dismissed, byId[orphan.Id].Status);
+            Assert.NotNull(byId[orphan.Id].ResolvedAt);
+            foreach (var kept in new[] { byId[recent.Id], byId[openOld.Id] })
+            {
+                Assert.Null(kept.EvidencePurgedAt);
+                Assert.Equal("me insulta", kept.Detail);
+                Assert.Equal("{\"b\":\"insulto\"}", Assert.Single(kept.Evidence).Plaintext);
+            }
+        });
     }
 
     [Fact]

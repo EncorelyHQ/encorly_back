@@ -13,6 +13,9 @@ public enum ReportStatus { Open, Resolved, Dismissed }
 
 public sealed class Report
 {
+    /// <summary>Días tras resolver un reporte en que se borra el texto de la evidencia (igual que el franking que la verifica).</summary>
+    public const int EvidenceRetentionDays = 180;
+
     public Guid Id { get; set; } = Guid.CreateVersion7();
     public Guid? ReporterId { get; set; }
     public Guid? ReportedUserId { get; set; }
@@ -25,6 +28,8 @@ public sealed class Report
     public string? ResolutionNote { get; set; }
     public Guid? ResolvedByUserId { get; set; }
     public DateTimeOffset? ResolvedAt { get; set; }
+    /// <summary>Cuándo se borraron Detail y el texto de la evidencia; quedan MessageId y Verified.</summary>
+    public DateTimeOffset? EvidencePurgedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 

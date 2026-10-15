@@ -128,7 +128,7 @@ public static class AccountDeletionPage
         </ul>
         <h2>Qué puede conservarse</h2>
         <ul>
-          <li>Los reportes de moderación en los que participaste se conservan sin tu identidad vinculada, como evidencia de seguridad.</li>
+          <li>Los reportes de moderación en los que participaste se conservan sin tu identidad vinculada, como evidencia de seguridad. El texto de los mensajes revelados y el detalle del reporte se borran 180 días después de resolverse el reporte, o de inmediato si la cuenta reportada es la que se elimina.</li>
         </ul>
         <p><strong>La eliminación es inmediata e irreversible.</strong> Las personas con las que tenías un match dejarán de verte.</p>
         <form id="f" autocomplete="on">
@@ -215,12 +215,12 @@ public static class AccountDeletionPage
         <ul>
           <li><strong>Acceso y copia:</strong> en la app, opción «Exportar mis datos» del perfil. Incluye tus datos, no el contenido de los mensajes (que no podemos leer).</li>
           <li><strong>Rectificación:</strong> edita tu perfil en la app.</li>
-          <li><strong>Supresión y revocatoria:</strong> elimina tu cuenta desde la app o en <a href="/cuenta/eliminar">/cuenta/eliminar</a>. El borrado es inmediato e incluye tus mensajes. Los reportes de moderación se conservan sin tu identidad vinculada.</li>
+          <li><strong>Supresión y revocatoria:</strong> elimina tu cuenta desde la app o en <a href="/cuenta/eliminar">/cuenta/eliminar</a>. El borrado es inmediato e incluye tus mensajes. Los reportes de moderación se conservan sin tu identidad vinculada (ver «Conservación»).</li>
         </ul>
         <h2>7. Seguridad</h2>
         <p>Usamos conexiones cifradas, contraseñas con hash, sesiones con tokens de corta duración y cifrado de extremo a extremo en el chat.</p>
         <h2>8. Conservación</h2>
-        <p>Conservamos tus datos mientras tengas la cuenta activa. Al eliminarla, se suprimen de forma inmediata.</p>
+        <p>Conservamos tus datos mientras tengas la cuenta activa. Al eliminarla, se suprimen de forma inmediata. Excepción: un reporte de moderación se conserva sin tu identidad vinculada, y el texto de los mensajes revelados y el detalle del reporte se borran 180 días después de resolverse (o en cuanto se elimina la cuenta reportada).</p>
         <h2>9. Cambios</h2>
         <p>Si esta política cambia, publicaremos una nueva versión y te pediremos aceptarla de nuevo en la app.</p>
         """, withScript: false);
