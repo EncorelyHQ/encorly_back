@@ -84,6 +84,29 @@ public sealed class ProfileSocialTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task CanLike_coincide_con_lo_que_responderia_post_likes()
+    {
+        var me = await VisibleUserAsync("Ana");
+        var other = await VisibleUserAsync("Beto");
+        async Task<bool> CanLike(TestUser viewer, Guid target)
+            => (await GetProfile(viewer, target).Expect<PublicProfileDto>(HttpStatusCode.OK)).CanLike;
+
+        // Sin evento en común el perfil se ve, pero el like falla: canLike lo anticipa.
+        Assert.False(await CanLike(me, other.Id));
+        await me.Client.PostJson("/api/v1/likes", new { targetUserId = other.Id }).ExpectProblem(HttpStatusCode.Forbidden, "no_shared_event");
+
+        await SharedUpcomingEventAsync(me, other);
+        Assert.True(await CanLike(me, other.Id));
+        await me.Client.PostJson("/api/v1/likes", new { targetUserId = other.Id }).Expect(HttpStatusCode.OK);
+        Assert.True(await CanLike(other, me.Id));
+
+        // Con match ya no hay nada que ofrecer, y en el perfil propio nunca.
+        await other.Client.PostJson("/api/v1/likes", new { targetUserId = me.Id }).Expect(HttpStatusCode.OK);
+        Assert.False(await CanLike(me, other.Id));
+        Assert.False(await CanLike(me, me.Id));
+    }
+
+    [Fact]
     public async Task Perfil_dice_si_ya_le_di_like_y_si_hay_match()
     {
         var me = await VisibleUserAsync("Ana");

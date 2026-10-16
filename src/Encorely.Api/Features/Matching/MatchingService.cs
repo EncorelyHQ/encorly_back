@@ -25,13 +25,7 @@ public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProv
             throw UserNotFound();
 
         var now = clock.GetUtcNow();
-        var cutoff = EventWindow.Cutoff(now);
-        var sharedEvents = await (
-            from mine in db.EventAttendances
-            join theirs in db.EventAttendances on mine.EventId equals theirs.EventId
-            join e in db.Events on mine.EventId equals e.Id
-            where mine.UserId == userId && theirs.UserId == targetId && e.IsPublished && e.StartsAt > cutoff
-            select e.Id).ToListAsync(ct);
+        var sharedEvents = await SharedEventIds(db, userId, targetId, now).ToListAsync(ct);
         if (sharedEvents.Count == 0 || (request.EventId is { } eventId && !sharedEvents.Contains(eventId)))
             throw ApiException.Forbidden(ErrorCodes.NoSharedEvent, "Solo puedes dar like a alguien que va a un evento contigo.");
 
@@ -77,6 +71,20 @@ public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProv
 
         await notifier.MatchCreatedAsync(match.Id, a, b);
         return new LikeResponse(true, match.Id);
+    }
+
+    /// <summary>
+    /// Eventos publicados y aún vigentes (mismo corte que el radar) a los que van los dos. El like lo exige; el perfil lo usa
+    /// para canLike, así que los dos leen esta misma regla.
+    /// </summary>
+    public static IQueryable<Guid> SharedEventIds(AppDbContext db, Guid userId, Guid targetId, DateTimeOffset now)
+    {
+        var cutoff = EventWindow.Cutoff(now);
+        return from mine in db.EventAttendances
+               join theirs in db.EventAttendances on mine.EventId equals theirs.EventId
+               join e in db.Events on mine.EventId equals e.Id
+               where mine.UserId == userId && theirs.UserId == targetId && e.IsPublished && e.StartsAt > cutoff
+               select e.Id;
     }
 
     /// <summary>Sin limit responde como antes de paginar, con este tope: el cliente que no pagina no nota el cambio.</summary>

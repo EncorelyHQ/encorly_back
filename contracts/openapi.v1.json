@@ -6050,7 +6050,8 @@
           "common",
           "myReactions",
           "likedByMe",
-          "matched"
+          "matched",
+          "canLike"
         ],
         "type": "object",
         "properties": {
@@ -6114,6 +6115,10 @@
           "matched": {
             "type": "boolean",
             "description": "Hay un match activo entre los dos: manda sobre LikedByMe. False en el perfil propio."
+          },
+          "canLike": {
+            "type": "boolean",
+            "description": "POST /likes hacia esta persona responder\u00EDa 200 ahora: van a un mismo evento vigente. False si hay match o en el perfil propio."
           }
         },
         "description": "Perfil de otra persona visto por quien llama."
