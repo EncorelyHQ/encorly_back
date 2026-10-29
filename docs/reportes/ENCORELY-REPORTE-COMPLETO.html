@@ -1,0 +1,2768 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Encorely — Estado del sistema y plan de reconstrucción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 22mm 20mm 24mm 20mm;
+  @bottom-center { content: counter(page) " / " counter(pages); font: 9pt 'Archivo', sans-serif; color: #6b6259; }
+  @top-right { content: "Encorely · Estado del sistema y plan de reconstrucción"; font: 8.5pt 'Archivo', sans-serif; color: #9a8f84; }
+}
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+:root { --ink: #1d1a17; --muted: #5c544c; --line: #e3ddd5; --soft: #f7f3ee; --accent: #c4471a; }
+html { font-size: 10.6pt; }
+body { font-family: 'Source Serif 4', Georgia, serif; color: var(--ink); line-height: 1.55; margin: 0; background: #fff; }
+h1, h2, h3, h4 { font-family: 'Archivo', system-ui, sans-serif; line-height: 1.2; color: var(--ink); break-after: avoid; }
+h1 { font-size: 24pt; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 6mm; }
+h2 { font-size: 16pt; font-weight: 750; margin: 11mm 0 4mm; padding-top: 3mm; border-top: 2.5pt solid var(--accent); break-before: page; }
+h3 { font-size: 12.5pt; font-weight: 700; margin: 7mm 0 2.5mm; }
+h4 { font-size: 11pt; font-weight: 700; margin: 5mm 0 2mm; color: var(--muted); }
+h1 + p, h1 + p + p { font-size: 12pt; color: var(--muted); }
+p { margin: 0 0 3mm; orphans: 3; widows: 3; }
+ul, ol { margin: 0 0 3.5mm; padding-left: 6mm; }
+li { margin: 0.8mm 0; }
+li > p { margin: 0; }
+strong { font-weight: 700; }
+a { color: var(--accent); text-decoration: none; }
+code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.86em; background: var(--soft); padding: 0.4mm 1.2mm; border-radius: 1mm; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 0.6pt solid var(--line); border-radius: 2mm; padding: 3mm 4mm; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; font-size: 8.6pt; line-height: 1.45; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-family: 'Archivo', system-ui, sans-serif; font-size: 8.8pt; line-height: 1.4; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { text-align: left; font-weight: 700; background: var(--soft); border-bottom: 1.2pt solid var(--ink); padding: 1.8mm 2.2mm; vertical-align: bottom; }
+td { border-bottom: 0.5pt solid var(--line); padding: 1.6mm 2.2mm; vertical-align: top; overflow-wrap: break-word; }
+td code { overflow-wrap: anywhere; }
+blockquote { margin: 3mm 0 4mm; padding: 2.5mm 4mm; border-left: 2.5pt solid var(--accent); background: var(--soft); color: var(--muted); }
+hr { border: none; border-top: 0.6pt solid var(--line); margin: 6mm 0; }
+img { max-width: 100%; max-height: 120mm; display: block; margin: 3mm auto 1mm; border: 0.6pt solid var(--line); border-radius: 1.5mm; break-inside: avoid; }
+.toc { font-family: 'Archivo', system-ui, sans-serif; font-size: 10pt; }
+</style></head><body><h1 id="portada">Encorely — Estado del sistema y plan de reconstrucción</h1>
+<p><strong>Fecha:</strong> 2026-10-13</p>
+<p><strong>Qué es este documento:</strong> la versión completa y autocontenida del diagnóstico de Encorely (6 reportes) y de las decisiones que fijan la reconstrucción en 48 horas de trabajo continuo: la v1 es la meta mínima y después se ejecuta todo el plan. Se lee solo, sin abrir los otros archivos.</p>
+<p><strong>Alcance auditado:</strong> <code>encorly_back</code> (@<code>bba861a</code> + 3 archivos sin commit + <code>db/</code> sin trackear), <code>encorely-front</code> (@<code>ff11541</code> + 5 archivos sin commit; rama remota <code>codex/actualizar-frontend</code> @<code>48f99c9</code>, Expo 57), <code>Encorly-landing</code> (<code>feat/reconstruction</code>), <code>EncorelyDjango</code> y <code>EncorelyPython</code>. Todo en modo solo lectura y contra un entorno local con datos ficticios.</p>
+<h2 id="como-leer">Cómo leer este documento</h2>
+<ol>
+<li>Si tienes 10 minutos, lee la sección 1 (resumen) y la 10 (alcance de la v1).</li>
+<li>Si vas a construir la v1, lee además la 2 (cómo funciona hoy), la 8 (chat cifrado) y la 9 (decisiones).</li>
+<li>La sección 4 tiene los 37 hallazgos consolidados (<code>GEN-01</code> a <code>GEN-37</code>), agrupados por capa. Cada uno dice qué pasa, por qué importa, cómo se verificó y qué hace la v1 con él.</li>
+<li>Cuando un hallazgo cita <code>01-C1</code> o <code>02-I4</code>, se refiere al ID dentro del reporte de origen. El Anexo B tiene la tabla completa de correspondencias.</li>
+<li>Donde la decisión del dueño (reporte 06) difiere de la recomendación del reporte general (00), manda la decisión. Se indica en el texto.</li>
+<li><strong>Mandato del dueño:</strong> la v1 es el piso, no el techo. En las 48 horas se hace la v1 y luego, sin pausa, todo el resto del plan (secciones 8.5 y 11). Solo quedan fuera las salas grupales y las APIs externas no autorizadas (sección 10.4).</li>
+</ol>
+<h2 id="indice">Índice</h2>
+<ul>
+<li><a href="#resumen">1. Resumen en una página</a></li>
+<li><a href="#como-funciona">2. Cómo funciona hoy el sistema</a></li>
+<li><a href="#diagnostico">3. Cómo se hizo el diagnóstico</a></li>
+<li><a href="#hallazgos">4. Hallazgos por capa</a><ul>
+<li><a href="#capa-back">4.1 Backend: arquitectura, dominio y producto</a></li>
+<li><a href="#capa-bd">4.2 Base de datos y scripts</a></li>
+<li><a href="#capa-contrato">4.3 Contrato front↔back</a></li>
+<li><a href="#capa-seguridad">4.4 Seguridad</a></li>
+<li><a href="#capa-front">4.5 Frontend</a></li>
+<li><a href="#capa-ui">4.6 UI/UX y diseño</a></li>
+<li><a href="#capa-movil">4.7 Móvil nativo</a></li>
+<li><a href="#capa-chat">4.8 Chat</a></li>
+<li><a href="#capa-infra">4.9 Infraestructura, DX y documentación</a></li>
+<li><a href="#capa-repos">4.10 Organización de repos</a></li>
+</ul>
+</li>
+<li><a href="#causas">5. Causas raíz</a></li>
+<li><a href="#diseno">6. Diseño</a></li>
+<li><a href="#movil">7. App móvil</a></li>
+<li><a href="#chat">8. Chat funcional y cifrado de extremo a extremo</a></li>
+<li><a href="#decisiones">9. Decisiones tomadas</a></li>
+<li><a href="#alcance">10. Alcance: la v1 como mínimo y el plan completo</a></li>
+<li><a href="#plan">11. Plan después de la v1 (dentro de las 48 h)</a></li>
+<li><a href="#riesgos">12. Riesgos y supuestos</a></li>
+<li><a href="#pendientes">13. Pendientes fuera del plan</a></li>
+<li><a href="#conserva">14. Lo que está bien y se conserva</a></li>
+<li><a href="#glosario">15. Glosario</a></li>
+<li><a href="#anexo-a">Anexo A. Índice de reportes detallados</a></li>
+<li><a href="#anexo-b">Anexo B. Correspondencia GEN-xx → IDs de origen</a></li>
+</ul>
+<hr />
+<h2 id="resumen">1. Resumen en una página</h2>
+<h3 id="que-es-encorely">Qué es Encorely</h3>
+<p>Una app móvil (Expo / React Native) con back en .NET para encontrar con quién ir a un concierto. El flujo prometido es: calificas canciones con swipe, la app calcula tu "ADN musical", eliges un evento, el radar te muestra a las personas compatibles que van, hacen match y conversan por un chat privado. Tiene además una landing web con lista de espera.</p>
+<h3 id="en-que-estado-esta">En qué estado está</h3>
+<p>Es un prototipo que no cerró ninguna capa. El veredicto honesto, en cuatro frases:</p>
+<ul>
+<li><strong>No es seguro.</strong> Cualquier JWT, que se obtiene gratis registrándose, lee y escribe el perfil, los swipes, los matches y los chats de otro usuario. Se reprodujo en vivo.</li>
+<li><strong>No funciona.</strong> El chat no envía (todo da 400), el ADN no cambia con los swipes, cada like crea un match con un desconocido y, sin Spotify, la app se queda en spinners.</li>
+<li><strong>No se puede publicar.</strong> Nunca se compiló como app nativa, depende de un login de Spotify limitado a 5 usuarios y no cumple los requisitos de las tiendas.</li>
+<li><strong>No es mantenible.</strong> El esquema de BD no tiene fuente de verdad, el contrato front↔back está escrito a mano en dos lados y la documentación describe otro sistema.</li>
+</ul>
+<p>El código es chico (back ≈ 3,7k LOC repartidas en 9 proyectos; front ≈ 8,7k LOC) y los datos son ficticios. Reconstruir sale más barato que arreglar en el sitio.</p>
+<h3 id="los-5-problemas-que-mas-pesan">Los 5 problemas que más pesan</h3>
+<ol>
+<li><strong>La identidad sale del cliente y no del token</strong> (GEN-01, GEN-02, GEN-03). Cada endpoint recibe <code>userId</code> en la query o el body y lo cree. El login con Google acepta cualquier string como token. La sesión dura 30 minutos y no se renueva. Esto solo explica la mitad de los hallazgos de seguridad.</li>
+<li><strong>El dominio está a medio hacer o simulado</strong> (GEN-05, GEN-08, GEN-13). El perfil musical se queda en 0,5/0,5/0,5 para siempre, los matches no tienen estado ni reciprocidad, los eventos están escritos en el código con fechas pasadas y la UI muestra cifras inventadas ("247 personas con tu vibe cerca"). El producto no hace lo que promete.</li>
+<li><strong>El núcleo depende de APIs de Spotify que ya no sirven</strong> (GEN-06). Desde marzo de 2026 Spotify en modo desarrollo admite 5 usuarios y no devuelve el email; <code>audio-features</code>, <code>recommendations</code> y <code>preview_url</code> están deprecados o llegan vacíos. Hay que redefinir qué es el "ADN musical".</li>
+<li><strong>No hay fuente de verdad para el esquema ni para el contrato</strong> (GEN-09, GEN-22). Las migraciones se borraron, el SQL local se reconstruyó a partir del código y el drift produce 500. El contrato roto deja el chat en 400.</li>
+<li><strong>El móvil nativo no existe como producto</strong> (GEN-10, GEN-11, GEN-12). No hay EAS ni dev build, la base es SDK 54 con <code>expo-av</code> (ya eliminado en SDK 55), no hay push y faltan el borrado de cuenta, reportar/bloquear, la política de privacidad y el control de mayoría de edad.</li>
+</ol>
+<h3 id="que-se-decidio-hacer">Qué se decidió hacer</h3>
+<p><strong>Reconstruir</strong> el back, el esquema, el contrato, el front, el design system y el chat, en <strong>ramas nuevas <code>rebuild/v1</code></strong> dentro de los repos actuales <code>encorly_back</code> y <code>encorely-front</code>. El resto de repos no se toca.</p>
+<ul>
+<li>Back en <strong>.NET 10 LTS</strong>, con EF Core 10 y migraciones. Sin Kafka, Redis ni Worker.</li>
+<li>Front sobre el <strong>toolchain de Expo 57</strong> de la rama existente, con un <code>src/</code> nuevo.</li>
+<li>Login por <strong>email y contraseña</strong>; sin Google ni Apple. El <strong>conector de Spotify</strong> que ya construyó <code>edav404</code> se conserva como opción para importar gustos. Catálogo de canciones curado con previews de iTunes. Eventos curados por seed.</li>
+<li><strong>Push</strong> con FCM/APNs (<code>expo-notifications</code>).</li>
+<li>Chat con <strong>cifrado de extremo a extremo</strong> usando <code>@noble</code> (JS puro, corre en Expo Go), sin forward secrecy y declarado así.</li>
+<li>Dirección visual <strong>"La boleta compartida"</strong>.</li>
+<li><strong>No se publica en tiendas.</strong> El entregable es código, tests, documentación y una demo en emulador o teléfono.</li>
+</ul>
+<h3 id="en-cuanto-tiempo">En cuánto tiempo</h3>
+<p>El trabajo se hace en <strong>48 horas continuas</strong> (24 horas al día, dos días). El reporte general estimaba el plan completo en unos 132 días-persona; el dueño decidió que esa cifra no limita el alcance.</p>
+<ul>
+<li><strong>Primero la v1</strong>, que es la meta mínima: un sistema que funciona de punta a punta y tiene pruebas.</li>
+<li><strong>Después, sin pausa, todo lo demás</strong> del plan curado (secciones 8.5 y 11).</li>
+<li><strong>Solo quedan fuera:</strong> salas grupales, login con Google y Apple, Ticketmaster, Uber y cualquier API externa no autorizada. Las autorizadas son las previews de iTunes, el push FCM/APNs y el conector de Spotify ya construido.</li>
+<li>Se trabaja por cortes verticales: en todo momento existe una versión que funciona y cada corte suma sobre la anterior.</li>
+</ul>
+<hr />
+<h2 id="como-funciona">2. Cómo funciona hoy el sistema</h2>
+<h3 id="21-repositorios">2.1 Repositorios</h3>
+<table>
+<thead>
+<tr>
+<th>Repo</th>
+<th>Stack</th>
+<th>Último commit</th>
+<th>Dónde vive</th>
+<th>Estado</th>
+<th>En la v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>encorly_back</code></td>
+<td>.NET 8, Dapper, Npgsql, Kafka (Confluent), Redis, SignalR, Firebase, BCrypt</td>
+<td>2026-06-06</td>
+<td>Org EncorelyHQ, <strong>público</strong></td>
+<td>Vivo en Render (sospecha, no auditado)</td>
+<td>Rama nueva <code>rebuild/v1</code> en .NET 10</td>
+</tr>
+<tr>
+<td><code>encorely-front</code></td>
+<td>Expo 54, RN 0.81, React 19, expo-router 6, styled-components 6, Reanimated 4</td>
+<td>Local 2026-06-06; rama remota Expo 57 de otra persona (<code>edav404</code>) del 2026-10-14</td>
+<td>Org EncorelyHQ, público</td>
+<td>Vivo en Vercel (cuenta personal), 5 archivos sin commit</td>
+<td>Rama nueva <code>rebuild/v1</code> desde Expo 57</td>
+</tr>
+<tr>
+<td><code>Encorly-landing</code></td>
+<td>Vite 7, React 19, Tailwind 4, Netlify Functions, Brevo</td>
+<td><code>feat/reconstruction</code> (1 commit sin push)</td>
+<td>Cuenta personal <code>lmilo</code>, público</td>
+<td>Vivo</td>
+<td>No se toca</td>
+</tr>
+<tr>
+<td><code>EncorelyDjango</code></td>
+<td>Django 5.1, DRF, SQLite</td>
+<td>2026-05-09</td>
+<td>Org EncorelyHQ</td>
+<td>Implementación paralela, muerta</td>
+<td>No se toca</td>
+</tr>
+<tr>
+<td><code>EncorelyPython</code></td>
+<td>Python + Tkinter en memoria</td>
+<td>2026-04-11</td>
+<td>Org EncorelyHQ</td>
+<td>MVP académico, muerto</td>
+<td>No se toca</td>
+</tr>
+</tbody>
+</table>
+<p>El despliegue real usa Render + Supabase + Vercel + Netlify y no tiene IaC. Los manifiestos de k8s y terraform del back son de un ejercicio académico ("Tarea 82/83") y no despliegan nada.</p>
+<h3 id="22-piezas-del-sistema">2.2 Piezas del sistema</h3>
+<table>
+<thead>
+<tr>
+<th>Pieza</th>
+<th>Qué hace hoy</th>
+<th>Uso real</th>
+<th>Estado</th>
+<th>En la v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Back (<code>EncorelyApi</code> y 8 proyectos más)</td>
+<td>8 controllers + 2 hubs; servicios en <code>EncorelyApplication</code>; Dapper en <code>EncorelyQuery</code> y <code>EncorelyRepository</code></td>
+<td>Toda la lógica, a veces dentro de los controllers</td>
+<td>🔴 IDOR en todos los endpoints; HEAD da 500 en todo POST/PUT con body</td>
+<td>Se reconstruye como monolito modular .NET 10</td>
+</tr>
+<tr>
+<td>Base de datos (Postgres)</td>
+<td>Supabase en producción, Docker en local</td>
+<td>Usuarios, swipes, perfiles, matches, mensajes, salas</td>
+<td>🔴 Sin migraciones; el SQL local está reconstruido y sin trackear</td>
+<td>Esquema nuevo con EF Core 10 + migraciones</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Un topic con consumidor (swipe → match) y 3 topics sin consumidor</td>
+<td>Un solo flujo</td>
+<td>🔴 Dual-write, at-most-once accidental, el token de Spotify viaja en claro</td>
+<td>Eliminado (D3)</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td><code>IDistributedCache</code> para cachear un perfil (<code>UserService.cs:48,60</code>)</td>
+<td>Un solo uso</td>
+<td>🟡 Sin autenticación</td>
+<td>Eliminado (D3)</td>
+</tr>
+<tr>
+<td>Worker</td>
+<td>Consume swipes y crea matches</td>
+<td>Crea un match con un desconocido por cada like</td>
+<td>🔴 Sin imagen Docker, lógica duplicada con el controller</td>
+<td>Eliminado (D3)</td>
+</tr>
+<tr>
+<td>SignalR</td>
+<td><code>NotificationHub</code> y <code>VenueHub</code></td>
+<td>El front no los usa</td>
+<td>🔴 Anónimos; el cliente elige su <code>userId</code></td>
+<td>Solo <code>ChatHub</code> autenticado</td>
+</tr>
+<tr>
+<td>Firebase push</td>
+<td>Envío comentado, usa <code>Topic = userId</code></td>
+<td>Ninguno</td>
+<td>🔴 Inexistente y con diseño inseguro</td>
+<td>Se rehace: push FCM/APNs después de la v1</td>
+</tr>
+<tr>
+<td>Front (Expo)</td>
+<td>Onboarding, swipe, radar, conexiones, chat, perfil, ajustes</td>
+<td>Solo funciona con Spotify</td>
+<td>🔴 3 fuentes de sesión, spinners eternos, datos inventados</td>
+<td><code>src/</code> nuevo sobre Expo 57</td>
+</tr>
+<tr>
+<td>Landing</td>
+<td>Lista de espera con Netlify Function y Brevo</td>
+<td>Funciona</td>
+<td>🟡 Estética de plantilla, input de 22 px en móvil, promete Ticketmaster</td>
+<td>No se toca</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-el-flujo-del-usuario-y-donde-se-rompe">2.3 El flujo del usuario y dónde se rompe</h3>
+<p>El producto promete esta cadena: <strong>registro → swipe de canciones → ADN musical → radar por evento → match → chat</strong>. Hoy se rompe en cada eslabón.</p>
+<table>
+<thead>
+<tr>
+<th>Paso</th>
+<th>Qué debería pasar</th>
+<th>Qué pasa hoy</th>
+<th>Evidencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Registro y login</td>
+<td>Crear cuenta y entrar</td>
+<td>El registro por correo del onboarding siempre responde "Próximamente". El login por email existe solo en 5 archivos locales sin commit. Spotify, el login principal, admite 5 usuarios. El JWT muere a los 30 min sin refresh</td>
+<td><code>OnboardingStep3Screen.tsx:105-119</code>, <code>nativo-5.png</code>, <code>TokenService.cs:39</code></td>
+</tr>
+<tr>
+<td>2. Swipe</td>
+<td>Calificar canciones con preview</td>
+<td>Sin Spotify, "Preparando tracks…" para siempre. Por API, 22 swipes sobre la misma canción cuentan 22 para el umbral</td>
+<td><code>SwipeScreen.tsx:105</code>, <code>nativo-21.png</code>, verificado en ejecución</td>
+</tr>
+<tr>
+<td>3. ADN musical</td>
+<td>El perfil cambia con cada swipe</td>
+<td>El perfil queda en 0,5/0,5/0,5. La afinidad da 1,0 con el 78 % de la base</td>
+<td><code>SwipeService.cs:34-47</code>, consulta a BD</td>
+</tr>
+<tr>
+<td>4. Radar por evento</td>
+<td>Ver quién va al mismo concierto y es compatible</td>
+<td>El radar ignora el <code>eventId</code>: devuelve lo mismo para un evento real, uno inexistente u otro. Los eventos están en el código con fechas pasadas. La UI dice "247 personas" y "100 swipes" a un usuario con 31</td>
+<td><code>EventsController.cs:42-86</code>, <code>EventService.cs:9-17</code>, <code>nativo-22.png</code></td>
+</tr>
+<tr>
+<td>5. Match</td>
+<td>Match solo si los dos quieren</td>
+<td>Cada like (a una canción) tras 25 swipes crea un match automático con un desconocido. No hay estado. Aceptar 5 veces crea 5 bienvenidas. La notificación le llega al que acepta, no al otro</td>
+<td><code>KafkaConsumerWorker.cs:159-196</code>, <code>worker.log</code>, <code>ui3-1.png</code></td>
+</tr>
+<tr>
+<td>6. Chat</td>
+<td>Conversación privada</td>
+<td>Todo envío da 400 y el mensaje desaparece sin aviso. Los mensajes se guardan en claro. Cualquier usuario autenticado lee y escribe cualquier chat</td>
+<td><code>matches.ts:34</code>, <code>nativo-31.png</code>, <code>ui3-9.png</code></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Radar en Android: &quot;247 personas&quot; y felicitación por 100 swipes a un usuario con 31" src="capturas-qa/nativo-22.png" /></p>
+<p><img alt="Lista del mismo radar: &quot;8 personas&quot;, todas al 100 % y &quot;Match Certificado&quot;" src="capturas-qa/nativo-24.png" /></p>
+<p><img alt="Discover con cuenta de correo: &quot;Preparando tracks…&quot; sin salida" src="capturas-qa/nativo-21.png" /></p>
+<hr />
+<h2 id="diagnostico">3. Cómo se hizo el diagnóstico</h2>
+<h3 id="31-los-reportes">3.1 Los reportes</h3>
+<table>
+<thead>
+<tr>
+<th>Reporte</th>
+<th>Qué cubre</th>
+<th>Hallazgos</th>
+<th>Cómo se verificó</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00-reporte-general.md</code></td>
+<td>Curaduría de 01–05: une duplicados por causa raíz, repriorizar para móvil, plan por fases y decisiones pendientes</td>
+<td>37 consolidados (<code>GEN-01</code> a <code>GEN-37</code>): 15 críticos, 18 importantes, 4 menores</td>
+<td>Lectura de los 5 reportes y verificación puntual contra el código cuando hubo contradicción (git, grep, lectura de archivos)</td>
+</tr>
+<tr>
+<td><code>01-auditoria-externa.md</code></td>
+<td>Todo el sistema: seguridad, arquitectura, contratos, BD, mensajería, UI, dependencias, DX, CI, docs y repos</td>
+<td>58 (17 críticos, 30 importantes, 11 menores) + tabla de redundancias</td>
+<td><strong>Estático</strong> en su mayoría. Ejecutó <code>dotnet list package --vulnerable</code>, <code>npm audit</code>, <code>tsc</code> y los tests, y levantó el sistema en local</td>
+</tr>
+<tr>
+<td><code>02-enjambre-qa.md</code></td>
+<td>QA dinámico: 13 agentes (personas de usuario, seguridad, navegador) + anexo en Android</td>
+<td>51 confirmados (8 críticos, 27 importantes, 16 menores) deduplicados de 101 crudos; 0 descartados; 1 intermitente. Anexo nativo: 12 hallazgos, 8 OK, 6 no probados</td>
+<td><strong>Ejecución</strong> contra la API local (Development), BD con seed ficticio, Worker activo, front web en navegador y <strong>emulador Android 15 con Expo Go SDK 54</strong></td>
+</tr>
+<tr>
+<td><code>03-auditoria-diseno.md</code></td>
+<td>Identidad visual, tells de "hecho con IA", auditoría por dimensión a 390×844, pantalla por pantalla (app y landing) y dirección visual</td>
+<td>19 tells + 11 dimensiones + 9 pantallas de app + 9 secciones de landing</td>
+<td><strong>Estático + capturas</strong> (<code>diseno-1</code> a <code>diseno-15</code>) con contraste calculado. Corrió en un solo contexto (degradado, declarado)</td>
+</tr>
+<tr>
+<td><code>04-auditoria-movil.md</code></td>
+<td>Preparación nativa: Expo/EAS, SDK, auth nativa, push, navegación, a11y, red, tiendas y la rama Expo 57</td>
+<td>30 (8 críticos, 12 importantes, 10 menores) + 16 repriorizaciones de 01/02 + checklist de tiendas</td>
+<td><strong>Estático + herramientas</strong> (<code>expo config</code>, <code>expo install --check</code>, <code>gh api</code> sobre la rama 57) + documentación oficial. <strong>Sin dispositivo</strong></td>
+</tr>
+<tr>
+<td><code>05-chat-e2ee-propuesta.md</code></td>
+<td>Arquitectura del chat 1:1 con E2EE: requisitos, amenazas, opciones, contrato, SQL, hub, front, moderación y fases</td>
+<td>Propuesta: 10 requisitos funcionales, 8 de seguridad, 8 fases (~37 días-persona)</td>
+<td><strong>Diseño con fuentes</strong>. Nada implementado ni probado</td>
+</tr>
+<tr>
+<td><code>06-decisiones-y-alcance-v1.md</code></td>
+<td>Decisiones del dueño, alcance de la v1 y mandato de hacer todo el plan en 48 h</td>
+<td>16 decisiones + cripto + rúbrica; 13 ítems de back, 9 de front, 4 de docs</td>
+<td>Decisión, no diagnóstico. <strong>Manda sobre 00</strong> donde difieren</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Leyenda de verificación</strong> usada en todo el documento:</p>
+<ul>
+<li><strong>Ejecución:</strong> reproducido en vivo (API, navegador o emulador).</li>
+<li><strong>Estático:</strong> leído en código, configuración o salida de una herramienta.</li>
+<li><strong>Sospecha:</strong> implicado por el código o la documentación, sin confirmar en dispositivo o producción.</li>
+</ul>
+<h3 id="32-contradicciones-entre-reportes-y-como-se-resolvieron">3.2 Contradicciones entre reportes y cómo se resolvieron</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Contradicción</th>
+<th>Resolución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Logout roto: crítico (01) vs funciona (02, nativo)</td>
+<td>Menor y solo web. En nativo <code>Alert.alert</code> funciona (<code>nativo-45.png</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Teclado del chat mal compensado (04) vs OK (02, nativo)</td>
+<td>En Android funciona (<code>nativo-31.png</code>). En iOS sigue siendo sospecha fundada por <code>ChatScreen.tsx:149</code>. El teclado del <strong>login</strong> en Android sí está roto</td>
+</tr>
+<tr>
+<td>3</td>
+<td>BACK de Android vuelve a la primera tab (04) vs OK (02)</td>
+<td>Funciona en Android. Sigue vigente lo estructural: sin swipe-back en iOS y sin historial al abrir desde una push</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>VenueRooms</code>: faltan columnas (01) vs existen (02)</td>
+<td>Las dos son ciertas: el SQL local se reconstruyó desde el código, así que "tiene" las columnas por construcción; el 500 viene de que el modelo no las tiene. El esquema real de producción no se conoce</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Expiración del JWT en <code>IdentityService.cs:85</code> (01) vs <code>TokenService.cs:39</code> (04)</td>
+<td>Las dos: el mismo <code>AddMinutes(30)</code> aparece en 4 sitios</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Conteos de accesibilidad distintos en 01, 03 y 04</td>
+<td>Por grep: 4 <code>accessibilityLabel</code> + 4 <code>accessibilityRole</code> en todo <code>src</code>. La conclusión no cambia</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>#F366FF</code> hardcodeado 81 (01) vs 83 (03)</td>
+<td>83 (grep sin distinguir mayúsculas)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>"Expo Go no ejecuta SDK 54" (04) vs QA hecho en Expo Go 54 (02)</td>
+<td>No hay contradicción: en Android se instala el APK de Expo Go 54; en iPhone físico no. El QA nativo no valida un build nativo</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Redis "ya está en el stack" y sirve de backplane (05)</td>
+<td>Redis se usa en un solo lugar. Con una instancia no hace falta backplane</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Rotar la clave de Supabase "ya" (01) vs decisión del dueño</td>
+<td>Queda registrado como pendiente (sección 13). No bloquea el plan</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Partir de la rama 57 (04) vs rama no auditada (01)</td>
+<td>Se usa la rama 57 como base de toolchain, no como base de <code>src/</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>Estado del match: 3 estados (01), <code>AcceptedAt</code> (02), 4 estados (05)</td>
+<td>Se adopta el modelo de 05: <code>Pending/Active/Closed/Blocked</code> con aceptación por usuario</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="hallazgos">4. Hallazgos por capa</h2>
+<p>Formato de cada hallazgo:</p>
+<ul>
+<li><strong>Severidad:</strong> 🔴 crítico · 🟠 importante · ⚪ menor.</li>
+<li><strong>ID:</strong> <code>GEN-xx</code> del reporte general, con los IDs de origen entre paréntesis.</li>
+<li><strong>En la v1:</strong> qué ítem del alcance (B1–B13, F1–F9, D-1–D-4 de la sección 10) lo resuelve, o "fuera de la v1" con el momento previsto.</li>
+</ul>
+<h3 id="veredicto-por-capa">Veredicto por capa</h3>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Veredicto</th>
+<th>Hallazgos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend: arquitectura, dominio y producto</td>
+<td><strong>Reconstruir</strong></td>
+<td>10</td>
+</tr>
+<tr>
+<td>Base de datos y scripts</td>
+<td><strong>Reconstruir</strong> (el DDL local sirve de inventario)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Contrato front↔back</td>
+<td><strong>Reconstruir</strong> (OpenAPI como fuente)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td><strong>Reconstruir</strong> (auth e identidad desde cero)</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td><strong>Reconstruir <code>src/</code></strong> sobre el toolchain de Expo 57</td>
+<td>5</td>
+</tr>
+<tr>
+<td>UI/UX y diseño</td>
+<td><strong>Reconstruir</strong></td>
+<td>4</td>
+</tr>
+<tr>
+<td>Móvil nativo</td>
+<td><strong>Reconstruir</strong> (en rigor, construir: no existe)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Chat</td>
+<td><strong>Reconstruir</strong></td>
+<td>1</td>
+</tr>
+<tr>
+<td>Infraestructura, DX y documentación</td>
+<td><strong>Reconstruir</strong> (mínimo y real)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Organización de repos</td>
+<td><strong>Refactorizar</strong> (ramas nuevas, sin mover repos)</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="capa-back">4.1 Backend: arquitectura, dominio y producto</h3>
+<p><strong>Veredicto: Reconstruir.</strong> Son 3,7k LOC en 9 proyectos con las dependencias invertidas (la capa de aplicación depende de Dapper y Npgsql). Arreglar el IDOR toca todos los controllers y DTOs; arreglar el dominio toca todos los servicios. Lo que se salva cabe en un día de copiar y pegar. La forma nueva es un monolito modular en .NET 10 con features en carpetas (<code>Auth</code>, <code>Users</code>, <code>Music</code>, <code>Events</code>, <code>Matching</code>, <code>Chat</code>, <code>Moderation</code>) y un proyecto de tests.</p>
+<p><strong>🔴 GEN-05 · El núcleo de matchmaking no funciona: ADN fijo, match unilateral, afinidad sin poder discriminante y eventos falsos</strong> (02-C1, 02-C4, 02-I11, 02-I12, 02-M1, 01-I2, 01-I4, 01-C15 parte)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el swipe no actualiza el perfil, que se queda en 0,5/0,5/0,5. Cada like después de 25 swipes crea un match automático con un desconocido. <code>IsHighPriority</code> compara <code>&gt;= 85.0</code> contra una escala 0–1, así que nunca es verdadero. El radar ignora el evento y el feed de eventos está escrito en el código con fechas pasadas. <code>next-track</code> devuelve siempre la misma canción.</li>
+<li><strong>Por qué importa:</strong> el producto no hace lo que promete y genera contacto no consentido a escala. El coseno sobre 3 rasgos no negativos da ≥ 0,95 en casi todos los pares, así que la "compatibilidad" no informa nada.</li>
+<li><strong>Cómo se verificó:</strong> ejecución. <code>worker.log</code> con <code>MATCH_CREATED … affinity=1.0</code>, consulta a <code>MusicalProfiles</code>, tres cuerpos idénticos del radar para eventos distintos (<code>ui3-1.png</code>, <code>ui3-8.png</code>). Código: <code>SwipeService.cs:34-47</code>, <code>KafkaConsumerWorker.cs:118-196</code>, <code>EventService.cs:9-17</code>.</li>
+<li><strong>En la v1:</strong> B4 (catálogo curado ≥ 60 canciones), B5 (swipes únicos y ADN como vector de géneros que cambia con cada swipe, con test), B6 (≥ 15 eventos curados y "voy a este evento"), B7 (radar solo con asistentes del evento, afinidad real y umbral configurable), B8 (match recíproco con test de que un like unilateral no crea match).</li>
+</ul>
+<p><strong>🔴 GEN-06 · Dependencia de Spotify inviable; sin Spotify la app es un callejón sin salida</strong> (04-C4, 01-I20, 01-C13, 02-I19, 02-M14, 02-I25, 02-nat-3, 02-nat-4, 02-nat-8, 01-I10 dna-mix)</p>
+<ul>
+<li><strong>Qué pasa:</strong> Spotify en modo desarrollo admite 5 usuarios y <code>/me</code> ya no devuelve email. <code>/recommendations</code> y <code>/audio-features</code> están deprecados para apps nuevas y <code>preview_url</code> llega en <code>null</code>. Sin Spotify: "Preparando tracks…" infinito, perfil con spinners eternos, registro por correo que responde "Próximamente" y "Conectado como Camilo Demo" sin haber conectado nada. <code>dna-mix</code> exige el token de Spotify del otro usuario.</li>
+<li><strong>Por qué importa:</strong> no se puede pasar de 5 usuarios, el revisor de una tienda no puede entrar y el "ADN musical" se apoya en datos que ya no existen.</li>
+<li><strong>Cómo se verificó:</strong> ejecución en web y Android (<code>nativo-21.png</code>, <code>nativo-34.png</code>, <code>nativo-36.png</code>, <code>nativo-52.png</code>) + documentación de Spotify revisada por 04 (no re-verificada en 00).</li>
+<li><strong>En la v1:</strong> D10 y D11. Login por email (B1, F1), catálogo propio con previews de 30 s de iTunes Search (B4), ADN derivado de los swipes sobre ese catálogo (B5), onboarding sin Spotify (F2). El conector de Spotify queda para v2.</li>
+</ul>
+<p><strong>🔴 GEN-08 · Matches sin estado ni consentimiento mutuo</strong> (01-I5, 02-I3, 02-I4, 02-I6, 02-I24, 05-§2.1 F10)</p>
+<ul>
+<li><strong>Qué pasa:</strong> la tabla <code>Matches</code> no tiene <code>Status</code>. <code>accept</code> no es idempotente: 5 llamadas dan 5 mensajes de bienvenida. <code>/pending</code> incluye matches ya aceptados. Todos se llaman "Match 2222" (<code>MatchService.cs:40</code>). La notificación usa el <code>matchId</code> como si fuera un <code>userId</code>: el que acepta se notifica a sí mismo y el otro nunca se entera. La separación entre "Matches" y "Chats" vive en un <code>useState</code> que se pierde al recargar.</li>
+<li><strong>Por qué importa:</strong> rompe el consentimiento, que es la base de una app de encuentros, y es requisito previo del chat cifrado (solo se habla con un match activo).</li>
+<li><strong>Cómo se verificó:</strong> ejecución. Conteo de bienvenidas antes y después, <code>\d "Matches"</code> sin estado, y un cliente SignalR propio que mostró a quién llegaba la notificación.</li>
+<li><strong>En la v1:</strong> B8 (match recíproco con estado en <code>Matches</code>) y F5 (lista de matches con el nombre real de la otra persona, sin "Match XXXX").</li>
+</ul>
+<p><strong>🔴 GEN-15 · El backend no se puede desplegar tal como está commiteado</strong> (01-C6, 01-C7, 01-C8, 01-I25)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el <code>Dockerfile</code> usa imágenes .NET 9 con proyectos <code>net8.0</code> sin <code>RollForward</code>. El Worker no tiene imagen. HEAD da 500 en todo POST/PUT con body por <code>[property: Required]</code> en records posicionales; el parche correcto existe pero sin commit. El productor de Kafka ignora su configuración y cae a <code>localhost:9092</code>, así que fuera de local cada swipe espera el timeout con la BD ya modificada. El CI usa el SDK 9 y no construye la imagen.</li>
+<li><strong>Por qué importa:</strong> producción (Render) probablemente está rota o desactualizada.</li>
+<li><strong>Cómo se verificó:</strong> estático (Dockerfile, csproj, <code>git diff Requests.cs</code>) y ejecución del 500 en HEAD según 01.</li>
+<li><strong>En la v1:</strong> el back nuevo nace en .NET 10 (D1) sin Kafka (D3), con CI de build y tests (D-4). La imagen Docker de producción queda fuera porque no hay hosting en la v1 (D15). El legado no se arregla (D16).</li>
+</ul>
+<p><strong>🟠 GEN-16 · Arquitectura del back sobredimensionada y mal estratificada</strong> (01-I1, 01-I2, 01-I3, 01-I7, 01 §5)</p>
+<ul>
+<li><strong>Qué pasa:</strong> 9 proyectos para 3,7k LOC. <code>Application</code> depende de Dapper/Npgsql. <code>EncorelyDomain</code> está vacío y fuera del <code>.sln</code>, mientras <code>EncorelyModels</code> usa el namespace <code>EncorelyDomain.*</code>. Hay lógica de negocio en los controllers, duplicada en el Worker. El matchmaking hace hasta 501 consultas por like (N+1) y un <code>SELECT *</code> carga <code>PasswordHash</code> y <code>RefreshToken</code> de cientos de usuarios. El alta de usuario son 3 sentencias sin transacción.</li>
+<li><strong>Por qué importa:</strong> cada cambio cuesta el triple y los errores de integridad (lost update, alta a medias) son silenciosos.</li>
+<li><strong>Cómo se verificó:</strong> estático (<code>EncorelyApplication.csproj</code>, <code>EventsController.cs:43-86</code>, <code>KafkaConsumerWorker.cs:159-173</code>, <code>IdentityService.cs:114-150</code>).</li>
+<li><strong>En la v1:</strong> el back se reconstruye como monolito modular de 2 proyectos (<code>Encorely.Api</code> + <code>Encorely.Tests</code>), con EF Core 10 (D4) y proyecciones con columnas explícitas. Dapper solo para la consulta del radar.</li>
+</ul>
+<p><strong>🟠 GEN-17 · Mensajería sin garantías y piezas sin justificación</strong> (01-C8, 01-I6, 05-§5.6, verificación propia)</p>
+<ul>
+<li><strong>Qué pasa:</strong> Kafka con <code>EnableAutoCommit=true</code> y errores que solo se loguean, sin DLQ, sin idempotencia y con key <code>Null</code>. Tres topics sin consumidor. El access token de Spotify viaja en claro por Kafka (<code>IdentityService.cs:143</code>). Hay dos interfaces de productor equivalentes. Redis se usa para cachear un perfil.</li>
+<li><strong>Por qué importa:</strong> se pierden mensajes sin que nadie se entere y se agrega superficie de fallo y operación para un equipo de 3 sin ningún beneficio.</li>
+<li><strong>Cómo se verificó:</strong> estático y grep de usos de Redis y Kafka.</li>
+<li><strong>En la v1:</strong> D3. Kafka, Redis y el Worker se eliminan. El matching corre en el mismo proceso del API.</li>
+</ul>
+<p><strong>🟠 GEN-18 · Sin capa de validación ni mapeo de errores: 500 por input inválido</strong> (01-C6 pendiente, 01-I7, 02-I1, 02-I8, 02-I10, 02-I16, 02-M6, 02-M7)</p>
+<ul>
+<li><strong>Qué pasa:</strong> enums fuera de rango dan 500 por la CHECK de la BD. Un FK inexistente da 500. Un registro concurrente del mismo email da 1×202 y 7×500. Omitir <code>mood</code> lo resetea a 0. BCrypt trunca en 72 bytes sin <code>MaxLength</code>. Hay dos formatos de error con mensajes en inglés, y register/login responden 202. La UI muestra crudo "API 401: Unauthorized".</li>
+<li><strong>Por qué importa:</strong> el front no puede distinguir un error del usuario de un fallo del servidor, y en Development se filtran rutas y stack traces.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (8 POST paralelos, enums <code>-1/3/7</code>, FK <code>9999…</code>; <code>diseno-12.png</code>).</li>
+<li><strong>En la v1:</strong> B12. Errores <code>ProblemDetails</code> en español, validación en el borde y ningún 500 por input inválido como criterio de aceptación.</li>
+</ul>
+<p><strong>🟠 GEN-21 · Salas de evento: moderación ingenua y sin permisos</strong> (01-I10, 02-I7, 02-I15, 02-M3, 02-M4, 02-M5, 02-M8, 02-M10)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el filtro por substring censura "episodio", "podio" y "melodiosa", y deja pasar "s p a m", "sp4m" y homoglifos cirílicos. Cualquier usuario borra mensajes ajenos con el <code>DELETE</code> "admin". Se leen salas sin ser miembro. Un mensaje moderado responde 200 igual que uno publicado. <code>durationHours</code> acepta −1 o 1 000 000.</li>
+<li><strong>Por qué importa:</strong> censura silenciosa de conversaciones normales y cero control de quién modera.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (14 POST de prueba, <code>DELETE</code> de mensajes ajenos).</li>
+<li><strong>En la v1:</strong> fuera de la v1 (D13). Las salas grupales quedan <strong>fuera del alcance total</strong> por decisión del dueño. Si algún día se retoman, irían con membresía, rol de moderador, moderación por palabra completa normalizada y etiqueta "Sala pública · no cifrada".</li>
+</ul>
+<p><strong>⚪ GEN-35 · Código muerto y fósiles</strong> (01-M1, 01-M2, 03-§6.3) · back y front</p>
+<ul>
+<li><strong>Qué pasa:</strong> 111 archivos en <code>obj_old/net9.0</code>; <code>AuthService</code>, <code>INotificationClient</code> y <code>FrontendDtos.cs</code> sin uso; <code>HomeScreen</code> (462 líneas) y <code>OnboardingScreen</code> (443) sin importar; hooks y funciones de cliente sin llamadores; GUIDs inválidos en el <code>.sln</code>.</li>
+<li><strong>Por qué importa:</strong> confunde a quien llega y esconde lo que de verdad corre.</li>
+<li><strong>Cómo se verificó:</strong> estático.</li>
+<li><strong>En la v1:</strong> desaparece con el back y el <code>src/</code> nuevos. No se migra nada de esto.</li>
+</ul>
+<p><strong>⚪ GEN-36 · Números mágicos y nombres inconsistentes</strong> (01-M3, 01-M4) · back y front</p>
+<ul>
+<li><strong>Qué pasa:</strong> 25, 0.70, 85.0, 30 min, 7 días y <code>LIMIT 500</code> repetidos como literales. El umbral de swipes vale 25 en el back (×4), 100 en el front y 25 en la landing. Typos en nombres de repos (<code>encorly_back</code>, <code>Encorly-landing</code>). <code>Usuario</code> convive con <code>Users</code>.</li>
+<li><strong>Por qué importa:</strong> una regla de negocio con varios valores produce pantallas que se contradicen.</li>
+<li><strong>Cómo se verificó:</strong> estático.</li>
+<li><strong>En la v1:</strong> umbral configurable servido por la API (B7) y políticas con nombre en el código. Los repos no se renombran (D14 mantiene los actuales).</li>
+</ul>
+<h3 id="capa-bd">4.2 Base de datos y scripts</h3>
+<p><strong>Veredicto: Reconstruir.</strong> El esquema nuevo se diseña desde el dominio, no se copia. El <code>db/init/01_schema.sql</code> local sirve de inventario para no olvidar columnas, y el seed ficticio como fixture inicial, sin la contraseña que hoy tiene en un comentario.</p>
+<p><strong>🔴 GEN-09 · Esquema de BD sin fuente de verdad y con drift</strong> (01-C9, 01-C10, 02-C3, 01-I24, 02-I2, 02-I9, 02-I18)</p>
+<ul>
+<li><strong>Qué pasa:</strong> las migraciones de EF se borraron en el commit <code>7ee096c</code>. El <code>db/init/*.sql</code> actual está reconstruido y sin trackear. <code>POST /Venue/{id}/rooms</code> siempre da 500 porque el INSERT usa parámetros que el modelo no tiene. <code>ON CONFLICT ("UserId")</code> apunta a un UNIQUE que no existe. <code>Swipes</code> no tiene <code>UNIQUE(UserId, TrackId)</code>. <code>UNIQUE(Email)</code> distingue mayúsculas, así que hay cuentas duplicadas por casing (y el teclado del móvil autocapitaliza). No hay tabla <code>Events</code>. <code>Users.SpotifyId</code> guarda el email.</li>
+<li><strong>Por qué importa:</strong> no se puede levantar un entorno reproducible y los bugs de SQL no los detecta ningún test, porque los repositorios están mockeados. Además, el esquema real de producción no se conoce.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (500 en salas, 22 swipes repetidos que cuentan, cuentas duplicadas por casing) y estático (<code>git log</code>, <code>01_schema.sql:60-90</code>).</li>
+<li><strong>En la v1:</strong> D4 (EF Core 10 con migraciones desde el día 0), B1 (email normalizado), B5 (swipes únicos por canción), B13 (tests con Postgres real vía Testcontainers que aplican todas las migraciones). El esquema nuevo nace sin la tabla <code>Messages</code> (D7).</li>
+</ul>
+<h3 id="capa-contrato">4.3 Contrato front↔back</h3>
+<p><strong>Veredicto: Reconstruir.</strong> El contrato pasa a ser el OpenAPI que genera el back. El front deja de escribir tipos de API a mano.</p>
+<p><strong>🟠 GEN-22 · Contrato front↔back implícito y divergente</strong> (01 scorecard de contratos, 01-I13, 02 causas comunes, 02-I22, 03 coherencia, 01 §5)</p>
+<ul>
+<li><strong>Qué pasa:</strong> los tipos se escriben a mano en los dos lados y <code>FrontendDtos.cs</code> es un segundo contrato que nadie usa. El umbral es 100 en el front y 25 en el back. Hay escalas 0–1 y 0–100 mezcladas, enums como int y como string, endpoints sin consumidor y consumidores sin endpoint. El chat manda <code>body: content</code> (un string) y el back espera <code>{ content }</code>: todo envío da 400.</li>
+<li><strong>Por qué importa:</strong> cada cambio de DTO rompe algo en silencio. Es la causa directa del chat roto.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (umbral, 400 del chat) y estático.</li>
+<li><strong>En la v1:</strong> B12 (OpenAPI exportado) y D-3 (contrato versionado para el equipo de la v2). Recomendado: generar los tipos del cliente con <code>openapi-typescript</code> desde ese archivo y que el umbral lo sirva la API, nunca duplicado. F9 cubre el cliente API con tests.</li>
+</ul>
+<h3 id="capa-seguridad">4.4 Seguridad</h3>
+<p><strong>Veredicto: Reconstruir.</strong> La raíz es una sola: la identidad y las reglas se confían al cliente. Se corrige de una vez con un <code>CurrentUserId</code> leído del claim del JWT en una base común de controllers, contratos sin <code>userId</code> y autorización por recurso. La base de requisitos es OWASP ASVS 4.0 nivel 1.</p>
+<p><strong>🔴 GEN-01 · IDOR sistémico: la identidad viene del cliente y no se verifica la pertenencia</strong> (01-C1, 01-C2, 02-C5, 02-C8, 02-I5, 02-M10, 05-§2.2 S2/S3)</p>
+<ul>
+<li><strong>Qué pasa:</strong> hay 0 lecturas de <code>ClaimTypes.NameIdentifier</code> en el API aunque <code>TokenService.cs:30</code> lo emite. Todos los controllers toman <code>userId</code> de la query o del body. Un <code>senderId</code> inexistente se guarda porque no hay FK. El umbral de 25 swipes se salta pasando el <code>userId</code> de otro, y <code>POST /Chat</code> no tiene umbral.</li>
+<li><strong>Por qué importa:</strong> exposición total de datos personales y conversaciones. Ninguna regla de negocio se sostiene.</li>
+<li><strong>Cómo se verificó:</strong> ejecución con el JWT de un atacante: leer <code>/User/me</code> de otro (con su email), cambiarle el mood, sumarle swipes, leer el chat demo↔ana y escribir suplantando al remitente (<code>ui3-9.png</code>).</li>
+<li><strong>En la v1:</strong> B2. Identidad solo desde el JWT en todos los endpoints, con test de que el usuario A no lee ni escribe nada de B (403/404). Es de lo que <strong>no se recorta</strong>.</li>
+</ul>
+<p><img alt="Reproducción del IDOR: con el token de un atacante se lee y escribe el chat de otros" src="capturas-qa/ui3-9.png" /></p>
+<p><strong>🔴 GEN-02 · Autenticación falsificable y vinculación de cuentas insegura</strong> (01-C3, 02-C7, 04-I11, 04-C4 parte)</p>
+<ul>
+<li><strong>Qué pasa:</strong> <code>POST /Auth/google {token:'x'}</code> devuelve 202 con un JWT válido y crea un usuario: <code>IdentityService.cs:52-58</code> ignora el <code>idToken</code>. Además <code>IdentityService.cs:99</code> vincula por <code>GetBySpotifyIdAsync(id) ?? GetByEmailAsync(email)</code>, así que un email de Spotify no verificado entra a una cuenta de email ajena. Google nativo no existe en el front.</li>
+<li><strong>Por qué importa:</strong> toma de cuentas. Y anula cualquier cifrado de extremo a extremo: quien suplanta la cuenta publica su propia llave.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (dos llamadas con tokens basura, dos usuarios distintos creados) y estático para la vinculación.</li>
+<li><strong>En la v1:</strong> el back nuevo no tiene <code>/Auth/google</code> ni login con Spotify (D10). Google y Apple <strong>no se implementan</strong>: el dueño excluyó esos proveedores. Si se retoman, irían con validación real del <code>idToken</code> y vinculación solo por <code>(proveedor, sub)</code>.</li>
+</ul>
+<p><strong>🔴 GEN-03 · Sesión sin refresh: JWT de 30 min, refresh en claro y sin consumidor, 401 sin manejo</strong> (01-C12, 02-M9, 04-C3)</p>
+<ul>
+<li><strong>Qué pasa:</strong> <code>TokenService.cs:39</code> fija 30 min. El refresh token se guarda en claro y ningún endpoint lo usa. El front descarta el <code>refreshToken</code> y <code>http.ts</code> no intercepta el 401.</li>
+<li><strong>Por qué importa:</strong> en el móvil la app se reabre horas después, no se recarga como una pestaña. Pasada media hora todo falla en silencio. El hub del chat se reconectaría con un token vencido.</li>
+<li><strong>Cómo se verificó:</strong> estático y ejecución (Swagger sin <code>/Auth/refresh</code>).</li>
+<li><strong>En la v1:</strong> B1 (JWT de 15–30 min + refresh con rotación; logout revoca) y F1 (refresh automático ante 401; reabrir la app conserva la sesión; un token vencido no deja la app zombi). Recomendado: guardar el refresh como hash SHA-256 y detectar su reutilización.</li>
+</ul>
+<p><strong>🔴 GEN-04 · Secretos: credencial de Supabase en historial público y secretos de fallback en código</strong> (01-C4, 01-C5, 02-I14, 01-I9 parte)</p>
+<ul>
+<li><strong>Qué pasa:</strong> la contraseña de la BD de Supabase existe en el commit <code>955db69</code> (<code>DEPLOYMENT_INFO.md</code>) de un repo público. El secreto del JWT tiene un valor por defecto en <code>Program.cs:132</code> y <code>TokenService.cs:20</code>; la contraseña de la BD también (<code>Program.cs:35</code> y las dos <code>DbConnectionFactory.cs:22</code>). El seed tiene una contraseña en un comentario. <code>Trust Server Certificate=True</code> está fijo.</li>
+<li><strong>Por qué importa:</strong> acceso a la BD de producción si la clave no se rotó, y tokens forjables si se despliega sin la variable de entorno.</li>
+<li><strong>Cómo se verificó:</strong> estático (<code>git show</code>, lectura de archivos). El valor no se transcribe en ningún reporte.</li>
+<li><strong>En la v1:</strong> D-4 (<code>.env.example</code> completos y sin secretos de fallback); la configuración se valida al arrancar y falla si falta un secreto. El seed nuevo no lleva contraseñas en comentarios. La rotación de la clave de Supabase queda como pendiente del dueño (sección 13).</li>
+</ul>
+<p><strong>🔴 GEN-14 · Hubs de SignalR anónimos y con identidad elegida por el cliente</strong> (01-C16, 02-C6, 04-I9, 05-§5.6)</p>
+<ul>
+<li><strong>Qué pasa:</strong> <code>NotificationHub.JoinUserGroup(userId)</code> y <code>VenueHub.SendVenueMessage(roomId, userId, …)</code> no tienen <code>[Authorize]</code>. Difunden sin persistir ni moderar. El front no los usa.</li>
+<li><strong>Por qué importa:</strong> cualquiera puede escuchar las notificaciones de otro o publicar en salas.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (<code>negotiate</code> responde 200 sin token en los dos hubs).</li>
+<li><strong>En la v1:</strong> D3 y B9. El back nuevo solo tiene <code>ChatHub</code> con autorización obligatoria, el JWT leído de la query únicamente en <code>/hubs/*</code> y sin métodos de cliente: solo eventos del servidor hacia la app.</li>
+</ul>
+<p><strong>🟠 GEN-19 · Autenticación por debajo de ASVS L1</strong> (01-I8, 02-I17, 02-I9, 02-I18, 02-M6)</p>
+<ul>
+<li><strong>Qué pasa:</strong> no hay rate limit ni bloqueo tras intentos fallidos. Hay un oráculo de tiempo: 1,7 ms si el email no existe y 136 ms si existe. El 409 del registro confirma qué emails están registrados. La contraseña mínima es de 6 caracteres y el email no se normaliza.</li>
+<li><strong>Por qué importa:</strong> facilita fuerza bruta y enumeración de usuarios en una app donde saber quién está registrado ya es información sensible.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (10 intentos sin bloqueo, medición de tiempos en <code>ui3-5.png</code>).</li>
+<li><strong>En la v1:</strong> B1 (email normalizado, BCrypt y rate limit en login). Recomendado dentro del mismo ítem: mínimo 10–12 caracteres con máximo de 72 bytes y verificación contra un hash ficticio cuando el email no existe, para igualar tiempos.</li>
+</ul>
+<p><strong>🟠 GEN-20 · Superficie operativa expuesta</strong> (01-I9, 02-M11)</p>
+<ul>
+<li><strong>Qué pasa:</strong> Swagger está activo en producción. <code>/health</code> es anónimo, devuelve el <code>ex.Message</code> de Postgres y es la liveness de k8s (un fallo de BD reiniciaría el API en bucle). No hay cabeceras de seguridad y Firebase falla en silencio.</li>
+<li><strong>Por qué importa:</strong> da información al atacante y hace frágil la operación.</li>
+<li><strong>Cómo se verificó:</strong> ejecución.</li>
+<li><strong>En la v1:</strong> B12 (<code>/health/live</code> y <code>/health/ready</code> sin detalles, Swagger solo en Development). Las cabeceras de seguridad no están listadas en 06; son un cambio de pocas líneas y conviene incluirlas.</li>
+</ul>
+<h3 id="capa-front">4.5 Frontend</h3>
+<p><strong>Veredicto: Reconstruir <code>src/</code></strong> sobre el toolchain de la rama Expo 57 (SDK 57, <code>expo-audio</code>, pnpm, CI JS, <code>.npmrc</code> saneado). No se mergea la rama tal cual porque arrastraría las 3 sesiones, styled-components y el guard imperativo. Estructura: <code>app/</code> con un <code>Stack</code> raíz y grupos <code>(auth)</code> y <code>(app)</code> protegidos; <code>features/*</code>; <code>ui/</code> (design system); <code>lib/</code> (sesión, almacenamiento seguro, red).</p>
+<p><strong>🟠 GEN-23 · Arquitectura del front: estado duplicado, errores tragados y sin capa de red</strong> (01-I11, 01-I12, 04-I5, 04-I7)</p>
+<ul>
+<li><strong>Qué pasa:</strong> hay 3 fuentes de sesión (<code>AuthContext.user</code>, <code>SpotifyAuthContext.user</code> y <code>backendUserId</code>). <code>NavigationGuard</code> compara strings y redirige en cascada. Cada pantalla hace <code>useState + useEffect</code>, hay 31 <code>catch {}</code> vacíos y <code>fetch</code> sin timeout, así que el arranque en frío de Render deja spinners colgados. El splash se oculta antes de saber si hay sesión y se ve un destello del onboarding. En iOS el Keychain sobrevive a la reinstalación y AsyncStorage no.</li>
+<li><strong>Por qué importa:</strong> la app queda en estados incoherentes que el usuario no puede resolver.</li>
+<li><strong>Cómo se verificó:</strong> estático y ejecución (spinners).</li>
+<li><strong>En la v1:</strong> F1 (una sola sesión en <code>SessionContext</code> guardada en SecureStore, refresh automático). Recomendado: TanStack Query para el estado de servidor, timeout de 15 s en las peticiones y splash retenido hasta resolver la sesión.</li>
+</ul>
+<p><strong>🟠 GEN-24 · Navegación y layout nativos incorrectos</strong> (04-I1, 04-I2, 04-I3, 02-I20, 02-nat-2, 02-nat-9, 01-M8)</p>
+<ul>
+<li><strong>Qué pasa:</strong> chat, ajustes y radar-matches son tabs ocultas, no pantallas apiladas: no hay swipe-back en iOS, la tab bar sigue visible y no hay historial al abrir desde una push. La tab bar flotante tapa el último elemento de las listas. <strong>En Android el teclado del login tapa los campos y la contraseña termina concatenada al email.</strong> El BACK de Android y el teclado del chat sí funcionan.</li>
+<li><strong>Por qué importa:</strong> el primer contacto (login) falla en Android y la navegación no se siente nativa.</li>
+<li><strong>Cómo se verificó:</strong> ejecución en Android (<code>nativo-18.png</code>, <code>nativo-51.png</code>, <code>nativo-22.png</code>, <code>nativo-28.png</code>) y sospecha en iOS.</li>
+<li><strong>En la v1:</strong> <code>src/</code> nuevo con <code>Stack</code> raíz y tabs anidadas; F2 (onboarding sin salidas muertas) y F7 (todo funciona en Android). Recomendado: <code>react-native-keyboard-controller</code> y tab bar nativa no flotante.</li>
+</ul>
+<p><img alt="Login en Android: la contraseña quedó concatenada al email porque el teclado tapa los campos" src="capturas-qa/nativo-51.png" /></p>
+<p><strong>🟠 GEN-25 · El estado del dispositivo se filtra entre usuarios</strong> (01-I14, 01-I13 parte)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el logout no borra el estado de swipes, el perfil local (edad, género, bio), los toggles ni el onboarding. El contador de swipes vive en el dispositivo y tiene un closure obsoleto.</li>
+<li><strong>Por qué importa:</strong> en un teléfono compartido, el siguiente usuario ve datos del anterior.</li>
+<li><strong>Cómo se verificó:</strong> estático.</li>
+<li><strong>En la v1:</strong> F1 (una sola sesión) y la regla de no guardar estado de negocio en el dispositivo: todo sale de la API. En el dispositivo solo quedan los tokens y la llave del chat.</li>
+</ul>
+<p><strong>🟠 GEN-28 · Audio de las previews: API muerta y mal comportamiento en nativo</strong> (04-I4, 04-C1 parte, 01-M8)</p>
+<ul>
+<li><strong>Qué pasa:</strong> usa <code>expo-av</code>, eliminado en SDK 55. El audio sigue sonando al cambiar de tab (no hay <code>useIsFocused</code> en todo <code>src</code>). <code>playsInSilentModeIOS: true</code> hace que suene con el teléfono en silencio, en un concierto o en clase. Si la tarjeta se desmonta antes de cargar, el sonido queda huérfano. El progreso hace <code>setState</code> cada 250 ms.</li>
+<li><strong>Por qué importa:</strong> es la interacción central (escuchar y decidir) y hoy molesta.</li>
+<li><strong>Cómo se verificó:</strong> estático.</li>
+<li><strong>En la v1:</strong> F3 (swipe con preview usando <code>expo-audio</code>, partiendo del <code>usePreviewAudio</code> de la rama 57). Recomendado: pausar al perder el foco y respetar el modo silencio. Si falta tiempo, las previews son lo tercero que se recorta (queda portada + artista).</li>
+</ul>
+<p><strong>⚪ GEN-34 · Problemas que solo ocurren en web</strong> (01-C14, 01-I15, 02-I13, 02-I21, 02-M12, 03-§3.1, 04 §4)</p>
+<ul>
+<li><strong>Qué pasa:</strong> <code>Alert.alert</code> no hace nada en web, así que el logout y las confirmaciones son invisibles. El JWT queda en <code>localStorage</code>. No hay <code>maxWidth</code> en escritorio.</li>
+<li><strong>Por qué importa:</strong> poco. La web de Expo no es objetivo del producto.</li>
+<li><strong>Cómo se verificó:</strong> ejecución en navegador; en nativo funciona.</li>
+<li><strong>En la v1:</strong> no se invierte. El target web queda fuera de soporte. <code>Alert</code> se reemplaza igual por el <code>Toast</code>/<code>Dialog</code> del design system.</li>
+</ul>
+<h3 id="capa-ui">4.6 UI/UX y diseño</h3>
+<p><strong>Veredicto: Reconstruir.</strong> Hay 3 marcas distintas (login rojo/violeta, app magenta, landing violeta→magenta), 83 hex sueltos, 2 sistemas de estilos y contrastes por debajo de AA. Puntaje de la app: Nielsen 12/40 y audit técnico 6/20. La dirección nueva, "La boleta compartida", se detalla en la sección 6.</p>
+<p><strong>🔴 GEN-13 · La UI muestra datos inventados y controles placebo</strong> (01-C15, 01-I18, 01-M5, 02-I22, 02-I23, 02-I26, 02-I27, 02-nat-5, 02-nat-6, 02-nat-8, 03-T10, 03-T16, 03-T18, 04-M4)</p>
+<ul>
+<li><strong>Qué pasa:</strong> "247 personas con tu vibe cerca" está escrito en el código, frente a "8 personas" en la lista. "Alcanzaste el umbral de 100 swipes" aparece con 31 swipes. Todos salen al 100 % con "Match Certificado". "Pasar" no hace nada y "Conectar" solo cambia el texto. Los toggles de privacidad solo escriben en AsyncStorage. El botón "Reset Swipes (Debug)" está visible. Los avatares son caras falsas de <code>pravatar.cc</code>.</li>
+<li><strong>Por qué importa:</strong> destruye la confianza en segundos y en una tienda cuenta como contenido engañoso.</li>
+<li><strong>Cómo se verificó:</strong> ejecución en web y Android (<code>nativo-22.png</code>, <code>nativo-24.png</code>, <code>nativo-25.png</code>, <code>nativo-26.png</code>).</li>
+<li><strong>En la v1:</strong> F5 ("sin Match XXXX, sin cifras inventadas") y F8 ("sin emojis como iconos ni datos falsos"). Regla de producto: nada que no exista se muestra.</li>
+</ul>
+<p><strong>🟠 GEN-26 · Accesibilidad nativa insuficiente</strong> (01-I16, 03 a11y y contraste, 04-I6, 02-M13, 02-nat-10, 02-nat-11)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el swipe solo funciona con gesto (WCAG 2.5.7). Hay 4 labels y 4 roles en todo <code>src</code>. Los botones de icono no tienen <code>content-desc</code> y miden 24–40 dp. Las tabs y la hora del chat están a 10 px. Blanco sobre <code>#F366FF</code> da 2,57:1 y la hora sobre la burbuja 1,43:1. No hay <code>useReducedMotion</code>. Con la fuente al 130 % se cortan textos.</li>
+<li><strong>Por qué importa:</strong> el flujo principal es inaccesible con lector de pantalla, y el contraste falla para cualquiera con el brillo bajo de un concierto.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (uiautomator, font scale 1.3, <code>nativo-font13-montage.png</code>) + contraste calculado.</li>
+<li><strong>En la v1:</strong> F3 (botones ✕/♥ accesibles: el swipe funciona solo con botones) y F8 (contraste AA con la paleta nueva).</li>
+</ul>
+<p><strong>🟠 GEN-27 · Identidad visual genérica "hecha con IA" y sin design system</strong> (01-I17, 03-T1 a T19, 03 §3–4, 04-I8, 04-M3, 01-M7 copy, 02-M7 idioma)</p>
+<ul>
+<li><strong>Qué pasa:</strong> 3 marcas, 83 <code>#F366FF</code> sueltos, el mismo gradiente morado en 10 pantallas, glassmorphism, glow y unos 30 emojis haciendo de iconos. 17 tamaños de fuente y 20 radios distintos. styled-components y StyleSheet conviven (origen de 83 de los 85 errores de <code>tsc</code>). Copy con voseo rioplatense, inglés de feature y jerga ("Similitud coseno &gt;70 % = match garantizado").</li>
+<li><strong>Por qué importa:</strong> la app no se distingue de cualquier otra generada y no le habla a su público.</li>
+<li><strong>Cómo se verificó:</strong> estático + capturas (<code>diseno-1</code> a <code>diseno-15</code>).</li>
+<li><strong>En la v1:</strong> F8 (design system "boleta": tokens, Big Shoulders + Archivo + IBM Plex Mono, Phosphor, componentes base, un solo tema). Adoptado sin la validación previa con usuarios que recomendaba 00 (ver D5).</li>
+</ul>
+<p><strong>🟠 GEN-33 · Landing: estética de plantilla, promesas falsas y un fallo de conversión en móvil</strong> (03 §4.2, 03-T5 a T8, T15, 01-M9, 01-C17 react-router)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el input del waitlist mide 22 px de alto en móvil (<code>WaitlistForm.tsx:85</code>). Texto con gradiente animado, mockups 3D de iPhone que no corresponden a la app, 109 animaciones activas y fondo con auroras. Promete una integración con Ticketmaster que no existe. Cifras "4D / 100 % / $0". Redes con <code>href="#"</code>. El token de analítica es un placeholder y el honeypot solo existe en el cliente. <code>react-router</code> con vulnerabilidad.</li>
+<li><strong>Por qué importa:</strong> la puerta de entrada pierde registros en móvil y promete cosas falsas.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (capturas, <code>document.getAnimations()</code> = 109).</li>
+<li><strong>En la v1:</strong> fuera de la v1. El dueño decidió no tocar la landing. Si en el futuro se publica en tiendas, la landing (u otro sitio) tendrá que alojar la política de privacidad, los términos y el formulario web de borrado.</li>
+</ul>
+<p><img alt="Landing: hero con texto en gradiente y mockup 3D que no corresponde a la app" src="capturas-qa/diseno-1.png" /></p>
+<h3 id="capa-movil">4.7 Móvil nativo</h3>
+<p><strong>Veredicto: Reconstruir</strong> (en rigor, construir, porque no existe). En la v1 se avanza la base (Expo 57, demo en emulador o teléfono). EAS, dev build, push y tiendas quedan para después.</p>
+<p><strong>🔴 GEN-10 · El pipeline nativo no existe y la base SDK 54 no tiene salida</strong> (04-C1, 04-C2, 04-I10, 04-I12, 02-nat-1, 01-I26 parte)</p>
+<ul>
+<li><strong>Qué pasa:</strong> no hay <code>eas.json</code> en <code>main</code> ni <code>expo-dev-client</code>. Sin <code>EXPO_PUBLIC_API_URL</code>, el API cae a <code>localhost</code>, que en un dispositivo es el propio teléfono. <code>expo-av</code> inyecta <code>RECORD_AUDIO</code> y <code>NSMicrophoneUsageDescription</code> sin usar el micrófono. El icono y el splash son los de la plantilla de Expo. <code>com.encorely.app</code> no está confirmado. La rama 57 nunca se compiló en nativo.</li>
+<li><strong>Por qué importa:</strong> nadie puede probar en un teléfono real y quedarse en SDK 54 obliga a migrar dos veces.</li>
+<li><strong>Cómo se verificó:</strong> estático y ejecución en Expo Go (<code>nativo-start3.png</code>, <code>nativo-persist-montage.png</code>).</li>
+<li><strong>En la v1:</strong> D2 (base Expo 57 con <code>expo-audio</code>, que no pide micrófono) y D-4 (<code>.env.example</code> con la URL del API). La demo corre en Expo Go o emulador, posible porque la cripto elegida es JS puro. EAS, dev build, icono y splash propios quedan fuera (v1.1/v2).</li>
+</ul>
+<p><strong>🔴 GEN-11 · Cumplimiento de tiendas y de la ley colombiana ausente</strong> (04-C5, 04-C6, 04-C7, 01-M7, 05-§2.1 F7–F9, 04 §5)</p>
+<ul>
+<li><strong>Qué pasa:</strong> no hay <code>DELETE /User/me</code>. No hay reportar ni bloquear. Términos y Privacidad responden "Próximamente". Se acepta una edad de 1 a 120 y solo se guarda en el dispositivo. No hay consentimiento según la Ley 1581 de 2012 y el Decreto 1377 de 2013.</li>
+<li><strong>Por qué importa:</strong> rechazo seguro en App Store y Google Play, y riesgo real de que entren menores a una app de encuentros.</li>
+<li><strong>Cómo se verificó:</strong> estático (grep de <code>[HttpDelete]</code>, <code>block</code>, <code>report</code>; <code>SettingsScreen.tsx:368-372,579-593</code>).</li>
+<li><strong>En la v1:</strong> B3 (perfil con edad 18+ y borrar cuenta que elimina datos y mensajes), B11 (bloquear y reportar), F7 (borrar cuenta y bloquear/reportar desde el chat). Política de privacidad, términos, consentimiento versionado y cuenta demo quedan fuera porque no se publica (D15).</li>
+</ul>
+<p><strong>🔴 GEN-12 · Push inexistente de punta a punta, y el diseño previsto es inseguro</strong> (04-C8, 02-I6, 01-C15 parte, 05-§5.6)</p>
+<ul>
+<li><strong>Qué pasa:</strong> no está <code>expo-notifications</code>. El envío por FCM está comentado (<code>FirebasePushNotificationService.cs:35</code>) y usa <code>Topic = userId</code>, que cualquier cliente puede suscribir. No hay tabla de tokens de dispositivo. El fallo de Firebase se oculta (<code>Program.cs:41-48</code>).</li>
+<li><strong>Por qué importa:</strong> en una app de matches y chat, sin push no hay conversación si la app está cerrada.</li>
+<li><strong>Cómo se verificó:</strong> estático.</li>
+<li><strong>En la v1:</strong> después de la v1, dentro de las 48 h. Requiere dev build y FCM/APNs (autorizados). En la v1 el aviso en tiempo real llega por <code>ChatHub</code> con la app abierta. Cuando entre: Expo Push API con tokens por dispositivo, nunca topics, y payload sin contenido.</li>
+</ul>
+<p><strong>⚪ GEN-37 · Detalles nativos de rendimiento y arranque</strong> (04-I8, 04-M4, 04-M5, 04-M6, 04-M8, 04-M9, 04-M10, 04-M7, 02-nat-12)</p>
+<ul>
+<li><strong>Qué pasa:</strong> <code>BlurView</code> no tiene efecto en Android. Imágenes sin caché. 7 pesos de fuente cargados en runtime. PKCE no se reanuda si Android mata la app durante el login. iPad en modo compatibilidad. Permisos de plantilla en Android. Haptics sin uso en el match. Flash blanco al abrir y 11–13 s de arranque en dev.</li>
+<li><strong>Por qué importa:</strong> la app se siente lenta y distinta en Android.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (flash blanco en Expo Go) y sospecha en el resto.</li>
+<li><strong>En la v1:</strong> parcial. El design system nuevo quita blur y glow (F8). El resto (<code>expo-image</code>, fuentes incrustadas, permisos) se verifica en un dev build después de la v1, dentro de las 48 h.</li>
+</ul>
+<p><img alt="Arranque en Android: icono de plantilla de Expo y flash blanco" src="capturas-qa/nativo-persist-montage.png" /></p>
+<h3 id="capa-chat">4.8 Chat</h3>
+<p><strong>Veredicto: Reconstruir.</strong> El chat actual no se parchea. Se reemplaza por uno cifrado de extremo a extremo (sección 8).</p>
+<p><strong>🔴 GEN-07 · Chat 1:1 no funcional y en texto claro</strong> (01-C11, 02-C2, 02-M16, 02-M17, 02-M2, 02-nat-7, 01-M6, 03 chat, 05-§1)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el front manda <code>body: content</code> y el back espera <code>{ content }</code>: todo envío da 400. El input se vacía y el mensaje desaparece sin error visible. El mensaje de sistema con <code>Guid.Empty</code> se pinta como burbuja del otro y se duplica en cada apertura. El GET y el POST devuelven formas distintas, no hay paginación ni tiempo real, y la tabla <code>Messages</code> guarda el texto en claro. Sumado a GEN-01, cualquiera lee cualquier chat.</li>
+<li><strong>Por qué importa:</strong> incumple el requisito del dueño de tener un chat funcional con E2EE.</li>
+<li><strong>Cómo se verificó:</strong> ejecución en web y Android (<code>ui3-2.png</code>, <code>nativo-31.png</code>, <code>nativo-32.png</code>, <code>nativo-g4.png</code>, <code>diseno-15.png</code>).</li>
+<li><strong>En la v1:</strong> B9 (envío y listado paginado por REST, aviso por <code>ChatHub</code> autenticado, el servidor solo guarda ciphertext), B10 (directorio de llaves públicas) y F6 (chat E2EE con código de seguridad). El chat cifrado funcional es de lo que <strong>no se recorta</strong>.</li>
+</ul>
+<p><img alt="Chat en Android: el mensaje enviado desaparece y no hay error" src="capturas-qa/nativo-31.png" /></p>
+<p><img alt="Chat: mensajes de sistema &quot;¡Match creado!&quot; duplicados y pintados como si los escribiera la otra persona" src="capturas-qa/diseno-15.png" /></p>
+<h3 id="capa-infra">4.9 Infraestructura, DX y documentación</h3>
+<p><strong>Veredicto: Reconstruir, mínimo y real.</strong> Un runbook que funcione, un compose con solo Postgres, CI que bloquee y documentación que describa el sistema que existe.</p>
+<p><strong>🟠 GEN-29 · Calidad estática y tests que no protegen</strong> (01-I19, 01-I26, 01-I29, 04-M1)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el front tiene 85 errores de <code>tsc</code> y no tiene ESLint ni Prettier. Hay hooks dentro de <code>.map</code> (<code>SwipeCard.tsx:141</code>). Los 52 tests pasan, pero ninguno cubre SQL, autorización ni integración: no detectan ninguno de los críticos. Hay 2 lockfiles y un <code>.npmrc</code> con la ruta de otra persona. <code>lottie-react-native</code> y <code>victory-native</code> están instalados sin uso.</li>
+<li><strong>Por qué importa:</strong> los tests verdes dan una falsa sensación de seguridad.</li>
+<li><strong>Cómo se verificó:</strong> ejecución de <code>tsc</code>, de los tests y de las herramientas.</li>
+<li><strong>En la v1:</strong> B13 (xUnit + WebApplicationFactory + Postgres real con Testcontainers, verde en local y en GitHub Actions), F9 (Jest para cripto y cliente API) y D-4 (CI mínimo de build y tests en los dos repos). La rama 57 ya trae pnpm y un solo lockfile.</li>
+</ul>
+<p><strong>🟠 GEN-30 · Plataforma y dependencias al borde</strong> (01-I30, 01-C17, 04-M2)</p>
+<ul>
+<li><strong>Qué pasa:</strong> .NET 8 llega a fin de soporte el <strong>10 de noviembre de 2026</strong>, en 4 semanas. Npgsql 8.0.0 tiene una CVE alta. <code>SignalR.Core</code> 1.2.0 es redundante y tiene un advisory. Confluent, Dapper, Swashbuckle y JWT están desactualizados. Reanimated 4 usa APIs deprecadas (<code>runOnJS</code>). La landing usa un <code>react-router</code> vulnerable.</li>
+<li><strong>Por qué importa:</strong> construir sobre una plataforma que caduca en un mes obliga a migrar otra vez.</li>
+<li><strong>Cómo se verificó:</strong> ejecución de <code>dotnet list package --vulnerable</code> y <code>npm audit</code>.</li>
+<li><strong>En la v1:</strong> D1 (.NET 10 LTS, soporte hasta noviembre de 2028) y D2 (Expo 57). Recomendado: Dependabot o Renovate en los dos repos.</li>
+</ul>
+<p><strong>🟠 GEN-31 · DX, configuración y documentación que no corresponden a la realidad</strong> (01-I21, 01-I22, 01-I23, 01-I28, 01-M11)</p>
+<ul>
+<li><strong>Qué pasa:</strong> el README no levanta el back: 8 pasos fallan. <code>PROJECT_STATUS</code> habla de .NET 9, EF Core y "distancia euclidiana" (es coseno). La connection string está en 3 sitios y la config de Kafka también. Hay variables usadas que no están documentadas. No hay pin de runtimes. Hay 2 composes. La IaC es académica.</li>
+<li><strong>Por qué importa:</strong> quien llega no puede arrancar el sistema y no sabe qué creer de la documentación.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (vivido en la sesión de la auditoría externa).</li>
+<li><strong>En la v1:</strong> D-1 (README como runbook: levantar en menos de 15 min con docker compose + migraciones + seed + app en emulador), D-2 (<code>ARCHITECTURE.md</code> con diagrama, capas, modelo de datos, flujo de match y E2EE con modelo de amenazas) y D-4 (<code>.env.example</code> completos).</li>
+</ul>
+<h3 id="capa-repos">4.10 Organización de repos</h3>
+<p><strong>Veredicto: Refactorizar.</strong> El reporte general recomendaba un monorepo en la org. El dueño eligió ramas nuevas en los repos actuales (D14/D9), sin tocar landing, Django ni Python.</p>
+<p><strong>🟠 GEN-32 · Repos con trabajo divergente y propiedad difusa</strong> (01-I27, 04-I12, 01-M10, <code>git status</code> verificado)</p>
+<ul>
+<li><strong>Qué pasa:</strong> en el back hay <code>Requests.cs</code>, <code>DnaMixRequest.cs</code> y <code>.gitignore</code> sin commit, y <code>db/</code> y <code>docker-compose.local.yml</code> sin trackear. En el front hay 5 archivos sin commit (login por email y <code>setApiToken</code>). La rama Expo 57 es de otra persona (<code>edav404</code>) y no está mergeada. La landing tiene un commit sin push, está en una cuenta personal y su Vercel en otra (<code>jdicans</code>). Hay <code>.gitignore</code> modificados en Django y Python. Dos repos muertos siguen públicos.</li>
+<li><strong>Por qué importa:</strong> riesgo de perder trabajo o de pisarse con otra persona.</li>
+<li><strong>Cómo se verificó:</strong> ejecución (<code>git status</code> y <code>git diff</code> en los 5 repos).</li>
+<li><strong>En la v1:</strong> D14/D9. Ramas <code>rebuild/v1</code> en <code>encorly_back</code> y <code>encorely-front</code>; la del front parte de la rama de <code>edav404</code>, así que hay que avisarle. Antes de crear las ramas conviene preservar el trabajo local sin commit en una rama WIP, para no perderlo. Landing, Django y Python no se tocan.</li>
+</ul>
+<hr />
+<h2 id="causas">5. Causas raíz</h2>
+<p>Los 37 hallazgos salen de 8 causas. Atacar la causa evita que el mismo error reaparezca en el código nuevo.</p>
+<h3 id="51-se-confia-en-el-cliente-para-la-identidad-y-las-reglas">5.1 Se confía en el cliente para la identidad y las reglas</h3>
+<p>El cliente manda <code>userId</code> en cada request, calcula el umbral y cuenta los swipes; los hubs reciben el <code>userId</code> como argumento.</p>
+<p><strong>Ejemplo:</strong> con el token del usuario A se envió <code>PUT /User/settings {userId: &lt;V&gt;, mood: 2}</code> y el mood de la víctima cambió (204). Explica GEN-01, 02, 08, 14, 21 y 25.</p>
+<h3 id="52-no-hay-fuentes-de-verdad-versionadas">5.2 No hay fuentes de verdad versionadas</h3>
+<p>Ni el esquema, ni el contrato, ni la configuración, ni los tokens de diseño, ni la documentación tienen un único origen versionado.</p>
+<p><strong>Ejemplo:</strong> el umbral de swipes vale 25 en el back, 100 en el front y 25 en la landing; el Radar felicita por "100 swipes" mientras RadarMatches pide "Completá 25". Explica GEN-09, 22, 27, 31 y 36.</p>
+<h3 id="53-el-dominio-nunca-se-especifico-se-programo-a-partir-de-demos">5.3 El dominio nunca se especificó; se programó a partir de demos</h3>
+<p>Los stubs de demo llegaron a "producción" y nadie definió qué es un match ni cómo se calcula la afinidad.</p>
+<p><strong>Ejemplo:</strong> <code>EventService.cs:9-17</code> devuelve una lista fija de eventos con fechas pasadas y el perfil musical nace en 0,5 y nunca cambia. Explica GEN-05, 08 y 13.</p>
+<h3 id="54-el-producto-se-construyo-sobre-una-dependencia-externa-que-cambio">5.4 El producto se construyó sobre una dependencia externa que cambió</h3>
+<p>Spotify era a la vez login, fuente del perfil y fuente del feed. Cambió su política y se cayeron las tres.</p>
+<p><strong>Ejemplo:</strong> desde marzo de 2026, <code>GET /me</code> no devuelve email y el back vincula identidades por email (<code>SpotifyService.cs:13</code>). Explica GEN-06 y parte de GEN-05 y GEN-11.</p>
+<h3 id="55-la-arquitectura-se-eligio-por-curriculo-no-por-problema">5.5 La arquitectura se eligió por currículo, no por problema</h3>
+<p>Kafka, Redis, un Worker, 9 proyectos, k8s y terraform para un CRUD con un solo consumidor.</p>
+<p><strong>Ejemplo:</strong> Redis cachea un perfil; Kafka tiene un consumidor y 3 topics huérfanos; el productor cae a <code>localhost:9092</code> fuera de local y cada swipe espera el timeout. Explica GEN-15, 16, 17 y 31.</p>
+<h3 id="56-no-hay-pruebas-de-lo-que-importa-ni-gates-en-ci">5.6 No hay pruebas de lo que importa ni gates en CI</h3>
+<p>Los tests mockean los repositorios y no prueban autorización ni integración.</p>
+<p><strong>Ejemplo:</strong> el 500 en todo POST con body, el INSERT inválido de salas y el chat en 400 llegaron a <code>main</code> con 52 tests en verde. Explica GEN-15, 18 y 29.</p>
+<h3 id="57-se-diseno-y-probo-para-web-aunque-el-objetivo-era-nativo">5.7 Se diseñó y probó para web aunque el objetivo era nativo</h3>
+<p>Nunca se hizo un build nativo y las correcciones se validaron en el navegador.</p>
+<p><strong>Ejemplo:</strong> el commit "fix chat keyboard" (<code>7b8e771</code>) se probó en web; en Android, el teclado del login tapa los campos. Explica GEN-10, 11, 12, 24 y 28.</p>
+<h3 id="58-ui-generada-sin-direccion-ni-dueno-de-producto">5.8 UI generada sin dirección ni dueño de producto</h3>
+<p>Cada pantalla se hizo por separado, con relleno plausible y sin voz.</p>
+<p><strong>Ejemplo:</strong> "247 personas con tu vibe cerca", "Match Certificado" para todos y "Night Vibes" fijo en el código. Explica GEN-13, 26 y 27.</p>
+<hr />
+<h2 id="diseno">6. Diseño</h2>
+<h3 id="61-por-que-se-ve-hecho-con-ia">6.1 Por qué se ve "hecho con IA"</h3>
+<p>Nada del diseño viene del dominio. Ninguna pantalla habla de conciertos, boletas, carteles, setlists, Bogotá o Medellín: cambias "música" por "fitness" y la UI sirve igual. Junta los recursos por defecto de un generador.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tell</th>
+<th>Evidencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>Emojis como iconos (~30 usos)</td>
+<td>🎵 como logo (<code>LoginScreen.tsx:120</code>), 🌍 a 60 px (<code>RadarScreen.tsx:144</code>), <code>♪</code> como logo de Spotify</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Magenta neón con glow</td>
+<td><code>#F366FF</code> hardcodeado 83 veces; sombra <code>neonMagenta</code>; glow en "¡RADAR DESBLOQUEADO!" y en la tab bar</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>El mismo gradiente de fondo en 10 pantallas</td>
+<td><code>['#181818','#2a1a3a','#181818']</code> en <code>ScreenShell.tsx:20</code> y 9 archivos más</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Glassmorphism decorativo</td>
+<td><code>BlurView</code> sobre fondos lisos; en la landing, un comentario dice "Glassmorfismo SIN desenfoque"</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Texto con gradiente animado</td>
+<td>H1 del hero (<code>Hero.tsx:58</code>) y cifras (<code>SocialProof.tsx:46</code>)</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>Eyebrow en píldora sobre cada título</td>
+<td>14 en la landing; "ENCORELY" y "NUEVO AQUÍ" en la app</td>
+</tr>
+<tr>
+<td>T7</td>
+<td>Tarjetas idénticas y fila de métricas</td>
+<td>3 features iguales; "Conexión auténtica / Diversidad musical / Experiencia vibrante"; "4D · 100 % · $0"</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>Fondo animado con notas y auroras</td>
+<td>18 notas flotantes y 3 auroras; 109 animaciones activas</td>
+</tr>
+<tr>
+<td>T9</td>
+<td>Jerga técnica y hype</td>
+<td>"Similitud coseno &gt;70 % = match garantizado", "No es azar, es ciencia rítmica"</td>
+</tr>
+<tr>
+<td>T10</td>
+<td>Cifras inventadas</td>
+<td>"247 personas", "Match Certificado" al 100 %, "Night Vibes"</td>
+</tr>
+<tr>
+<td>T11</td>
+<td>Idiomas mezclados</td>
+<td>Tab "Discover", "Tu Music DNA", "Vibe Explorer", sellos "LIKE/NOPE"</td>
+</tr>
+<tr>
+<td>T12</td>
+<td>Voseo rioplatense para público colombiano</td>
+<td>"Conectá… descubrí… encontrá… como vos", "Completá 25 swipes"</td>
+</tr>
+<tr>
+<td>T13</td>
+<td>Tipografía por defecto</td>
+<td>Inter + Golos Text; el login usa la fuente del sistema</td>
+</tr>
+<tr>
+<td>T14</td>
+<td>Iconografía mezclada</td>
+<td>Ionicons, Lucide, emojis y Unicode; Lucide <code>Music</code> haciendo de logo de TikTok</td>
+</tr>
+<tr>
+<td>T15</td>
+<td>Mockups 3D de iPhone flotando</td>
+<td>Tilt con el cursor y animación de flotación en el hero</td>
+</tr>
+<tr>
+<td>T16</td>
+<td>Celebraciones en mayúsculas con glow</td>
+<td>"¡ONBOARDING LISTO!", "¡RADAR DESBLOQUEADO!"</td>
+</tr>
+<tr>
+<td>T17</td>
+<td>Clon visual de Tinder</td>
+<td>Sellos "LIKE"/"NOPE" rotados ±15°</td>
+</tr>
+<tr>
+<td>T18</td>
+<td>Datos de prueba sin tratar</td>
+<td>"Encorely User", "Match 3d83", "qa1-flow1"</td>
+</tr>
+<tr>
+<td>T19</td>
+<td>Valores sueltos en vez de escala</td>
+<td>20 radios, unos 40 valores de padding, 17 tamaños de fuente</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Puntajes (impeccable):</strong> app, Nielsen 12/40 y audit técnico 6/20 (<em>Poor</em>). Landing, Nielsen 19/32 y audit 11/20 (<em>Acceptable</em>). La auditoría corrió en un solo contexto, así que los puntajes son orientativos.</p>
+<p><img alt="Radar actual: emoji de 60 px, cifra falsa, felicitación y CTA compitiendo en el mismo bloque" src="capturas-qa/diseno-12.png" /></p>
+<h3 id="62-la-direccion-elegida-la-boleta-compartida">6.2 La dirección elegida: "La boleta compartida"</h3>
+<p><strong>Concepto:</strong> Encorely se ve como lo que guardas después de un concierto (la boleta, la manilla, el setlist pegado en la tarima), y cada match es una boleta para dos. Lo visual sale de objetos reales de la escena: talones perforados, números de serie, sellos de entrada, manillas Tyvek de color plano y la tipografía condensada de los carteles de festival. Sin neón, sin vidrio, sin auroras.</p>
+<p><strong>Por qué esta y no otra:</strong></p>
+<ul>
+<li>Se adueña de un objeto que todo asistente conoce y guarda.</li>
+<li>Da una forma propia, la muesca del talón, que se vuelve firma de marca.</li>
+<li>La verificación del chat cifrado encaja como el "número de serie" de la boleta.</li>
+<li>Es mínima: 3 radios y 7 pasos de espaciado.</li>
+</ul>
+<p>La alternativa B, "Afiche de poste" (papel periódico, rosa y amarillo flúor), queda como lenguaje de campaña en redes: es muy colombiana y memorable, pero los flúor fallan contraste en textos pequeños y es difícil de sostener en 30 pantallas. "Cabina de DJ" se descartó porque es donde ya está el producto.</p>
+<p><strong>Disciplina:</strong> la muesca solo aparece en 2–3 componentes (tarjeta de match, tarjeta de evento y verificación del chat). Más que eso se vuelve disfraz.</p>
+<h3 id="63-paleta">6.3 Paleta</h3>
+<p>La v1 implementa <strong>un solo tema</strong> (F8): <strong>Venue</strong>, oscuro. El tema <strong>Papel</strong> (claro) queda especificado para después.</p>
+<p><strong>Tema Venue (oscuro):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Hex</th>
+<th>Uso</th>
+<th>Contraste verificado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bg</code></td>
+<td><code>#121110</code></td>
+<td>Fondo (negro cálido, no morado)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>surface</code></td>
+<td><code>#1C1A18</code></td>
+<td>Tarjetas, filas</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>surface2</code></td>
+<td><code>#262320</code></td>
+<td>Burbuja ajena, inputs</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>border</code></td>
+<td><code>#3A3531</code></td>
+<td>Divisores decorativos</td>
+<td>1,56 (decorativo)</td>
+</tr>
+<tr>
+<td><code>borderInput</code></td>
+<td><code>#736B61</code></td>
+<td>Borde de campos</td>
+<td>3,60 sobre bg (≥ 3:1 de componente UI)</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td><code>#F4EEE4</code></td>
+<td>Texto principal (crema)</td>
+<td>16,34 sobre bg; 13,54 sobre surface2</td>
+</tr>
+<tr>
+<td><code>textMuted</code></td>
+<td><code>#B5ACA0</code></td>
+<td>Secundario</td>
+<td>8,42 sobre bg</td>
+</tr>
+<tr>
+<td><code>textSubtle</code></td>
+<td><code>#9A9286</code></td>
+<td>Terciario, placeholders</td>
+<td>6,13 sobre bg; 5,08 sobre surface2</td>
+</tr>
+<tr>
+<td><code>accent</code> (manilla)</td>
+<td><code>#FF6A2B</code></td>
+<td>CTA, burbuja propia, tab activa</td>
+<td>Texto <code>#121110</code> encima: 6,60. <strong>Blanco encima: 2,86, prohibido</strong></td>
+</tr>
+<tr>
+<td><code>accentPressed</code></td>
+<td><code>#FF8A55</code></td>
+<td>Estado presionado</td>
+<td><code>#121110</code> encima: 8,10</td>
+</tr>
+<tr>
+<td><code>ticket</code> (papel)</td>
+<td><code>#F2EADB</code></td>
+<td>Tarjeta-boleta</td>
+<td>Tinta <code>#1A1714</code>: 14,93</td>
+</tr>
+<tr>
+<td><code>verified</code> (sello)</td>
+<td><code>#7FD99A</code></td>
+<td>E2EE verificado, éxito</td>
+<td>11,04 sobre bg</td>
+</tr>
+<tr>
+<td><code>danger</code></td>
+<td><code>#FF7A7A</code></td>
+<td>Errores</td>
+<td>7,47 sobre bg</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tema Papel (claro, para después):</strong> <code>bg #F6F1E8</code>, <code>text #1A1714</code> (15,86), <code>textMuted #5E564C</code> (6,41), <code>textSubtle #756C61</code> (4,58), <code>accentText #B83A0A</code> (5,12), <code>accent #FF6A2B</code> con texto <code>#1A1714</code> (6,25), <code>verified #1F7A3E</code> (4,77), <code>danger #B42318</code> (5,84), <code>borderInput #8C8377</code> (3,32).</p>
+<p><strong>Reglas:</strong></p>
+<ul>
+<li>El acento ocupa como máximo ~10 % de la pantalla.</li>
+<li>Texto oscuro sobre el acento, nunca blanco.</li>
+<li>El verde de Spotify solo en su botón y su logo oficial, nunca como color de marca.</li>
+</ul>
+<h3 id="64-tipografia">6.4 Tipografía</h3>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Familia</th>
+<th>Pesos</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Display / cartel</td>
+<td><strong>Big Shoulders Display</strong></td>
+<td>700, 800</td>
+<td>Condensada, de rótulo urbano y cartel de festival. Nombres largos de artistas y eventos caben en 390 pt. Solo desde 22 pt</td>
+</tr>
+<tr>
+<td>UI / cuerpo</td>
+<td><strong>Archivo</strong></td>
+<td>400, 500, 600, 700</td>
+<td>Grotesca sólida, legible en tamaños chicos, soporte latino completo. Más carácter que Inter sin ser decorativa</td>
+</tr>
+<tr>
+<td>Datos de boleta</td>
+<td><strong>IBM Plex Mono</strong></td>
+<td>500</td>
+<td>Solo datos medibles: hora, fecha, % real y el <strong>código de seguridad del chat</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Escala nativa (pt / line-height), con escalado de fuente activo:</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Tamaño</th>
+<th>Familia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display</code></td>
+<td>40/40</td>
+<td>Big Shoulders 800, mayúsculas (multiplicador máx. 1,3)</td>
+</tr>
+<tr>
+<td><code>title1</code></td>
+<td>28/32</td>
+<td>Big Shoulders 700 (multiplicador máx. 1,4)</td>
+</tr>
+<tr>
+<td><code>title2</code></td>
+<td>22/28</td>
+<td>Archivo 700</td>
+</tr>
+<tr>
+<td><code>headline</code></td>
+<td>17/22</td>
+<td>Archivo 600</td>
+</tr>
+<tr>
+<td><code>body</code></td>
+<td>16/24</td>
+<td>Archivo 400</td>
+</tr>
+<tr>
+<td><code>callout</code></td>
+<td>15/20</td>
+<td>Archivo 500</td>
+</tr>
+<tr>
+<td><code>footnote</code></td>
+<td>13/18</td>
+<td>Archivo 400</td>
+</tr>
+<tr>
+<td><code>caption</code></td>
+<td>12/16</td>
+<td>Archivo 500 (mínimo absoluto)</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>13/18</td>
+<td>Plex Mono 500, números tabulares</td>
+</tr>
+</tbody>
+</table>
+<p>Ojo con Big Shoulders: es condensada y con fuente grande del sistema los nombres largos de artistas pueden cortarse. Hay que probarla con fontScale alto.</p>
+<h3 id="65-espaciado-e-iconos">6.5 Espaciado e iconos</h3>
+<ul>
+<li>Base de 4 pt. Pasos: 4, 8, 12, 16, 24, 32, 48. Gutter de pantalla: 20.</li>
+<li>Radios: <code>sm 8</code> (inputs, chips), <code>md 16</code> (tarjetas), <code>full</code> (avatares, píldoras).</li>
+<li>Acción primaria en el tercio inferior. Objetivos táctiles de 44 pt (iOS) y 48 dp (Android).</li>
+<li>Tab bar nativa, sin flotar ni glow, con 4 ítems: <em>Descubrir · Conciertos · Chats · Tú</em>.</li>
+<li><strong>Iconos: Phosphor</strong> (<code>phosphor-react-native</code>), una sola familia: peso <code>regular</code> en la UI y <code>fill</code> para la tab activa. Trae glifos del dominio: <code>Ticket</code>, <code>MicrophoneStage</code>, <code>Waveform</code>, <code>VinylRecord</code>, <code>MapPin</code>, <code>LockKey</code>, <code>ShieldCheck</code>, <code>QrCode</code>. Lucide se descartó por ser el set por defecto del "look IA" y tener menos glifos de música.</li>
+<li><strong>Cero emojis en la UI.</strong> Solo pueden aparecer en lo que escribe el usuario.</li>
+</ul>
+<h3 id="66-motion">6.6 Motion</h3>
+<ul>
+<li>Gestos con spring (swipe con damping ≈ 18 y stiffness ≈ 180); transiciones de interfaz con timing de 160–240 ms y ease-out.</li>
+<li><strong>Un solo momento de autor:</strong> al hacer match, la boleta se rasga por la línea perforada y el talón queda en Conexiones (≈ 450 ms) con haptic de éxito. Nada más compite con eso.</li>
+<li>Sin bucles infinitos, salvo las barras de audio mientras suena una preview.</li>
+<li>Movimiento reducido respetado en todas las primitivas: el rasgado se vuelve un fundido del sello "Match".</li>
+</ul>
+<h3 id="67-voz-y-copy">6.7 Voz y copy</h3>
+<p>Tuteo colombiano, cercano y concreto. Habla de planes, conciertos y gente, no de vectores. Sin "¡!" por defecto y sin anglicismos de producto. Los errores dicen qué pasó y qué hacer.</p>
+<table>
+<thead>
+<tr>
+<th>Dónde</th>
+<th>Antes</th>
+<th>Después</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Login</td>
+<td>"🎯 Similitud coseno &gt;70 % = match garantizado"</td>
+<td>"Te mostramos quién escucha lo mismo que tú y va al mismo concierto."</td>
+</tr>
+<tr>
+<td>Radar</td>
+<td>"¡Felicidades! Alcanzaste el umbral de los 100 swipes. Tu Vibe ha sido calculado…"</td>
+<td>"Ya tenemos tu perfil musical. Elige un concierto y mira quién más va."</td>
+</tr>
+<tr>
+<td>Error 401</td>
+<td>"API 401: Unauthorized"</td>
+<td>"Tu sesión se cerró. Vuelve a entrar para seguir." + botón "Entrar"</td>
+</tr>
+<tr>
+<td>Swipe</td>
+<td>"LIKE" / "NOPE"</td>
+<td>"ME GUSTA" / "PASO"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="68-lo-que-no-se-hace">6.8 Lo que NO se hace</h3>
+<ul>
+<li><strong>3D, no.</strong> En la app gasta batería y GPU justo donde escasean (concierto, poca señal) y ningún objeto del dominio mejora al girarlo. En la landing, Three.js suma unos 150 KB gzip y empeora la carga en redes móviles colombianas. Si se quiere un gesto memorable, basta la boleta rasgándose en 2D.</li>
+<li>Sin glassmorphism, glow, gradientes de fondo ni texto con gradiente.</li>
+<li>Sin sellos rotados estilo Tinder.</li>
+<li>Sin indicador de cifrado hasta que el cifrado exista de verdad: un candado falso es peor que ninguno.</li>
+<li>Sin styled-components: se queda <code>StyleSheet</code> con tokens tipados (styled-components v6 con los tipos v5 causa 83 de los 85 errores de <code>tsc</code>).</li>
+</ul>
+<hr />
+<h2 id="movil">7. App móvil</h2>
+<h3 id="71-que-falta-para-que-sea-nativa">7.1 Qué falta para que sea nativa</h3>
+<table>
+<thead>
+<tr>
+<th>Área</th>
+<th>Estado hoy</th>
+<th>Qué falta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pipeline</td>
+<td>Sin <code>eas.json</code> en <code>main</code>, sin <code>expo-dev-client</code></td>
+<td>Perfiles <code>development</code>, <code>preview</code> y <code>production</code> con su URL de API; primer build Android instalado en un teléfono</td>
+</tr>
+<tr>
+<td>SDK</td>
+<td>54 con <code>expo-av</code> (eliminado en 55); 10 paquetes desalineados</td>
+<td>Expo 57 con <code>expo-audio</code> sin micrófono (la rama 57 ya lo hizo)</td>
+</tr>
+<tr>
+<td>Configuración del API</td>
+<td>Cae a <code>localhost</code> si falta la variable</td>
+<td>Variable por perfil que falle al compilar si falta; HTTPS en staging, nunca <code>http://IP-LAN</code></td>
+</tr>
+<tr>
+<td>Assets</td>
+<td>Icono, splash e icono adaptativo de la plantilla de Expo</td>
+<td>Icono 1024 propio, icono adaptativo con zona segura, splash del mismo color que el fondo</td>
+</tr>
+<tr>
+<td>Sesión</td>
+<td>JWT de 30 min sin refresh</td>
+<td>Refresh rotativo (entra en la v1)</td>
+</tr>
+<tr>
+<td>Push</td>
+<td>No existe</td>
+<td><code>expo-notifications</code>, tabla de tokens, Expo Push API, deep link en arranque en frío</td>
+</tr>
+<tr>
+<td>Navegación</td>
+<td>Tabs ocultas, tab bar flotante</td>
+<td><code>Stack</code> raíz con tabs anidadas (entra en la v1 con el <code>src/</code> nuevo)</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>Sin timeout, reintento ni detección de conexión</td>
+<td>Timeout de 15 s, reintento en GET, banner "Sin conexión"</td>
+</tr>
+<tr>
+<td>Accesibilidad</td>
+<td>8 props para unos 75 táctiles; swipe solo por gesto</td>
+<td>Botones ✕/♥ y acciones accesibles (entra en la v1)</td>
+</tr>
+<tr>
+<td>Login social</td>
+<td>Google es un "Próximamente"</td>
+<td>Excluido por decisión del dueño: solo email y contraseña</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-que-se-probo-en-el-emulador-android">7.2 Qué se probó en el emulador Android</h3>
+<p><strong>Entorno:</strong> emulador Android 15 (Pixel 6), Expo Go SDK 54, contra la API local. <strong>Cobertura:</strong> arranque, login por email, onboarding sin Spotify, Discover, Radar y RadarMatches, Conexiones y Chat, Perfil, Ajustes, cerrar sesión, safe areas, fuente al 130 %, accesibilidad con uiautomator, BACK de Android, persistencia de sesión y modo oscuro/claro.</p>
+<p><strong>Qué cambió frente a web:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hallazgo en web</th>
+<th>En Android</th>
+<th>Nota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cerrar sesión no funciona</td>
+<td><strong>Distinto: funciona</strong></td>
+<td><code>Alert</code> nativo y vuelta al login</td>
+</tr>
+<tr>
+<td>Onboarding sin Spotify sin salida</td>
+<td>Igual</td>
+<td>Ahora sí se ve la alerta "Próximamente"</td>
+</tr>
+<tr>
+<td>Discover en "Preparando tracks…"</td>
+<td>Igual</td>
+<td>Spinner pegado arriba, sin timeout</td>
+</tr>
+<tr>
+<td>Login sin validación ni estado de carga</td>
+<td><strong>Distinto</strong></td>
+<td>Hay validación de vacío; <strong>nuevo en nativo: el teclado tapa el formulario</strong></td>
+</tr>
+<tr>
+<td>Radar con cifras fijas</td>
+<td>Igual</td>
+<td>247 y "100 swipes" con 31</td>
+</tr>
+<tr>
+<td>Afinidad 100 % y botones placebo</td>
+<td>Igual</td>
+<td>"Pasar" no es clickable</td>
+</tr>
+<tr>
+<td>Conexiones con "Match XXXX"</td>
+<td>Igual</td>
+<td>"Match 2222" ×4; abrir un chat agrega otro "¡Match creado!"</td>
+</tr>
+<tr>
+<td>Enviar mensaje falla en silencio</td>
+<td>Igual</td>
+<td>Además el input se vacía</td>
+</tr>
+<tr>
+<td>Perfil con spinners infinitos</td>
+<td>Igual</td>
+<td>Y "Conectado como Camilo Demo" sin Spotify</td>
+</tr>
+<tr>
+<td>Tab bar tapa contenido</td>
+<td>Igual</td>
+<td>Translúcida sobre las tarjetas</td>
+</tr>
+<tr>
+<td>Accesibilidad por teclado</td>
+<td><strong>Distinto</strong></td>
+<td>En nativo el problema son los botones de icono sin descripción y menores de 48 dp</td>
+</tr>
+<tr>
+<td>Escritorio sin <code>maxWidth</code></td>
+<td>No aplica</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hallazgos propios del anexo nativo (12):</strong></p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Severidad</th>
+<th>Qué pasa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nativo-1</td>
+<td>🟠</td>
+<td>Icono, splash e icono adaptativo de la plantilla de Expo</td>
+</tr>
+<tr>
+<td>nativo-2</td>
+<td>🟠</td>
+<td>El teclado tapa email, contraseña y botón Entrar (<code>LoginScreen.tsx:112</code>, <code>behavior: undefined</code> en Android)</td>
+</tr>
+<tr>
+<td>nativo-3</td>
+<td>🟠</td>
+<td>Registro con correo siempre muestra "Próximamente"</td>
+</tr>
+<tr>
+<td>nativo-4</td>
+<td>🟠</td>
+<td>Discover en "Preparando tracks…" infinito</td>
+</tr>
+<tr>
+<td>nativo-5</td>
+<td>🟠</td>
+<td>Radar felicita por 100 swipes con 31 y dice 247 personas frente a 8</td>
+</tr>
+<tr>
+<td>nativo-6</td>
+<td>🟠</td>
+<td>"Pasar" no hace nada y "Conectar" solo cambia el texto local</td>
+</tr>
+<tr>
+<td>nativo-7</td>
+<td>🟠</td>
+<td>El mensaje enviado se borra del input y no aparece; cada apertura agrega otro "¡Match creado!"</td>
+</tr>
+<tr>
+<td>nativo-8</td>
+<td>🟠</td>
+<td>Perfil con spinners, "Encorely User", Ajustes vacío y "Conectado como Camilo Demo"</td>
+</tr>
+<tr>
+<td>nativo-9</td>
+<td>⚪</td>
+<td>La tab bar superpone el contenido y tapa el último elemento</td>
+</tr>
+<tr>
+<td>nativo-10</td>
+<td>🟠</td>
+<td>Botones de icono sin etiqueta y de 24–40 dp</td>
+</tr>
+<tr>
+<td>nativo-11</td>
+<td>⚪</td>
+<td>Con fuente al 130 % se truncan textos y se parte una palabra</td>
+</tr>
+<tr>
+<td>nativo-12</td>
+<td>⚪</td>
+<td>Destello blanco al abrir y 11–13 s hasta interactiva (en dev con Metro)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>OK en nativo (8):</strong> cerrar sesión, persistencia de sesión, mensajes de error del login, teclado del chat, BACK de Android, <code>Alert</code> visible, modo oscuro/claro del sistema, tab bar y safe areas superior e inferior.</p>
+<p><strong>No probado en nativo (6):</strong> gestos de swipe (Discover nunca cargó tarjetas), OAuth de Spotify, splash e icono finales de un build real, tiempo de arranque en producción, toggles de Ajustes y teclado en Ajustes.</p>
+<p><strong>Límite importante:</strong> el QA corrió en <strong>Expo Go</strong>, no en un dev build. No valida splash, icono, permisos, push ni el redirect <code>encorely://</code>.</p>
+<h3 id="73-requisitos-de-tiendas-para-cuando-se-publique">7.3 Requisitos de tiendas (para cuando se publique)</h3>
+<p>La v1 no se publica (D15). Esta lista queda como checklist para la versión que vaya a tiendas.</p>
+<table>
+<thead>
+<tr>
+<th>Requisito</th>
+<th>App Store</th>
+<th>Google Play</th>
+<th>Estado hoy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cuenta de desarrollador</td>
+<td>99 USD/año</td>
+<td>25 USD único; cuenta personal nueva exige prueba cerrada con ≥ 12 testers durante 14 días</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Build firmado</td>
+<td>EAS Build + <code>eas submit</code> (sin Mac)</td>
+<td>AAB con targetSdk ≥ 36 (obligatorio desde 31-08-2026)</td>
+<td>❌ sin pipeline</td>
+</tr>
+<tr>
+<td>Icono, splash y capturas</td>
+<td>Icono 1024 sin alfa; capturas 6,9"</td>
+<td>Icono 512, feature graphic 1024×500</td>
+<td>❌ de plantilla</td>
+</tr>
+<tr>
+<td>Política de privacidad (URL)</td>
+<td>Obligatoria</td>
+<td>Obligatoria, en la ficha y en la app</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Etiquetas de privacidad</td>
+<td>App Privacy (email, nombre, mensajes, edad, género, historial musical)</td>
+<td>Data Safety con el mismo inventario</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Privacy manifest</td>
+<td><code>PrivacyInfo.xcprivacy</code></td>
+<td>n/a</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Borrado de cuenta</td>
+<td>Dentro de la app (5.1.1(v))</td>
+<td>Dentro de la app <strong>y</strong> por URL web</td>
+<td>❌ (entra en la app en la v1; falta la URL web)</td>
+</tr>
+<tr>
+<td>Reportar, bloquear, contacto</td>
+<td>Guideline 1.2</td>
+<td>Política UGC</td>
+<td>❌ (entra en la v1; falta contacto y SLA de 24 h)</td>
+</tr>
+<tr>
+<td>Clasificación por edad</td>
+<td>18+</td>
+<td>IARC, público 18+</td>
+<td>❌ (la v1 valida 18+)</td>
+</tr>
+<tr>
+<td>Cuenta demo para el revisor</td>
+<td>Obligatoria si hay login (2.1)</td>
+<td>Instrucciones de acceso</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Login social</td>
+<td>Si hay Google, Sign in with Apple (4.8)</td>
+<td>—</td>
+<td>No aplica: no habrá login con Google</td>
+</tr>
+<tr>
+<td>Permisos justificados</td>
+<td>Textos en español y específicos</td>
+<td>Permisos mínimos</td>
+<td>❌ micrófono fantasma de <code>expo-av</code> (se resuelve con Expo 57)</td>
+</tr>
+<tr>
+<td>Ley 1581 de 2012 (Colombia)</td>
+<td>Autorización previa, aviso de privacidad, canal de reclamos</td>
+<td>Igual</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Spotify</td>
+<td>Atribución y Developer Policy</td>
+<td>Igual</td>
+<td>⚠️ solo si se integra</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="chat">8. Chat funcional y cifrado de extremo a extremo</h2>
+<h3 id="81-estado-actual">8.1 Estado actual</h3>
+<p>El chat no funciona y no es privado:</p>
+<ul>
+<li>Todo envío desde la app da 400 por el contrato roto, y el mensaje desaparece sin aviso.</li>
+<li>Cualquier usuario autenticado lee y escribe cualquier conversación (IDOR).</li>
+<li>La tabla <code>Messages</code> guarda el texto en claro.</li>
+<li>Los hubs de SignalR aceptan conexiones sin autenticar.</li>
+<li>La notificación de match le llega a quien no es.</li>
+<li>Los matches no tienen estado, así que no hay forma de exigir que ambos hayan aceptado.</li>
+<li>No hay tiempo real, paginación ni push.</li>
+</ul>
+<h3 id="82-diseno-elegido-para-la-v1">8.2 Diseño elegido para la v1</h3>
+<p>El reporte 05 proponía libsodium nativo (<code>crypto_box</code>) con un spike el primer día y <code>@noble</code> como plan B, más historial local en SQLCipher y borrado en el servidor tras la entrega. La v1 de 48 h simplifica: <strong>usa <code>@noble</code> desde el principio</strong> porque es JS puro, está auditado (Cure53, 2024) y corre en Expo Go sin dev build.</p>
+<table>
+<thead>
+<tr>
+<th>Pieza</th>
+<th>Decisión v1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acuerdo de llaves</td>
+<td><strong>X25519</strong> con <code>@noble/curves</code></td>
+</tr>
+<tr>
+<td>Cifrado</td>
+<td><strong>XChaCha20-Poly1305</strong> con <code>@noble/ciphers</code>, nonce aleatorio de 24 bytes por mensaje</td>
+</tr>
+<tr>
+<td>Llaves</td>
+<td>Generadas en el dispositivo al primer arranque tras el login; la privada solo en <strong>SecureStore</strong> (<code>WHEN_UNLOCKED_THIS_DEVICE_ONLY</code>)</td>
+</tr>
+<tr>
+<td>Directorio</td>
+<td>El servidor publica <strong>una llave pública por usuario</strong> (B10). Nunca recibe la privada</td>
+</tr>
+<tr>
+<td>Servidor</td>
+<td>Guarda <strong>solo ciphertext</strong>, con nonce, remitente, match y fecha. Envío y listado paginado por REST</td>
+</tr>
+<tr>
+<td>Tiempo real</td>
+<td><code>ChatHub</code> autenticado: solo avisa "hay mensaje nuevo"; la fuente de verdad es el REST</td>
+</tr>
+<tr>
+<td>Autorización</td>
+<td>Solo los dos miembros de un match activo leen o escriben; si no, 404</td>
+</tr>
+<tr>
+<td>Verificación</td>
+<td><strong>Código de seguridad</strong> visible en texto para compararlo en persona</td>
+</tr>
+<tr>
+<td>Declaración</td>
+<td>La app dice "sin forward secrecy" en la información de seguridad (D6)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Detalle propuesto para <code>ARCHITECTURE.md</code></strong> (06 no lo fija; se deriva de 05 y conviene cerrarlo antes de programar):</p>
+<pre><code class="language-text">secreto     = X25519(mi_privada, publica_del_otro)
+clave_par   = HKDF-SHA256(secreto, salt = matchId, info = &quot;ENCORELY-CHAT-v1&quot;)
+nonce       = 24 bytes aleatorios (getRandomValues de expo-crypto)
+aad         = version ‖ messageId ‖ matchId ‖ senderId
+ciphertext  = XChaCha20-Poly1305(clave_par, nonce, texto, aad)
+codigo      = 60 dígitos (12 bloques de 5) derivados de SHA-256 de ambas
+              llaves públicas ordenadas por userId; se muestra en IBM Plex Mono
+</code></pre>
+<ul>
+<li>El <code>aad</code> amarra el mensaje a su conversación y a su remitente: el servidor no puede mover un mensaje a otro chat ni cambiar quién lo envió sin que el descifrado falle. Es el equivalente a la comprobación de contexto de 05 (requisito S7).</li>
+<li><code>@noble</code> necesita <code>crypto.getRandomValues</code>; en React Native se provee con <code>expo-crypto</code>.</li>
+<li>Todo cifrado y descifrado vive en un solo archivo. Nada de <code>console.log</code> de texto plano, llaves ni <code>access_token</code>. El token del hub llega por query, así que hay que enmascararlo en los logs del API.</li>
+<li>F9 exige tests de Jest: cifrar y descifrar, y que una llave equivocada falle. Conviene agregar: un bit cambiado falla y un mensaje movido a otro <code>matchId</code> falla.</li>
+<li>B9 exige un test de que <strong>la BD no contiene texto plano</strong>: enviar un mensaje canario y buscarlo en la BD.</li>
+</ul>
+<h3 id="83-modelo-de-amenazas-de-la-v1">8.3 Modelo de amenazas de la v1</h3>
+<table>
+<thead>
+<tr>
+<th>Amenaza</th>
+<th>Qué intenta el atacante</th>
+<th>¿La v1 protege?</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Servidor curioso (operador o admin de BD)</td>
+<td>Leer las conversaciones</td>
+<td><strong>Sí, el contenido</strong></td>
+<td>Solo hay ciphertext. Sigue viendo quién habla con quién, cuándo y el tamaño aproximado</td>
+</tr>
+<tr>
+<td>Dump de la BD</td>
+<td>Leer mensajes</td>
+<td><strong>Sí</strong></td>
+<td>Sin las llaves privadas, el ciphertext no sirve</td>
+</tr>
+<tr>
+<td>Dump de la BD y, después, robo de una llave privada</td>
+<td>Descifrar lo capturado</td>
+<td><strong>No</strong></td>
+<td>Sin forward secrecy y con el historial cifrado guardado en el servidor, esa llave descifra toda la conversación de ese usuario</td>
+</tr>
+<tr>
+<td>Servidor malicioso que sustituye una llave pública</td>
+<td>Hacer MITM</td>
+<td><strong>Parcial</strong></td>
+<td>Se detecta solo si los dos comparan el código de seguridad. El primer contacto sin verificar queda expuesto</td>
+</tr>
+<tr>
+<td>MITM de red</td>
+<td>Interceptar</td>
+<td><strong>Sí</strong></td>
+<td>TLS + E2EE. En la demo local sin TLS, el contenido sigue cifrado</td>
+</tr>
+<tr>
+<td>Robo de cuenta (contraseña)</td>
+<td>Entrar desde otro teléfono</td>
+<td><strong>Parcial</strong></td>
+<td>Con una sola llave por usuario, el atacante publica una llave nueva; el contacto solo lo nota si vuelve a comparar el código</td>
+</tr>
+<tr>
+<td>Teléfono robado y bloqueado</td>
+<td>Extraer la llave</td>
+<td><strong>Sí</strong></td>
+<td>Keychain/Keystore con acceso solo desbloqueado</td>
+</tr>
+<tr>
+<td>Teléfono robado y desbloqueado, o con malware</td>
+<td>Leerlo todo</td>
+<td><strong>No</strong></td>
+<td>Ningún E2EE protege un dispositivo comprometido</td>
+</tr>
+<tr>
+<td>Usuario malicioso (acoso, spam)</td>
+<td>Abusar del chat</td>
+<td><strong>Parcial</strong></td>
+<td>Chat solo con match mutuo, bloquear y reportar (B11). El reporte no es verificable criptográficamente (sin franking) y no se pueden impedir capturas de pantalla</td>
+</tr>
+<tr>
+<td>Notificaciones push</td>
+<td>Filtrar contenido</td>
+<td>No aplica</td>
+<td>No hay push en la v1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="84-limites-declarados">8.4 Límites declarados</h3>
+<p>Se dicen en la app y en <code>ARCHITECTURE.md</code>:</p>
+<ul>
+<li><strong>Sin forward secrecy.</strong> Quien robe la llave privada de un dispositivo puede descifrar lo que haya capturado antes y lo que capture después.</li>
+<li><strong>Un solo dispositivo.</strong> La llave vive en un teléfono. Si reinstalas la app o cambias de teléfono, se genera una llave nueva y <strong>los mensajes anteriores ya no se pueden leer</strong>, porque el servidor solo tiene ciphertext.</li>
+<li><strong>Sin backup.</strong> No hay copia de seguridad del historial ni de la llave, a propósito.</li>
+<li><strong>Verificación manual.</strong> El código se compara en texto; no hay QR con cámara.</li>
+<li>El texto de producto dice "cifrado de extremo a extremo" y <strong>nunca</strong> "como Signal".</li>
+</ul>
+<h3 id="85-que-viene-despues-de-la-v1-dentro-de-las-48-h">8.5 Qué viene después de la v1 (dentro de las 48 h)</h3>
+<p>Todo esto se ejecuta en las 48 horas, después de la v1, en el orden de la tabla.</p>
+<table>
+<thead>
+<tr>
+<th>Pendiente</th>
+<th>Etapa</th>
+<th>Esfuerzo aproximado (05)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aviso de cambio de llave del contacto, con bloqueo del envío si estaba verificado</td>
+<td>v1.1</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Verificación por QR con cámara</td>
+<td>v1.1</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Push sin contenido ("Tienes mensajes nuevos")</td>
+<td>v1.1</td>
+<td>~3 días-persona + configuración de FCM/APNs y dev build</td>
+</tr>
+<tr>
+<td>Franking para reportes verificables</td>
+<td>v1.1</td>
+<td>Parte de los ~8 días-persona de la fase 4 de 05</td>
+</tr>
+<tr>
+<td>Borrado en el servidor tras la entrega + historial local en SQLCipher</td>
+<td>v2 (exige dev build)</td>
+<td>Parte de los ~13 días-persona de la fase 2 de 05</td>
+</tr>
+<tr>
+<td>Forward secrecy gruesa (llave de caja rotada cada 7 días)</td>
+<td>v1.1</td>
+<td>~8 días-persona</td>
+</tr>
+<tr>
+<td>Backup cifrado con passphrase</td>
+<td>v2</td>
+<td>~6 días-persona</td>
+</tr>
+<tr>
+<td>Multi-dispositivo</td>
+<td>v2</td>
+<td>L (10–15 días-persona)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="decisiones">9. Decisiones tomadas</h2>
+<p>Fuente: <code>06-decisiones-y-alcance-v1.md</code>. Donde lo elegido difiere de la recomendación de 00, se indica en la última columna con su riesgo.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tema</th>
+<th>Elegido</th>
+<th>Por qué / nota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>Plataforma del back</td>
+<td><strong>.NET 10 LTS</strong></td>
+<td>.NET 8 caduca el 10-nov-2026; construir de cero sobre él no tiene sentido. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Base del front</td>
+<td><strong>Toolchain de <code>codex/actualizar-frontend</code> (Expo 57) + <code>src/</code> nuevo</strong></td>
+<td>Hereda SDK 57, <code>expo-audio</code>, pnpm y CI sin arrastrar las 3 sesiones ni styled-components. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Kafka, Redis, Worker</td>
+<td><strong>Eliminados.</strong> API + <code>ChatHub</code> autenticado</td>
+<td>Postgres resuelve el volumen; menos superficie de fallo. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>Acceso a datos</td>
+<td><strong>EF Core 10 + migraciones</strong>; Dapper solo para el radar</td>
+<td>El modelo y el esquema salen de una sola definición. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>Dirección visual</td>
+<td><strong>"La boleta compartida"</strong>, adoptada sin validación previa</td>
+<td>00 recomendaba validarla antes con 5 usuarios (2 días). Riesgo: si no conecta con el público, hay que rehacer tokens y componentes; se mitiga con todos los valores en <code>tokens.ts</code></td>
+</tr>
+<tr>
+<td>D6</td>
+<td>Forward secrecy</td>
+<td><strong>Sin FS en v1, declarado</strong> en la app y en la documentación</td>
+<td>Signal y MLS no tienen binding RN mantenido. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>Tabla <code>Messages</code></td>
+<td><strong>No se toca el legado</strong>; el esquema nuevo nace sin ella</td>
+<td>Igual en efecto a la recomendación. No hay <code>DROP</code> sobre ninguna BD existente</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>Django y Python</td>
+<td><strong>No se tocan</strong></td>
+<td>00 recomendaba archivarlos en GitHub. Riesgo: siguen públicos; Django tiene <code>SECRET_KEY</code> con valor por defecto</td>
+</tr>
+<tr>
+<td>D9 / D14</td>
+<td>Repos</td>
+<td><strong>Ramas nuevas <code>rebuild/v1</code></strong> en <code>encorly_back</code> y <code>encorely-front</code>; el resto no se toca</td>
+<td>00 recomendaba monorepo en la org. Riesgo: no hay paquete compartido de tokens ni de cliente API; el contrato viaja como OpenAPI exportado</td>
+</tr>
+<tr>
+<td>D10</td>
+<td>Login</td>
+<td><strong>Email + contraseña.</strong> Sin Google ni Apple. El conector de <strong>Spotify</strong> (ya construido por <code>edav404</code>) se conserva como opción</td>
+<td>00 recomendaba sumar Google y Apple; el dueño los excluyó junto con las APIs externas. Sin Google tampoco se exige Sign in with Apple</td>
+</tr>
+<tr>
+<td>D11</td>
+<td>Canciones y ADN</td>
+<td><strong>Catálogo curado</strong> con previews de 30 s de iTunes Search; ADN = vector de géneros</td>
+<td>00 sugería géneros <strong>y artistas</strong>. Con solo géneros, la explicación del match ("los dos escuchan Bomba Estéreo") pierde precisión</td>
+</tr>
+<tr>
+<td>D12</td>
+<td>Eventos</td>
+<td><strong>Tabla curada</strong> por seed</td>
+<td>La integración con Ticketmaster u otra fuente externa queda excluida</td>
+</tr>
+<tr>
+<td>D13</td>
+<td>Salas grupales</td>
+<td><strong>Fuera del alcance total</strong></td>
+<td>Exigen moderación, roles y SLA. 00 las dejaba para después de la v1; el dueño las excluyó</td>
+</tr>
+<tr>
+<td>D15</td>
+<td>Hosting y tiendas</td>
+<td><strong>No se publica.</strong> Entregable = código + demo en emulador o teléfono</td>
+<td>00 recomendaba instancia de pago sin sleep y cuentas de desarrollador. Coherente con un entregable académico</td>
+</tr>
+<tr>
+<td>D16</td>
+<td>Legado</td>
+<td><strong>No se arregla</strong></td>
+<td>Todo el esfuerzo va al sistema nuevo. Igual a la recomendación</td>
+</tr>
+<tr>
+<td>Cripto</td>
+<td>Librería E2EE</td>
+<td><strong><code>@noble/curves</code> (X25519) + <code>@noble/ciphers</code> (XChaCha20-Poly1305)</strong></td>
+<td>05 recomendaba libsodium nativo con spike y noble como plan B. noble elimina el riesgo del spike y el dev build; para mensajes de texto el rendimiento de JS puro alcanza</td>
+</tr>
+<tr>
+<td>Rúbrica</td>
+<td>Restricciones del docente</td>
+<td><strong>Ninguna tecnología ni arquitectura exigida</strong></td>
+<td>Las alternativas de D3 y D4 "por rúbrica" no hacen falta</td>
+</tr>
+<tr>
+<td>Mandato</td>
+<td>Alcance</td>
+<td><strong>La v1 es el mínimo; se hace todo el plan en 48 h</strong></td>
+<td>Excluidos: salas grupales y APIs externas no autorizadas</td>
+</tr>
+<tr>
+<td>APIs externas</td>
+<td>Autorizadas</td>
+<td><strong>Previews de iTunes, push FCM/APNs y conector Spotify</strong></td>
+<td>Prohibidas: login Google/Apple, Ticketmaster, Uber y cualquier otra no listada</td>
+</tr>
+</tbody>
+</table>
+<p>D17 (responsables por área y acuerdo con <code>edav404</code>) no aparece en 06. Queda como riesgo en la sección 12.</p>
+<p><strong>Entregables:</strong> demo en emulador o teléfono, tests pasando, código y repos limpios (solo back y front) y un documento de arquitectura.</p>
+<hr />
+<h2 id="alcance">10. Alcance: la v1 como mínimo y el plan completo</h2>
+<p><strong>Regla:</strong> la v1 (10.1 a 10.3) va primero y funciona de punta a punta con pruebas. Después, en las mismas 48 horas, se ejecuta el resto del plan (secciones 8.5 y 11). Nada de lo que entra se deja a medias.</p>
+<h3 id="101-backend-encorly_back-rama-rebuildv1-net-10">10.1 Backend: <code>encorly_back</code>, rama <code>rebuild/v1</code>, .NET 10</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Funcionalidad</th>
+<th>Criterio de aceptación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td><strong>Auth por email:</strong> registro, login, refresh con rotación, logout que revoca el refresh</td>
+<td>Email normalizado (trim + minúsculas), BCrypt, JWT de 15–30 min + refresh; rate limit en login</td>
+</tr>
+<tr>
+<td>B2</td>
+<td><strong>Identidad solo desde el JWT</strong> en todos los endpoints</td>
+<td>Test: el usuario A no lee ni escribe nada de B (403/404)</td>
+</tr>
+<tr>
+<td>B3</td>
+<td><strong>Perfil:</strong> ver, editar (nombre, edad 18+, ciudad, géneros) y <strong>borrar cuenta</strong></td>
+<td>Borrar elimina los datos personales y los mensajes del usuario</td>
+</tr>
+<tr>
+<td>B4</td>
+<td><strong>Catálogo curado</strong> de canciones (seed) con género, artista, portada y preview</td>
+<td>Al menos 60 canciones de la escena colombiana y latina</td>
+</tr>
+<tr>
+<td>B5</td>
+<td><strong>Swipes</strong> like/dislike, únicos por canción; <strong>ADN = vector de géneros</strong> que cambia con cada swipe</td>
+<td>Test: el ADN cambia tras los swipes; repetir una canción no suma</td>
+</tr>
+<tr>
+<td>B6</td>
+<td><strong>Eventos curados</strong> (Bogotá y Medellín, fechas futuras) + "voy a este evento"</td>
+<td>Al menos 15 eventos en el seed</td>
+</tr>
+<tr>
+<td>B7</td>
+<td><strong>Radar por evento:</strong> asistentes del evento ordenados por afinidad real (no todos al 99 %)</td>
+<td>Umbral configurable; solo aparecen usuarios que van al evento</td>
+</tr>
+<tr>
+<td>B8</td>
+<td><strong>Match recíproco:</strong> like a una persona; match solo si los dos se dan like; estado en <code>Matches</code></td>
+<td>Test: un like unilateral no crea match</td>
+</tr>
+<tr>
+<td>B9</td>
+<td><strong>Chat:</strong> enviar y listar paginado por REST, aviso en tiempo real por <code>ChatHub</code> autenticado; <strong>el servidor solo guarda ciphertext</strong></td>
+<td>Test: la BD no contiene texto plano; solo los miembros del match acceden</td>
+</tr>
+<tr>
+<td>B10</td>
+<td><strong>Directorio de llaves públicas</strong> (una llave por usuario en v1)</td>
+<td>El servidor nunca recibe llaves privadas</td>
+</tr>
+<tr>
+<td>B11</td>
+<td><strong>Bloquear y reportar</strong> usuario</td>
+<td>Un bloqueado no aparece en el radar ni puede escribir</td>
+</tr>
+<tr>
+<td>B12</td>
+<td>Errores <strong>ProblemDetails</strong> en español, validación, <code>/health/live</code> y <code>/health/ready</code> sin detalles, Swagger solo en Development, <strong>OpenAPI exportado</strong></td>
+<td>Ningún 500 por input inválido</td>
+</tr>
+<tr>
+<td>B13</td>
+<td><strong>Tests:</strong> xUnit + WebApplicationFactory + Postgres real (Testcontainers)</td>
+<td>Suite verde en local y en GitHub Actions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="102-front-encorely-front-rama-rebuildv1-desde-expo-57-src-nuevo">10.2 Front: <code>encorely-front</code>, rama <code>rebuild/v1</code> (desde Expo 57), <code>src/</code> nuevo</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Funcionalidad</th>
+<th>Criterio de aceptación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td><strong>Registro y login</strong> por email; una sola sesión (<code>SessionContext</code>) en SecureStore; refresh automático ante 401</td>
+<td>Reabrir la app mantiene la sesión; un token vencido no deja la app zombi</td>
+</tr>
+<tr>
+<td>F2</td>
+<td><strong>Onboarding:</strong> datos básicos + elegir géneros (sin Spotify)</td>
+<td>Se completa sin salidas muertas</td>
+</tr>
+<tr>
+<td>F3</td>
+<td><strong>Swipe</strong> de canciones con preview (<code>expo-audio</code>) <strong>y botones ✕/♥</strong> accesibles</td>
+<td>Funciona solo con los botones (accesibilidad)</td>
+</tr>
+<tr>
+<td>F4</td>
+<td><strong>Eventos</strong> + marcar asistencia + <strong>Radar</strong> del evento</td>
+<td>Muestra asistentes reales con afinidad real</td>
+</tr>
+<tr>
+<td>F5</td>
+<td><strong>Like a una persona → match</strong>; lista de matches con nombre real</td>
+<td>Sin "Match XXXX" y sin cifras inventadas</td>
+</tr>
+<tr>
+<td>F6</td>
+<td><strong>Chat E2EE:</strong> llaves X25519 generadas en el dispositivo (SecureStore), mensajes cifrados con XChaCha20-Poly1305, <strong>código de seguridad</strong> visible para verificar</td>
+<td>El mensaje viaja y se guarda cifrado; la app declara "sin forward secrecy" en la información de seguridad</td>
+</tr>
+<tr>
+<td>F7</td>
+<td><strong>Perfil:</strong> editar, cerrar sesión, <strong>borrar cuenta</strong>; bloquear y reportar desde el chat</td>
+<td>Todo funciona en Android</td>
+</tr>
+<tr>
+<td>F8</td>
+<td><strong>Design system "boleta":</strong> tokens, Big Shoulders + Archivo + IBM Plex Mono, iconos Phosphor, componentes base; <strong>sin emojis como iconos ni datos falsos</strong></td>
+<td>Un solo tema; contraste AA</td>
+</tr>
+<tr>
+<td>F9</td>
+<td><strong>Tests:</strong> Jest para la cripto (cifrar y descifrar; una llave equivocada falla) y para el cliente API</td>
+<td>Suite verde</td>
+</tr>
+</tbody>
+</table>
+<h3 id="103-documentacion-y-repos">10.3 Documentación y repos</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Entregable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D‑1</td>
+<td>README de cada repo como <strong>runbook</strong>: levantar en menos de 15 min (docker compose + migraciones + seed + app en emulador)</td>
+</tr>
+<tr>
+<td>D‑2</td>
+<td><code>ARCHITECTURE.md</code>: diagrama, capas, modelo de datos, flujo de match y <strong>E2EE con modelo de amenazas y límites declarados</strong></td>
+</tr>
+<tr>
+<td>D‑3</td>
+<td>Contrato <strong>OpenAPI</strong> versionado (para quien continúe el proyecto)</td>
+</tr>
+<tr>
+<td>D‑4</td>
+<td><code>.env.example</code> completos y sin secretos de fallback; CI mínimo (build + tests) en los dos repos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="104-que-queda-fuera-del-alcance-total">10.4 Qué queda FUERA del alcance total</h3>
+<p>Esta es la lista completa. Todo lo demás del plan se hace.</p>
+<table>
+<thead>
+<tr>
+<th>Fuera</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Salas grupales</strong> por evento</td>
+<td>Decisión del dueño</td>
+</tr>
+<tr>
+<td>Login con <strong>Google y Apple</strong></td>
+<td>API externa no autorizada</td>
+</tr>
+<tr>
+<td><strong>Ticketmaster, Uber</strong> y cualquier otra API externa no autorizada</td>
+<td>Decisión del dueño</td>
+</tr>
+<tr>
+<td><strong>Publicación en tiendas</strong> y hosting de producción</td>
+<td>D15: el entregable es código + demo. Sí se preparan los requisitos de tiendas (borrado de cuenta, reportar/bloquear, política de privacidad, 18+)</td>
+</tr>
+<tr>
+<td><strong>QA en iOS</strong></td>
+<td>No hay Mac en el entorno; se documenta lo verificado por código</td>
+</tr>
+<tr>
+<td>Landing, Django, Python y monorepo</td>
+<td>El dueño decidió no tocarlos</td>
+</tr>
+<tr>
+<td>Kafka, Redis y Worker</td>
+<td>Eliminados por D3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="105-orden-de-trabajo">10.5 Orden de trabajo</h3>
+<ol>
+<li>Base de repos y ramas.</li>
+<li>Back: B1, B2 y B12, más el esquema y el seed.</li>
+<li>Front: F1 y el design system F8.</li>
+<li>Swipe, ADN, eventos y radar: B4–B7 y F2–F4.</li>
+<li>Match y chat E2EE: B8–B10 y F5–F6.</li>
+<li>Perfil, borrar cuenta, bloquear y reportar: B3, B11 y F7.</li>
+<li>Tests, documentación y CI.</li>
+<li>Sin pausa: etapas v1.1 y v2 de la sección 11.</li>
+</ol>
+<h3 id="106-prioridad-dentro-de-las-48-horas">10.6 Prioridad dentro de las 48 horas</h3>
+<p>No hay lista de recortes. Hay un orden:</p>
+<ol>
+<li><strong>v1 completa</strong> (10.1 a 10.3).</li>
+<li><strong>Etapa v1.1</strong> (11.1): dev build, push, seguridad del chat, forward secrecy gruesa, conector Spotify adaptado y pulido nativo.</li>
+<li><strong>Etapa v2</strong> (11.2): cumplimiento de tiendas listo para publicar, chat avanzado, panel de administración.</li>
+</ol>
+<p><strong>Nunca se rompe:</strong> identidad desde el JWT, match recíproco, chat cifrado funcional y tests de autorización. Cada etapa se integra solo si la suite sigue verde.</p>
+<hr />
+<h2 id="plan">11. Plan después de la v1 (dentro de las 48 h)</h2>
+<p>El plan del reporte general (fases 0–7, ≈ 132 días-persona para llegar a tiendas) se reordena según las decisiones de 06 y <strong>se ejecuta completo en las 48 horas</strong>, después de la v1. Los esfuerzos se dejan como referencia de tamaño, no como límite. Los esfuerzos vienen de 00 y 05 cuando existen; donde no, se marca "estimación de este documento". Días-persona (dp) a tiempo completo; con dedicación universitaria (~20 h/semana), el calendario se multiplica por 2.</p>
+<h3 id="111-etapa-v11-completar-la-app-para-uso-real">11.1 Etapa v1.1: completar la app para uso real</h3>
+<table>
+<thead>
+<tr>
+<th>Bloque</th>
+<th>Contenido</th>
+<th>Esfuerzo aproximado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dev build y EAS</td>
+<td><code>expo-dev-client</code>, perfiles <code>development</code>/<code>preview</code>/<code>production</code> con su URL de API, primer APK instalado en un Android físico</td>
+<td>~10 dp (fase 0.6 de 00, parte ya hecha en la v1)</td>
+</tr>
+<tr>
+<td>Push sin contenido</td>
+<td><code>expo-notifications</code>, tabla de tokens por dispositivo, Expo Push API, deep link en arranque en frío</td>
+<td>~3 dp (fase 3 de 05) + configuración</td>
+</tr>
+<tr>
+<td>Seguridad del chat</td>
+<td>Aviso de cambio de llave, QR con cámara, franking en reportes</td>
+<td>~8 dp (fase 4 de 05, parcial)</td>
+</tr>
+<tr>
+<td>Forward secrecy gruesa</td>
+<td>Llave de caja rotada cada 7 días, firmada</td>
+<td>~8 dp (fase 6 de 05)</td>
+</tr>
+<tr>
+<td>Validación del diseño</td>
+<td>Prueba con 5 usuarios de 18–30 años en Bogotá y Medellín; ajustes; tema Papel</td>
+<td>~2 días + ajustes (03-F0)</td>
+</tr>
+<tr>
+<td>Pulido nativo</td>
+<td>Icono y splash propios, <code>expo-image</code>, fuentes incrustadas, red con timeout y banner "Sin conexión", revisión en dev build</td>
+<td>Parte de los ~12 dp de la fase 1 de 00</td>
+</tr>
+</tbody>
+</table>
+<h3 id="112-etapa-v2-producto-listo-para-publicar">11.2 Etapa v2: producto listo para publicar</h3>
+<table>
+<thead>
+<tr>
+<th>Bloque</th>
+<th>Contenido</th>
+<th>Esfuerzo aproximado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cumplimiento y tiendas</td>
+<td>Consentimiento versionado (Ley 1581), política y términos publicados, URL web de borrado, cuenta demo, Data Safety, App Privacy, <code>PrivacyInfo.xcprivacy</code>, Maestro en EAS, VoiceOver/TalkBack</td>
+<td>~18 dp + 14 días de prueba cerrada en Play (fase 4 de 00)</td>
+</tr>
+<tr>
+<td>Preparación de despliegue</td>
+<td>Perfiles de EAS, <code>render.yaml</code> y variables documentadas para que publicar sea un paso, no un proyecto. No se paga hosting ni cuentas (D15)</td>
+<td>S (estimación de este documento)</td>
+</tr>
+<tr>
+<td>Chat avanzado</td>
+<td>Borrado tras entrega + SQLCipher, backup cifrado (~6 dp), multi-dispositivo (L)</td>
+<td>05 fases 2, 5 y 7</td>
+</tr>
+<tr>
+<td>Spotify como conector</td>
+<td><strong>Ya construido por <code>edav404</code></strong> (PKCE en el front, <code>SpotifyService</code> en el back). Se conserva y adapta: <code>/me/top</code> para enriquecer el ADN, sin <code>audio-features</code>, con atribución y el límite de 5 usuarios del modo desarrollo</td>
+<td>S–M (adaptación)</td>
+</tr>
+<tr>
+<td>QA en iOS</td>
+<td>EAS Build + TestFlight; Maestro en simulador iOS de EAS</td>
+<td>Incluido en la fase 4 de 00</td>
+</tr>
+<tr>
+<td>Panel de administración</td>
+<td>Alta de eventos y canciones sin seed</td>
+<td>M (estimación de este documento)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="riesgos">12. Riesgos y supuestos</h2>
+<h3 id="121-riesgos">12.1 Riesgos</h3>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Probabilidad</th>
+<th>Impacto</th>
+<th>Mitigación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>48 h para todo el plan</strong> es un objetivo muy exigente; el punto más riesgoso es el chat E2EE</td>
+<td>Alta</td>
+<td>Etapas sin terminar</td>
+<td>Cortes verticales con la suite verde en cada integración, v1 primero, agentes en paralelo por área y <code>@noble</code> para evitar el dev build en el chat</td>
+</tr>
+<tr>
+<td>La rama Expo 57 es de <code>edav404</code></td>
+<td>Media</td>
+<td>Pisarse o duplicar trabajo</td>
+<td>Avisarle que <code>rebuild/v1</code> parte de su trabajo antes de empezar</td>
+</tr>
+<tr>
+<td>Términos de uso de las previews de iTunes</td>
+<td>Media</td>
+<td>Rediseño del feed para uso comercial</td>
+<td>Uso académico con atribución; revisar términos antes de un uso comercial. Fallback: portada + artista</td>
+</tr>
+<tr>
+<td>.NET 10 SDK no está instalado</td>
+<td>Alta</td>
+<td>Fricción al inicio</td>
+<td>Instalarlo al arrancar (repositorio apt de Microsoft o mise)</td>
+</tr>
+<tr>
+<td>Dirección visual sin validar (D5)</td>
+<td>Media</td>
+<td>Rehacer componentes si no conecta</td>
+<td>Todos los valores en tokens; validación en v1.1</td>
+</tr>
+<tr>
+<td>Trabajo local sin commit (back y front)</td>
+<td>Media</td>
+<td>Perderlo al crear ramas</td>
+<td>Commitearlo en una rama WIP antes de crear <code>rebuild/v1</code></td>
+</tr>
+<tr>
+<td><code>@noble</code> en JS puro con muchos mensajes</td>
+<td>Baja</td>
+<td>Lentitud al descifrar historiales largos</td>
+<td>Paginación; descifrar solo la página visible</td>
+</tr>
+<tr>
+<td>ADN solo por géneros (D11)</td>
+<td>Media</td>
+<td>Afinidad poco discriminante si todos eligen los mismos géneros</td>
+<td>Test de propiedades: perfiles opuestos &lt; 0,5 e idénticos &gt; 0,9; sumar artistas en v1.1</td>
+</tr>
+<tr>
+<td>Producción con usuarios o datos reales no inventariados</td>
+<td>Baja (sospecha)</td>
+<td>Migración no planificada</td>
+<td>Auditar producción en solo lectura antes de apagar el legado</td>
+</tr>
+</tbody>
+</table>
+<h3 id="122-supuestos">12.2 Supuestos</h3>
+<ol>
+<li>No hay usuarios reales en producción (pendiente de confirmar).</li>
+<li>El entregable es académico: no se publica en tiendas (D15), pero queda preparado para hacerlo.</li>
+<li>La rúbrica no exige ninguna tecnología ni arquitectura (confirmado en 06).</li>
+<li>La política de Spotify descrita en 04 (documentación de febrero a julio de 2026) es correcta; no se re-verificó.</li>
+<li>Las estimaciones de esfuerzo tienen ±30 % de margen.</li>
+<li>El emulador Android es suficiente para la demo; iOS no se prueba.</li>
+</ol>
+<hr />
+<h2 id="pendientes">13. Pendientes fuera del plan</h2>
+<h3 id="131-rotacion-de-la-clave-de-supabase">13.1 Rotación de la clave de Supabase</h3>
+<p>La contraseña de la BD de producción existe en el commit <code>955db69</code> de un repo público. <strong>El dueño la rotará después</strong>; queda registrado aquí. Mientras tanto, la regla práctica es no guardar datos reales en esa BD. Complementa activar secret scanning y push protection en la org.</p>
+<h3 id="132-qa-en-ios-no-hecho">13.2 QA en iOS no hecho</h3>
+<p>No hay Mac en el entorno. Todo lo de iOS (teclado del chat, swipe-back, Keychain tras reinstalar, notch, Dynamic Type) es lectura de código o sospecha. Queda para v2 con EAS Build y TestFlight.</p>
+<h3 id="133-produccion-no-auditada">13.3 Producción no auditada</h3>
+<p>No se revisaron Render (si usa Docker, si hay Kafka, Redis o Worker, qué variables tiene), Supabase (esquema real, RLS, si la clave ya se rotó, si hay datos reales), Vercel (sin deploy desde el 29 de mayo, probablemente por el lockfile) ni Netlify.</p>
+<h3 id="134-rama-de-edav404-a-coordinar">13.4 Rama de <code>edav404</code> a coordinar</h3>
+<p><code>rebuild/v1</code> del front parte de <code>codex/actualizar-frontend</code>, que es de otra persona y nunca se compiló en nativo. Hay que avisarle antes de empezar.</p>
+<h3 id="135-limpieza-ya-hecha">13.5 Limpieza ya hecha</h3>
+<p>Los archivos temporales del QA (que incluían JWT locales ya vencidos) se borraron. La BD local, que quedó con usuarios <code>qa*@example.com</code>, cuentas <code>google_*@google.com</code>, mensajes <code>QA*</code> y bienvenidas duplicadas, es un volumen de Docker que se puede recrear desde el seed; solo tiene datos ficticios.</p>
+<h3 id="136-sospechas-abiertas">13.6 Sospechas abiertas</h3>
+<table>
+<thead>
+<tr>
+<th>Sospecha</th>
+<th>Cómo cerrarla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Producción (Render/Supabase) rota: Kafka ausente, timeouts de 300 s, imagen .NET 9</td>
+<td>Revisar el dashboard y los logs de Render</td>
+</tr>
+<tr>
+<td>Vercel sin deploy desde el 29 de mayo por el lockfile</td>
+<td>Panel de Vercel</td>
+</tr>
+<tr>
+<td>El dashboard de Spotify rechaza el redirect <code>encorely://spotify-callback</code></td>
+<td>Primer dev build (relevante solo si vuelve Spotify)</td>
+</tr>
+<tr>
+<td>Hueco de unos 34 pt entre el input del chat y el teclado en iOS</td>
+<td>Dev build en iOS</td>
+</tr>
+<tr>
+<td>Supabase con RLS y columnas que coinciden con Dapper</td>
+<td>Leer el esquema de producción en solo lectura</td>
+</tr>
+</tbody>
+</table>
+<h3 id="137-otras-cosas-no-hechas">13.7 Otras cosas no hechas</h3>
+<p>Pentest, pruebas de carga, revisión legal (Ley 1581, términos de iTunes, Developer Policy de Spotify), Spotify real (OAuth nativo, <code>/Auth/spotify</code>, <code>dna-mix</code>), WebSockets de SignalR más allá de <code>negotiate</code> y un cliente de escucha, y una segunda pasada del QA con <code>ASPNETCORE_ENVIRONMENT=Production</code>.</p>
+<hr />
+<h2 id="conserva">14. Lo que está bien y se conserva</h2>
+<p><strong>Back:</strong></p>
+<ul>
+<li>SQL 100 % parametrizado. <code>IncrementSwipeCountAsync</code> atómico (<code>UPDATE … RETURNING</code>).</li>
+<li>BCrypt para contraseñas; refresh token generado con un RNG criptográfico.</li>
+<li>El JWT valida issuer, audience, firma y lifetime, y <code>TokenService</code> ya emite el claim <code>NameIdentifier</code>.</li>
+<li><code>[Authorize]</code> en los controllers que no son de auth; CORS con orígenes explícitos; stack trace solo en Development.</li>
+<li>Dockerfile multi-stage con usuario no root; <code>.env</code> nunca commiteado.</li>
+</ul>
+<p><strong>Front:</strong></p>
+<ul>
+<li>PKCE S256 sin client secret (útil cuando vuelva Spotify como conector).</li>
+<li><code>apiRequest</code>/<code>ApiError</code> centralizados y con tests.</li>
+<li>SecureStore para los tokens en nativo.</li>
+<li>Swipe con Reanimated 4 + Gesture Handler en worklets (se rehace con <code>scheduleOnRN</code> y <code>useWindowDimensions</code>).</li>
+<li><code>strict: true</code>; <code>react-native-safe-area-context</code>, <code>GestureHandlerRootView</code> y el wrapper de haptics.</li>
+<li>En Android funcionan el BACK, el teclado del chat, la persistencia de sesión y los mensajes de error del login.</li>
+</ul>
+<p><strong>Rama Expo 57:</strong></p>
+<ul>
+<li><code>expo-audio</code> con ciclo de vida correcto y 6 tests.</li>
+<li>Un solo lockfile (pnpm), CI JS, Expo Doctor 21/21 y typecheck limpio.</li>
+</ul>
+<p><strong>Landing (aunque no se toca en la v1):</strong></p>
+<ul>
+<li>Netlify Function con la key en el servidor e idempotente; <code>aria-live</code> en el formulario; la mayoría de los contrastes pasan AA.</li>
+</ul>
+<p><strong>Activos de proceso:</strong></p>
+<ul>
+<li>Los 6 reportes como especificación; la propuesta de diseño (03 §5–6) y la arquitectura E2EE (05) como diseño de detalle.</li>
+<li>Los guiones de personas y de seguridad del enjambre QA como base de pruebas de regresión.</li>
+<li><code>db/init/01_schema.sql</code> como inventario de columnas y el seed ficticio como fixture (sin la contraseña del comentario).</li>
+<li>Las constraints del modelo Django (<code>unique_together</code>) como referencia del esquema.</li>
+<li>El concepto de producto: swipe → ADN → radar por evento → match → chat.</li>
+</ul>
+<hr />
+<h2 id="glosario">15. Glosario</h2>
+<table>
+<thead>
+<tr>
+<th>Término</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AAD</strong></td>
+<td>Datos adicionales autenticados: no se cifran, pero si cambian, el descifrado falla</td>
+</tr>
+<tr>
+<td><strong>ASVS</strong></td>
+<td>Estándar de verificación de seguridad de aplicaciones de OWASP; L1 es el nivel mínimo</td>
+</tr>
+<tr>
+<td><strong>BOLA / IDOR</strong></td>
+<td>Fallo de autorización: acceder a un objeto ajeno cambiando su ID en la petición</td>
+</tr>
+<tr>
+<td><strong>Ciphertext</strong></td>
+<td>El mensaje ya cifrado; ilegible sin la llave</td>
+</tr>
+<tr>
+<td><strong>Código de seguridad</strong></td>
+<td>Número derivado de las llaves públicas de los dos usuarios; si coincide en ambos teléfonos, nadie se metió en medio</td>
+</tr>
+<tr>
+<td><strong>Dev build</strong></td>
+<td>Versión de desarrollo de la app compilada con tus módulos nativos; reemplaza a Expo Go cuando hace falta push o código nativo</td>
+</tr>
+<tr>
+<td><strong>Drift</strong></td>
+<td>Diferencia entre lo que el código espera de la BD y lo que la BD tiene</td>
+</tr>
+<tr>
+<td><strong>E2EE</strong></td>
+<td>Cifrado de extremo a extremo: solo emisor y receptor pueden leer el mensaje; el servidor no</td>
+</tr>
+<tr>
+<td><strong>EAS</strong></td>
+<td>Servicios de Expo para compilar, firmar y publicar builds en la nube</td>
+</tr>
+<tr>
+<td><strong>EF Core</strong></td>
+<td>ORM de .NET que mapea clases a tablas y genera migraciones</td>
+</tr>
+<tr>
+<td><strong>Expo Go</strong></td>
+<td>App genérica para probar proyectos Expo sin compilar; no admite módulos nativos propios ni push en Android</td>
+</tr>
+<tr>
+<td><strong>Forward secrecy</strong></td>
+<td>Propiedad por la que robar una llave hoy no permite leer mensajes de ayer</td>
+</tr>
+<tr>
+<td><strong>Franking</strong></td>
+<td>Técnica para que un mensaje cifrado reportado se pueda probar auténtico ante el moderador</td>
+</tr>
+<tr>
+<td><strong>IaC</strong></td>
+<td>Infraestructura como código (terraform, k8s, <code>render.yaml</code>)</td>
+</tr>
+<tr>
+<td><strong>JWT</strong></td>
+<td>Token firmado que el servidor entrega al iniciar sesión y que identifica al usuario en cada petición</td>
+</tr>
+<tr>
+<td><strong>Migración</strong></td>
+<td>Script versionado que lleva el esquema de la BD de una versión a la siguiente</td>
+</tr>
+<tr>
+<td><strong>Nonce</strong></td>
+<td>Número que se usa una sola vez por mensaje cifrado; repetirlo con la misma llave rompe la seguridad</td>
+</tr>
+<tr>
+<td><strong>OpenAPI</strong></td>
+<td>Formato estándar que describe los endpoints de un API; de él se generan clientes y documentación</td>
+</tr>
+<tr>
+<td><strong>PKCE</strong></td>
+<td>Variante segura de OAuth para apps móviles que no pueden guardar un secreto</td>
+</tr>
+<tr>
+<td><strong>ProblemDetails</strong></td>
+<td>Formato estándar (RFC 9457) para respuestas de error HTTP en JSON</td>
+</tr>
+<tr>
+<td><strong>Rate limit</strong></td>
+<td>Límite de peticiones por tiempo, por ejemplo intentos de login por minuto</td>
+</tr>
+<tr>
+<td><strong>Refresh token</strong></td>
+<td>Token de larga duración que permite pedir un JWT nuevo sin volver a escribir la contraseña</td>
+</tr>
+<tr>
+<td><strong>SecureStore</strong></td>
+<td>Almacén cifrado del sistema (Keychain en iOS, Keystore en Android) que expone Expo</td>
+</tr>
+<tr>
+<td><strong>SignalR</strong></td>
+<td>Librería de .NET para mensajes en tiempo real sobre WebSockets</td>
+</tr>
+<tr>
+<td><strong>SQLCipher</strong></td>
+<td>SQLite cifrado; guarda datos locales protegidos por una llave</td>
+</tr>
+<tr>
+<td><strong>Testcontainers</strong></td>
+<td>Librería que levanta una BD real en Docker durante los tests</td>
+</tr>
+<tr>
+<td><strong>TOFU</strong></td>
+<td>"Confiar en el primer uso": se acepta la primera llave vista sin verificarla</td>
+</tr>
+<tr>
+<td><strong>X25519</strong></td>
+<td>Algoritmo para que dos partes acuerden un secreto común a partir de sus llaves</td>
+</tr>
+<tr>
+<td><strong>XChaCha20-Poly1305</strong></td>
+<td>Algoritmo de cifrado autenticado con nonce de 24 bytes, cómodo para generar al azar</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="anexo-a">Anexo A. Índice de reportes detallados</h2>
+<p>Todos están en <code>/home/crincon/Documents/Universidad/Encorely/reportes/</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Ábrelo cuando necesites</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00-reporte-general.md</code></td>
+<td>El plan por fases completo (≈ 132 dp), los requisitos ASVS por área, las opciones de cada decisión D1–D17 y la evaluación detallada por capa</td>
+</tr>
+<tr>
+<td><code>01-auditoria-externa.md</code></td>
+<td>Los 58 hallazgos estáticos con su fix en código, la tabla de redundancias y los quick wins del legado</td>
+</tr>
+<tr>
+<td><code>02-enjambre-qa.md</code></td>
+<td>Los pasos exactos para reproducir cada bug, las peticiones usadas, los diffs propuestos y el anexo de QA en Android</td>
+</tr>
+<tr>
+<td><code>03-auditoria-diseno.md</code></td>
+<td>El inventario de tells, la auditoría pantalla por pantalla, el <code>tokens.ts</code> completo y el orden de construcción de componentes</td>
+</tr>
+<tr>
+<td><code>04-auditoria-movil.md</code></td>
+<td>La configuración de EAS propuesta, el interceptor de refresh, el checklist de tiendas y el plan de testing nativo</td>
+</tr>
+<tr>
+<td><code>05-chat-e2ee-propuesta.md</code></td>
+<td>La comparación libsodium / Signal / MLS, el contrato del chat, el SQL de sobres y dispositivos, el franking y las fases del chat</td>
+</tr>
+<tr>
+<td><code>06-decisiones-y-alcance-v1.md</code></td>
+<td>La fuente oficial de las decisiones y del alcance de la v1</td>
+</tr>
+<tr>
+<td><code>capturas-qa/</code></td>
+<td>141 capturas: <code>ui1-*</code>, <code>ui2-*</code>, <code>ui3-*</code> (navegador), <code>nativo-*</code> (Android) y <code>diseno-*</code> (auditoría de diseño; son JPEG con extensión <code>.png</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="anexo-b">Anexo B. Correspondencia GEN-xx → IDs de origen</h2>
+<p>Convención: <code>01-C1</code> = hallazgo C1 de la auditoría externa; <code>02-C5</code> = hallazgo C5 del enjambre QA; <code>02-nat-7</code> = hallazgo nativo-7 del anexo Android; <code>03-T10</code> = tell T10 de diseño; <code>04-C3</code> = hallazgo C3 de móvil; <code>05-§x</code> = sección de la propuesta de chat.</p>
+<table>
+<thead>
+<tr>
+<th>GEN</th>
+<th>Sev.</th>
+<th>Título corto</th>
+<th>Capa</th>
+<th>Orígenes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN-01</td>
+<td>🔴</td>
+<td>IDOR sistémico</td>
+<td>Seguridad</td>
+<td>01-C1, 01-C2, 02-C5, 02-C8, 02-I5, 02-M10, 05-§2.2 S2/S3</td>
+</tr>
+<tr>
+<td>GEN-02</td>
+<td>🔴</td>
+<td>Auth falsificable y vinculación insegura</td>
+<td>Seguridad</td>
+<td>01-C3, 02-C7, 04-I11, 04-C4 (parte)</td>
+</tr>
+<tr>
+<td>GEN-03</td>
+<td>🔴</td>
+<td>Sesión sin refresh</td>
+<td>Seguridad</td>
+<td>01-C12, 02-M9, 04-C3</td>
+</tr>
+<tr>
+<td>GEN-04</td>
+<td>🔴</td>
+<td>Secretos en historial y fallbacks</td>
+<td>Seguridad</td>
+<td>01-C4, 01-C5, 02-I14, 01-I9 (parte)</td>
+</tr>
+<tr>
+<td>GEN-05</td>
+<td>🔴</td>
+<td>Matchmaking no funciona</td>
+<td>Back</td>
+<td>02-C1, 02-C4, 02-I11, 02-I12, 02-M1, 01-I2, 01-I4, 01-C15 (parte)</td>
+</tr>
+<tr>
+<td>GEN-06</td>
+<td>🔴</td>
+<td>Dependencia de Spotify inviable</td>
+<td>Back</td>
+<td>04-C4, 01-I20, 01-C13, 02-I19, 02-M14, 02-I25, 02-nat-3, 02-nat-4, 02-nat-8, 01-I10</td>
+</tr>
+<tr>
+<td>GEN-07</td>
+<td>🔴</td>
+<td>Chat no funcional y en claro</td>
+<td>Chat</td>
+<td>01-C11, 02-C2, 02-M16, 02-M17, 02-M2, 02-nat-7, 01-M6, 03 (chat), 05-§1</td>
+</tr>
+<tr>
+<td>GEN-08</td>
+<td>🔴</td>
+<td>Matches sin estado ni consentimiento</td>
+<td>Back</td>
+<td>01-I5, 02-I3, 02-I4, 02-I6, 02-I24, 05-§2.1 F10</td>
+</tr>
+<tr>
+<td>GEN-09</td>
+<td>🔴</td>
+<td>Esquema sin fuente de verdad</td>
+<td>BD</td>
+<td>01-C9, 01-C10, 02-C3, 01-I24, 02-I2, 02-I9, 02-I18</td>
+</tr>
+<tr>
+<td>GEN-10</td>
+<td>🔴</td>
+<td>Pipeline nativo inexistente</td>
+<td>Móvil</td>
+<td>04-C1, 04-C2, 04-I10, 04-I12, 02-nat-1, 01-I26 (parte)</td>
+</tr>
+<tr>
+<td>GEN-11</td>
+<td>🔴</td>
+<td>Cumplimiento de tiendas y ley ausente</td>
+<td>Móvil</td>
+<td>04-C5, 04-C6, 04-C7, 01-M7, 05-§2.1 F7–F9, 04 §5</td>
+</tr>
+<tr>
+<td>GEN-12</td>
+<td>🔴</td>
+<td>Push inexistente e inseguro</td>
+<td>Móvil</td>
+<td>04-C8, 02-I6, 01-C15 (parte), 05-§5.6</td>
+</tr>
+<tr>
+<td>GEN-13</td>
+<td>🔴</td>
+<td>UI con datos inventados</td>
+<td>UI/UX</td>
+<td>01-C15, 01-I18, 01-M5, 02-I22, 02-I23, 02-I26, 02-I27, 02-nat-5, 02-nat-6, 02-nat-8, 03-T10, 03-T16, 03-T18, 04-M4</td>
+</tr>
+<tr>
+<td>GEN-14</td>
+<td>🔴</td>
+<td>Hubs SignalR anónimos</td>
+<td>Seguridad</td>
+<td>01-C16, 02-C6, 04-I9, 05-§5.6</td>
+</tr>
+<tr>
+<td>GEN-15</td>
+<td>🔴</td>
+<td>Back no desplegable</td>
+<td>Back</td>
+<td>01-C6, 01-C7, 01-C8, 01-I25</td>
+</tr>
+<tr>
+<td>GEN-16</td>
+<td>🟠</td>
+<td>Arquitectura sobredimensionada</td>
+<td>Back</td>
+<td>01-I1, 01-I2, 01-I3, 01-I7, 01 §5</td>
+</tr>
+<tr>
+<td>GEN-17</td>
+<td>🟠</td>
+<td>Mensajería sin garantías</td>
+<td>Back</td>
+<td>01-C8, 01-I6, 05-§5.6, verificación propia</td>
+</tr>
+<tr>
+<td>GEN-18</td>
+<td>🟠</td>
+<td>Sin validación ni mapeo de errores</td>
+<td>Back</td>
+<td>01-C6 (pendiente), 01-I7, 02-I1, 02-I8, 02-I10, 02-I16, 02-M6, 02-M7</td>
+</tr>
+<tr>
+<td>GEN-19</td>
+<td>🟠</td>
+<td>Auth bajo ASVS L1</td>
+<td>Seguridad</td>
+<td>01-I8, 02-I17, 02-I9, 02-I18, 02-M6</td>
+</tr>
+<tr>
+<td>GEN-20</td>
+<td>🟠</td>
+<td>Superficie operativa expuesta</td>
+<td>Seguridad</td>
+<td>01-I9, 02-M11</td>
+</tr>
+<tr>
+<td>GEN-21</td>
+<td>🟠</td>
+<td>Salas: moderación ingenua</td>
+<td>Back</td>
+<td>01-I10, 02-I7, 02-I15, 02-M3, 02-M4, 02-M5, 02-M8, 02-M10</td>
+</tr>
+<tr>
+<td>GEN-22</td>
+<td>🟠</td>
+<td>Contrato implícito y divergente</td>
+<td>Contrato</td>
+<td>01 (scorecard de contratos), 01-I13, 02 (causas comunes), 02-I22, 03 (coherencia), 01 §5</td>
+</tr>
+<tr>
+<td>GEN-23</td>
+<td>🟠</td>
+<td>Arquitectura del front</td>
+<td>Front</td>
+<td>01-I11, 01-I12, 04-I5, 04-I7</td>
+</tr>
+<tr>
+<td>GEN-24</td>
+<td>🟠</td>
+<td>Navegación y layout nativos</td>
+<td>Front</td>
+<td>04-I1, 04-I2, 04-I3, 02-I20, 02-nat-2, 02-nat-9, 01-M8</td>
+</tr>
+<tr>
+<td>GEN-25</td>
+<td>🟠</td>
+<td>Estado filtrado entre usuarios</td>
+<td>Front</td>
+<td>01-I14, 01-I13 (parte)</td>
+</tr>
+<tr>
+<td>GEN-26</td>
+<td>🟠</td>
+<td>Accesibilidad nativa insuficiente</td>
+<td>UI/UX</td>
+<td>01-I16, 03 (a11y y contraste), 04-I6, 02-M13, 02-nat-10, 02-nat-11</td>
+</tr>
+<tr>
+<td>GEN-27</td>
+<td>🟠</td>
+<td>Identidad visual genérica</td>
+<td>UI/UX</td>
+<td>01-I17, 03-T1 a T19, 03 §3–4, 04-I8, 04-M3, 01-M7 (copy), 02-M7 (idioma)</td>
+</tr>
+<tr>
+<td>GEN-28</td>
+<td>🟠</td>
+<td>Audio de previews</td>
+<td>Front</td>
+<td>04-I4, 04-C1 (parte), 01-M8</td>
+</tr>
+<tr>
+<td>GEN-29</td>
+<td>🟠</td>
+<td>Calidad estática y tests</td>
+<td>Infra/DX</td>
+<td>01-I19, 01-I26, 01-I29, 04-M1</td>
+</tr>
+<tr>
+<td>GEN-30</td>
+<td>🟠</td>
+<td>Plataforma y dependencias al borde</td>
+<td>Infra/DX</td>
+<td>01-I30, 01-C17, 04-M2</td>
+</tr>
+<tr>
+<td>GEN-31</td>
+<td>🟠</td>
+<td>DX y docs irreales</td>
+<td>Infra/DX</td>
+<td>01-I21, 01-I22, 01-I23, 01-I28, 01-M11</td>
+</tr>
+<tr>
+<td>GEN-32</td>
+<td>🟠</td>
+<td>Repos divergentes</td>
+<td>Repos</td>
+<td>01-I27, 04-I12, 01-M10, <code>git status</code></td>
+</tr>
+<tr>
+<td>GEN-33</td>
+<td>🟠</td>
+<td>Landing de plantilla</td>
+<td>UI/UX</td>
+<td>03 §4.2, 03-T5 a T8, 03-T15, 01-M9, 01-C17 (react-router)</td>
+</tr>
+<tr>
+<td>GEN-34</td>
+<td>⚪</td>
+<td>Problemas solo web</td>
+<td>Front</td>
+<td>01-C14, 01-I15, 02-I13, 02-I21, 02-M12, 03-§3.1, 04 §4</td>
+</tr>
+<tr>
+<td>GEN-35</td>
+<td>⚪</td>
+<td>Código muerto</td>
+<td>Back</td>
+<td>01-M1, 01-M2, 03-§6.3</td>
+</tr>
+<tr>
+<td>GEN-36</td>
+<td>⚪</td>
+<td>Números mágicos y nombres</td>
+<td>Back</td>
+<td>01-M3, 01-M4</td>
+</tr>
+<tr>
+<td>GEN-37</td>
+<td>⚪</td>
+<td>Detalles nativos de rendimiento</td>
+<td>Móvil</td>
+<td>04-I8, 04-M4, 04-M5, 04-M6, 04-M7, 04-M8, 04-M9, 04-M10, 02-nat-12</td>
+</tr>
+</tbody>
+</table></body></html>

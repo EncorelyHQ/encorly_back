@@ -1,0 +1,1794 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Encorely — Análisis del software</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 22mm 20mm 24mm 20mm;
+  @bottom-center { content: counter(page) " / " counter(pages); font: 9pt 'Archivo', sans-serif; color: #6b6259; }
+  @top-right { content: "Encorely · Análisis del software"; font: 8.5pt 'Archivo', sans-serif; color: #9a8f84; }
+}
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+@page portada { margin: 0; @top-right { content: none; } @bottom-center { content: none; } }
+:root { --ink: #1d1a17; --muted: #5c544c; --line: #e3ddd5; --soft: #f7f3ee; --accent: #3d3631; }
+html { font-size: 10.6pt; }
+body { font-family: 'Source Serif 4', Georgia, serif; color: var(--ink); line-height: 1.55; margin: 0; background: #fff; }
+h1, h2, h3, h4 { font-family: 'Archivo', system-ui, sans-serif; line-height: 1.2; color: var(--ink); break-after: avoid; }
+h1 { font-size: 24pt; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 6mm; }
+h2 { font-size: 16pt; font-weight: 750; margin: 11mm 0 4mm; padding-top: 3mm; border-top: 2.5pt solid var(--accent); break-before: page; }
+h3 { font-size: 12.5pt; font-weight: 700; margin: 7mm 0 2.5mm; }
+h4 { font-size: 11pt; font-weight: 700; margin: 5mm 0 2mm; color: var(--muted); }
+h1 + p, h1 + p + p { font-size: 12pt; color: var(--muted); }
+p { margin: 0 0 3mm; orphans: 3; widows: 3; }
+ul, ol { margin: 0 0 3.5mm; padding-left: 6mm; }
+li { margin: 0.8mm 0; }
+li > p { margin: 0; }
+strong { font-weight: 700; }
+a { color: var(--accent); text-decoration: none; }
+code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.86em; background: var(--soft); padding: 0.4mm 1.2mm; border-radius: 1mm; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 0.6pt solid var(--line); border-radius: 2mm; padding: 3mm 4mm; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; font-size: 8.6pt; line-height: 1.45; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-family: 'Archivo', system-ui, sans-serif; font-size: 8.8pt; line-height: 1.4; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { text-align: left; font-weight: 700; background: var(--soft); border-bottom: 1.2pt solid var(--ink); padding: 1.8mm 2.2mm; vertical-align: bottom; }
+td { border-bottom: 0.5pt solid var(--line); padding: 1.6mm 2.2mm; vertical-align: top; overflow-wrap: break-word; }
+td code { overflow-wrap: anywhere; }
+blockquote { margin: 3mm 0 4mm; padding: 2.5mm 4mm; border-left: 2.5pt solid var(--accent); background: var(--soft); color: var(--muted); }
+hr { border: none; border-top: 0.6pt solid var(--line); margin: 6mm 0; }
+img { max-width: 100%; max-height: 120mm; display: block; margin: 3mm auto 1mm; border: 0.6pt solid var(--line); border-radius: 1.5mm; break-inside: avoid; }
+.toc { font-family: 'Archivo', system-ui, sans-serif; font-size: 10pt; }
+.mermaid { margin: 4mm 0 5mm; text-align: center; break-inside: avoid; }
+.mermaid svg { max-width: 100%; max-height: 190mm; height: auto; }
+.plantuml { margin: 4mm 0 5mm; text-align: center; break-inside: avoid; }
+.plantuml svg { max-width: 100%; max-height: 200mm; height: auto !important; width: auto !important; }
+.toc-paginas { break-before: page; break-after: page; font-family: 'Archivo', system-ui, sans-serif; }
+.toc-paginas ol { list-style: none; padding: 0; margin: 0; }
+.toc-paginas li { margin: 0; }
+.toc-paginas a { display: flex; align-items: baseline; gap: 2mm; color: var(--ink); padding: 0.9mm 0; }
+.toc-paginas b { flex: 1; border-bottom: 0.8pt dotted #a69b8f; transform: translateY(-1mm); }
+.toc-paginas em { font-style: normal; font-variant-numeric: tabular-nums; min-width: 7mm; text-align: right; }
+.toc-paginas .t2 { font-weight: 700; font-size: 10.5pt; margin-top: 2mm; }
+.toc-paginas .t3 { padding-left: 6mm; font-size: 9.6pt; }
+.toc-paginas .t4 { padding-left: 12mm; font-size: 9pt; color: var(--muted); }
+.fin-toc { color: #fff; font-size: 1pt; margin: 0; }
+/* Portada empresarial neutra: blanco y negro cálido, grises solo para jerarquía; el talón perforado es el único gesto de marca. */
+.portada { page: portada; break-after: page; width: 210mm; height: 297mm; display: flex; background: #fff; color: #1d1a17; font-family: 'Archivo', sans-serif; }
+.portada p { margin: 0; }
+.portada-cuerpo { flex: 1; padding: 30mm 16mm 24mm 22mm; display: flex; flex-direction: column; }
+.portada-marca { font-family: 'Big Shoulders Display', 'Big Shoulders', 'Archivo', sans-serif; font-weight: 800; font-size: 24pt; letter-spacing: 0.08em; color: #1d1a17; }
+.portada-tipo { margin-top: 58mm !important; font-family: 'IBM Plex Mono', monospace; font-size: 8.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; }
+.portada-titulo { margin-top: 5mm !important; font-family: 'Big Shoulders Display', 'Big Shoulders', 'Archivo', sans-serif; font-weight: 800; font-size: 48pt; line-height: 0.95; text-transform: uppercase; color: #1d1a17; }
+.portada-sub { margin-top: 7mm !important; max-width: 118mm; font-size: 11pt; line-height: 1.5; color: #5c544c; }
+.portada-datos { margin-top: auto; border-top: 0.8pt solid #1d1a17; padding-top: 6mm; display: grid; gap: 4.5mm; }
+.portada-datos span { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; margin-bottom: 1mm; }
+.portada-datos p { font-size: 10.5pt; color: #1d1a17; }
+.portada-talon { width: 46mm; padding: 30mm 8mm 24mm 9mm; border-left: 0.8pt dashed #b8afa5; display: flex; flex-direction: column; justify-content: flex-end; }
+.talon-etq { font-family: 'IBM Plex Mono', monospace; font-size: 7pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; }
+.talon-val { font-family: 'IBM Plex Mono', monospace; font-size: 9pt; color: #1d1a17; margin-bottom: 5mm !important; }
+</style><script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+// deterministicIds: con el reloj virtual de Chrome los IDs por hora se repiten y los diagramas se pisan.
+mermaid.initialize({ startOnLoad: false, deterministicIds: true, theme: 'neutral', fontFamily: 'Archivo, sans-serif',
+  flowchart: { htmlLabels: false }, er: { useMaxWidth: true } });
+await mermaid.run({ querySelector: '.mermaid' });
+</script></head><body><section class="portada">
+<div class="portada-cuerpo">
+<p class="portada-marca">ENCORELY</p>
+<p class="portada-tipo">Documentación técnica · Análisis</p>
+<p class="portada-titulo">Análisis del software</p>
+<p class="portada-sub">El problema que resuelve Encorely, sus requisitos, el equipo, las tecnologías y los componentes que lo forman.</p>
+<div class="portada-datos">
+<div><span>Preparado por</span><p>Camilo Rincón · Emmanuel Dávila · Samuel Sierra · Juan Diego Calle</p></div>
+<div><span>Preparado para</span><p>Tecnológico de Antioquia · Despliegue de Sistemas</p></div>
+<div><span>Lugar y fecha</span><p>Itagüí, Antioquia · 22 de octubre de 2026</p></div>
+</div>
+</div>
+<aside class="portada-talon">
+<p class="talon-etq">Documento</p><p class="talon-val">ENC-AS-001</p>
+<p class="talon-etq">Versión</p><p class="talon-val">1.1</p>
+<p class="talon-etq">Contrato API</p><p class="talon-val">v1.0.0-draft.17</p>
+<p class="talon-etq">Clasificación</p><p class="talon-val">Uso interno</p>
+</aside>
+</section>
+
+<nav class="toc-paginas"><h2 class="toc-titulo">Tabla de contenido</h2><ol><li class="t2"><a href="#1-control-documental"><span>1. Control documental</span><b></b><em>4</em></a></li><li class="t3"><a href="#11-control-y-aprobacion"><span>1.1 Control y aprobación</span><b></b><em>4</em></a></li><li class="t3"><a href="#12-historial-de-cambios"><span>1.2 Historial de cambios</span><b></b><em>4</em></a></li><li class="t2"><a href="#2-analisis-del-software"><span>2. Análisis del software</span><b></b><em>6</em></a></li><li class="t2"><a href="#3-perfiles-y-roles-del-equipo-de-trabajo"><span>3. Perfiles y roles del equipo de trabajo</span><b></b><em>7</em></a></li><li class="t2"><a href="#4-lenguaje-de-programacion-y-modelamiento-de-datos"><span>4. Lenguaje de programación y modelamiento de datos</span><b></b><em>8</em></a></li><li class="t3"><a href="#41-lenguajes-versiones-frameworks-y-librerias-principales"><span>4.1 Lenguajes, versiones, frameworks y librerías principales</span><b></b><em>8</em></a></li><li class="t3"><a href="#42-motor-de-base-de-datos-y-conexion"><span>4.2 Motor de base de datos y conexión</span><b></b><em>8</em></a></li><li class="t3"><a href="#43-entidades-tablas-relaciones-claves-y-restricciones"><span>4.3 Entidades, tablas, relaciones, claves y restricciones</span><b></b><em>9</em></a></li><li class="t3"><a href="#44-modelo-entidad-relacion"><span>4.4 Modelo entidad-relación</span><b></b><em>10</em></a></li><li class="t3"><a href="#45-conexiones-dependencias-migraciones-indices-y-respaldo"><span>4.5 Conexiones, dependencias, migraciones, índices y respaldo</span><b></b><em>11</em></a></li><li class="t3"><a href="#46-relacion-entre-componentes-y-estructuras-de-datos"><span>4.6 Relación entre componentes y estructuras de datos</span><b></b><em>12</em></a></li><li class="t2"><a href="#5-descripcion-y-analisis-del-problema"><span>5. Descripción y análisis del problema</span><b></b><em>14</em></a></li><li class="t3"><a href="#51-contexto"><span>5.1 Contexto</span><b></b><em>14</em></a></li><li class="t3"><a href="#52-problema-central"><span>5.2 Problema central</span><b></b><em>14</em></a></li><li class="t3"><a href="#53-causas"><span>5.3 Causas</span><b></b><em>15</em></a></li><li class="t3"><a href="#54-impacto"><span>5.4 Impacto</span><b></b><em>15</em></a></li><li class="t3"><a href="#55-usuarios-afectados-y-actores"><span>5.5 Usuarios afectados y actores</span><b></b><em>15</em></a></li><li class="t3"><a href="#56-requisitos-funcionales"><span>5.6 Requisitos funcionales</span><b></b><em>16</em></a></li><li class="t3"><a href="#57-requisitos-no-funcionales"><span>5.7 Requisitos no funcionales</span><b></b><em>17</em></a></li><li class="t3"><a href="#58-objetivo-de-la-solucion-y-como-se-mide"><span>5.8 Objetivo de la solución y cómo se mide</span><b></b><em>18</em></a></li><li class="t2"><a href="#6-modulos-y-componentes-del-software"><span>6. Módulos y componentes del software</span><b></b><em>19</em></a></li><li class="t3"><a href="#61-modulos-del-back"><span>6.1 Módulos del back</span><b></b><em>19</em></a></li><li class="t3"><a href="#62-modulos-de-la-app"><span>6.2 Módulos de la app</span><b></b><em>21</em></a></li><li class="t3"><a href="#63-relaciones-entre-modulos-y-flujo-de-informacion"><span>6.3 Relaciones entre módulos y flujo de información</span><b></b><em>22</em></a></li><li class="t4"><a href="#631-secuencia-del-match-reciproco"><span>6.3.1 Secuencia del match recíproco</span><b></b><em>22</em></a></li><li class="t4"><a href="#632-secuencia-del-envio-de-un-mensaje-cifrado"><span>6.3.2 Secuencia del envío de un mensaje cifrado</span><b></b><em>23</em></a></li><li class="t3"><a href="#64-componentes-criticos-y-puntos-unicos-de-falla"><span>6.4 Componentes críticos y puntos únicos de falla</span><b></b><em>24</em></a></li><li class="t3"><a href="#65-trazabilidad-entre-modulos-requisitos-datos-integraciones-y-seguridad"><span>6.5 Trazabilidad entre módulos, requisitos, datos, integraciones y seguridad</span><b></b><em>24</em></a></li><li class="t3"><a href="#66-matriz-basica-de-documentacion-de-componentes"><span>6.6 Matriz básica de documentación de componentes</span><b></b><em>25</em></a></li><li class="t2"><a href="#7-conclusion"><span>7. Conclusión</span><b></b><em>28</em></a></li></ol><p class="fin-toc">FINTOCMARCA</p></nav>
+<h2 id="1-control-documental">1. Control documental</h2>
+<h3 id="11-control-y-aprobacion">1.1 Control y aprobación</h3>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código del documento</td>
+<td>ENC-AS-001</td>
+</tr>
+<tr>
+<td>Sistema</td>
+<td>Encorely: app móvil <code>encorely-front</code> (Expo, Android e iOS) y API <code>encorly_back</code> (.NET 10 + PostgreSQL 16)</td>
+</tr>
+<tr>
+<td>Tipo de documento</td>
+<td>Análisis del software</td>
+</tr>
+<tr>
+<td>Docente</td>
+<td>Cristian Alzate Botero</td>
+</tr>
+<tr>
+<td>Base del código analizado</td>
+<td><code>encorly_back</code> rama <code>dev</code> (commit <code>aaa3dfc</code>) · <code>encorely-front</code> rama <code>Dev</code> (commit <code>beb9df1</code>)</td>
+</tr>
+<tr>
+<td>Documento complementario</td>
+<td><em>Manual técnico del sistema</em> (ENC-MT-001, versión 1.3)</td>
+</tr>
+<tr>
+<td>Versión vigente</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>Fecha de emisión</td>
+<td>2026-10-22</td>
+</tr>
+<tr>
+<td>Elaborado por</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+</tr>
+<tr>
+<td>Revisado por</td>
+<td>Equipo Encorely (revisión cruzada contra el código de <code>dev</code> y <code>Dev</code>)</td>
+</tr>
+<tr>
+<td>Aprobado por</td>
+<td>Aprobado por: ____________________ (docente) · Fecha: ____________</td>
+</tr>
+<tr>
+<td>Responsable de mantenerlo</td>
+<td>Juan Diego Calle (analista de sistemas); los responsables de cada módulo actualizan sus filas de 6.1, 6.2 y 6.6</td>
+</tr>
+<tr>
+<td>Periodicidad de actualización</td>
+<td>Con cada cambio de requisito, de módulo o de componente, en el mismo PR del cambio, y revisión completa por release</td>
+</tr>
+<tr>
+<td>Ubicación del original</td>
+<td><code>reportes/manuales/ANALISIS-DEL-SOFTWARE-ENCORELY.md</code> (fuente) y su PDF generado</td>
+</tr>
+<tr>
+<td>Clasificación</td>
+<td>Uso académico e interno del equipo. No contiene secretos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-historial-de-cambios">1.2 Historial de cambios</h3>
+<table>
+<thead>
+<tr>
+<th>Versión</th>
+<th>Fecha</th>
+<th>Autores</th>
+<th>Cambios</th>
+<th>Aprobación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Documento separado del manual técnico 1.1: análisis del problema, requisitos, roles del equipo, lenguajes y modelo de datos, módulos, componentes críticos, trazabilidad y matriz de componentes</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Paridad estricta con las diapositivas: ficha fusionada en el control documental; roles y responsables con nombre; contexto de negocio; ERD global simplificado, relaciones 1:N y relación entre componentes y estructuras de datos traídos al documento; secuencias UML del match y del mensaje cifrado en 6.3</td>
+<td>Pendiente</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-analisis-del-software">2. Análisis del software</h2>
+<p>Este documento reúne el análisis de Encorely: qué problema resuelve y para quién, qué requisitos debe cumplir, qué equipo lo construye, con qué tecnologías está hecho y en qué módulos y componentes se divide. Leer esas piezas juntas permite evaluar si la solución responde al problema y entender cómo funciona por dentro.</p>
+<p>El <em>Manual técnico del sistema</em> (ENC-MT-001) parte de este análisis y explica cómo se instala, se despliega, se opera y se mantiene el sistema. Los dos documentos se remiten entre sí por número de sección.</p>
+<p>Las fuentes son los repositorios <code>encorly_back</code> (rama <code>dev</code>) y <code>encorely-front</code> (rama <code>Dev</code>), el diagnóstico <code>reportes/ENCORELY-REPORTE-COMPLETO.md</code> y las decisiones de <code>reportes/06-decisiones-y-alcance-v1.md</code>. Cuando este documento y el código no coinciden, manda el código.</p>
+<h2 id="3-perfiles-y-roles-del-equipo-de-trabajo">3. Perfiles y roles del equipo de trabajo</h2>
+<p>Cada rol tiene una persona asignada. El trabajo de una persona se revisa por PR antes de entrar a <code>dev</code> o <code>Dev</code>; esa revisión es compartida, pero la responsabilidad del rol no.</p>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Responsabilidad</th>
+<th>Cómo se ejerce en Encorely</th>
+<th>Persona</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product Owner / responsable funcional</td>
+<td>Prioriza necesidades y valida resultados</td>
+<td>Decisiones de alcance de la v1 (<code>reportes/06-decisiones-y-alcance-v1.md</code>), criterios de aceptación</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Analista de sistemas</td>
+<td>Levanta requisitos y modela procesos</td>
+<td>Diagnóstico del sistema anterior, requisitos 5.6 y 5.7, este documento</td>
+<td>Juan Diego Calle</td>
+</tr>
+<tr>
+<td>Arquitecto de software</td>
+<td>Define arquitectura, patrones y decisiones técnicas</td>
+<td>Monolito modular, E2EE, contrato OpenAPI, <code>ARCHITECTURE.md</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Desarrollador</td>
+<td>Implementa funcionalidades, integraciones y correcciones</td>
+<td>Back: API, modelo de datos en código y chat cifrado en el servidor. App: pantallas, conector de Spotify, push en el cliente y chat cifrado en el cliente</td>
+<td>Camilo Rincón (back) y Emmanuel Dávila (app)</td>
+</tr>
+<tr>
+<td>Administrador de bases de datos</td>
+<td>Diseña, optimiza y protege la información</td>
+<td>Índices, restricciones, política de respaldo y restauración, revisión de migraciones</td>
+<td>Samuel Sierra</td>
+</tr>
+<tr>
+<td>QA / Tester</td>
+<td>Verifica calidad, funcionalidad, rendimiento y regresión</td>
+<td>Suites xUnit y Jest, flujos Maestro, enjambre de QA, informe de aceptación</td>
+<td>Juan Diego Calle</td>
+</tr>
+<tr>
+<td>DevOps / Infraestructura</td>
+<td>Automatiza despliegues y administra ambientes</td>
+<td>GitHub Actions, <code>Dockerfile</code>, <code>render.yaml</code>, <code>eas.json</code>, despliegue</td>
+<td>Samuel Sierra</td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td>Gestiona riesgos, controles, vulnerabilidades y cumplimiento</td>
+<td>Controles OWASP ASVS nivel 1, cifrado del chat, Ley 1581</td>
+<td>Camilo Rincón</td>
+</tr>
+</tbody>
+</table>
+<p>Persona → roles: Camilo Rincón es Product Owner, arquitecto de software, responsable de seguridad y desarrollador del back. Emmanuel Dávila desarrolla la app móvil. Samuel Sierra es administrador de base de datos y responsable de DevOps e infraestructura. Juan Diego Calle es analista de sistemas y QA.</p>
+<h2 id="4-lenguaje-de-programacion-y-modelamiento-de-datos">4. Lenguaje de programación y modelamiento de datos</h2>
+<h3 id="41-lenguajes-versiones-frameworks-y-librerias-principales">4.1 Lenguajes, versiones, frameworks y librerías principales</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Lenguaje y versión</th>
+<th>Frameworks y librerías principales</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td>C# (<code>LangVersion</code> latest sobre .NET 10, <code>Nullable</code> y warnings como errores)</td>
+<td>ASP.NET Core 10 Minimal APIs, SignalR, EF Core 10.0.13 con Npgsql 10.0.3 y <code>EFCore.NamingConventions</code> 10.0.1 (snake_case), Dapper 2.1.89, JwtBearer 10.0.13, BCrypt.Net-Next 4.2.1, Microsoft.AspNetCore.OpenApi 10.0.13, Swashbuckle SwaggerUI 10.3.0</td>
+</tr>
+<tr>
+<td>Pruebas del back</td>
+<td>C#</td>
+<td>xUnit v3 3.2.2, <code>Microsoft.AspNetCore.Mvc.Testing</code> (WebApplicationFactory), Testcontainers.PostgreSql 4.16.0, cliente SignalR</td>
+</tr>
+<tr>
+<td>App</td>
+<td>TypeScript ~6.0.3 estricto</td>
+<td>Expo ~57.0.28, React Native 0.86.3, React 19.2.3, expo-router, TanStack Query 5, <code>@microsoft/signalr</code> 10, <code>@noble/curves</code>, <code>@noble/ciphers</code> y <code>@noble/hashes</code> 2.4, <code>expo-sqlite</code> (SQLCipher), <code>expo-secure-store</code>, <code>expo-notifications</code>, <code>expo-auth-session</code>, <code>expo-audio</code>, <code>expo-camera</code>, Reanimated 4.5, <code>phosphor-react-native</code></td>
+</tr>
+<tr>
+<td>Pruebas de la app</td>
+<td>TypeScript</td>
+<td>Jest 29 con <code>jest-expo</code>, Testing Library para React Native, Maestro (E2E en YAML)</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td>SQL de PostgreSQL 16</td>
+<td>Migraciones de EF Core; una consulta CTE con Dapper para el radar</td>
+</tr>
+<tr>
+<td>Scripts</td>
+<td>Bash, Python 3</td>
+<td><code>scripts/update-contract.sh</code>, <code>scripts/curate_songs.py</code></td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>YAML, Dockerfile</td>
+<td>GitHub Actions, Docker Compose, Render Blueprint, <code>eas.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Las versiones de las herramientas de desarrollo (SDK de .NET, Node, pnpm, JDK, Android SDK) están en el <em>Manual técnico</em>, sección 3.3.</p>
+<h3 id="42-motor-de-base-de-datos-y-conexion">4.2 Motor de base de datos y conexión</h3>
+<p>El servidor usa PostgreSQL 16 (en local, la imagen <code>postgres:16-alpine</code>; en producción se propone Render PostgreSQL 16) con una base llamada <code>encorely</code>. La API accede con EF Core 10 y Npgsql 10.0.3; Dapper se usa solo para la consulta del radar (<code>Features/Events/RadarService.cs</code>). La cadena de conexión se arma con <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code> y <code>DB_SSL_MODE</code> y nunca se escribe en archivos versionados; en producción exige TLS (<code>DB_SSL_MODE=Require</code>).</p>
+<p>En el teléfono hay dos almacenes: una base SQLite por persona, cifrada con SQLCipher, para el historial del chat, y SecureStore (Keychain o Keystore) para tokens y llaves. Detalle en el <em>Manual técnico</em>, secciones 6.1 y 6.5.</p>
+<h3 id="43-entidades-tablas-relaciones-claves-y-restricciones">4.3 Entidades, tablas, relaciones, claves y restricciones</h3>
+<p>El esquema tiene 25 tablas de dominio más <code>__EFMigrationsHistory</code> de EF Core.</p>
+<p>Tablas por área:</p>
+<table>
+<thead>
+<tr>
+<th>Área</th>
+<th>Tablas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cuenta y sesiones</td>
+<td><code>users</code>, <code>user_consents</code>, <code>refresh_tokens</code>, <code>device_push_tokens</code>, <code>banned_emails</code></td>
+</tr>
+<tr>
+<td>Música y perfil</td>
+<td><code>genres</code>, <code>songs</code>, <code>swipes</code>, <code>user_genres</code>, <code>user_genre_scores</code>, <code>user_artists</code>, <code>profile_reactions</code></td>
+</tr>
+<tr>
+<td>Eventos y match</td>
+<td><code>events</code>, <code>event_attendances</code>, <code>user_likes</code>, <code>matches</code></td>
+</tr>
+<tr>
+<td>Chat</td>
+<td><code>user_keys</code>, <code>user_box_keys</code>, <code>chat_messages</code>, <code>delivered_message_ids</code>, <code>message_franking_records</code></td>
+</tr>
+<tr>
+<td>Moderación</td>
+<td><code>blocks</code>, <code>reports</code></td>
+</tr>
+<tr>
+<td>Respaldo y vinculación</td>
+<td><code>encrypted_backup</code>, <code>device_link_request</code></td>
+</tr>
+</tbody>
+</table>
+<p>Reglas comunes del modelo, tomadas del <em>Manual técnico</em>, sección 6.1:</p>
+<ul>
+<li>Llaves primarias UUID versión 7 generadas por la API, salvo <code>genres.id</code> y <code>user_consents.id</code> (identidad de Postgres) y <code>chat_messages.id</code> (lo genera el cliente).</li>
+<li>Nombres en <code>snake_case</code>; restricciones con prefijo por tipo: <code>pk_</code>, <code>fk_</code>, <code>ix_</code>, <code>ck_</code>.</li>
+<li>Enums guardados como texto de hasta 32 caracteres; fechas en <code>timestamp with time zone</code> y UTC.</li>
+<li>Reglas de negocio respaldadas en la base, por ejemplo el CHECK <code>ck_matches_ordered_pair</code> y el índice único parcial <code>ix_matches_user_a_id_user_b_id</code>, que impide dos matches activos para el mismo par.</li>
+</ul>
+<p>Relaciones 1:N principales (todas las llaves foráneas apuntan a la llave primaria de la tabla "uno"):</p>
+<table>
+<thead>
+<tr>
+<th>Tabla "uno"</th>
+<th>Tabla "muchos"</th>
+<th>Llave foránea</th>
+<th>Al borrar el padre</th>
+<th>Qué representa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>users</td>
+<td><code>user_consents</code>, <code>refresh_tokens</code>, <code>device_push_tokens</code></td>
+<td><code>user_id</code></td>
+<td>CASCADE</td>
+<td>Consentimientos, sesiones y teléfonos</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>swipes</code>, <code>user_genres</code>, <code>user_genre_scores</code>, <code>user_artists</code></td>
+<td><code>user_id</code></td>
+<td>CASCADE</td>
+<td>Gustos y ADN musical</td>
+</tr>
+<tr>
+<td>genres</td>
+<td><code>songs</code>, <code>user_genres</code>, <code>user_genre_scores</code></td>
+<td><code>genre_id</code></td>
+<td>RESTRICT</td>
+<td>Clasificación por género</td>
+</tr>
+<tr>
+<td>songs</td>
+<td><code>swipes</code></td>
+<td><code>song_id</code></td>
+<td>CASCADE</td>
+<td>Calificaciones de la canción</td>
+</tr>
+<tr>
+<td>events</td>
+<td><code>event_attendances</code></td>
+<td><code>event_id</code></td>
+<td>CASCADE</td>
+<td>Asistentes al concierto</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>event_attendances</code></td>
+<td><code>user_id</code></td>
+<td>CASCADE</td>
+<td>Conciertos a los que va</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>user_likes</code> (×2)</td>
+<td><code>from_user_id</code>, <code>to_user_id</code></td>
+<td>CASCADE</td>
+<td>Intereses dados y recibidos</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>matches</code> (×2)</td>
+<td><code>user_a_id</code>, <code>user_b_id</code></td>
+<td>CASCADE</td>
+<td>Par del match (<code>user_a_id</code> es el menor)</td>
+</tr>
+<tr>
+<td>events</td>
+<td><code>user_likes</code>, <code>matches</code></td>
+<td><code>event_id</code></td>
+<td>SET NULL</td>
+<td>Concierto de origen</td>
+</tr>
+<tr>
+<td>matches</td>
+<td><code>chat_messages</code></td>
+<td><code>match_id</code></td>
+<td>CASCADE</td>
+<td>Mensajes por entregar</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>user_box_keys</code>, <code>chat_messages</code>, <code>delivered_message_ids</code>, <code>message_franking_records</code></td>
+<td><code>user_id</code>, <code>sender_id</code>, <code>recipient_id</code></td>
+<td>CASCADE</td>
+<td>Llaves, mensajes y registros de entrega y franking</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>blocks</code> (×2), <code>profile_reactions</code> (×2)</td>
+<td><code>blocker_id</code>, <code>blocked_id</code>, <code>from_user_id</code>, <code>to_user_id</code></td>
+<td>CASCADE</td>
+<td>Bloqueos y reacciones</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>reports</code> (×2)</td>
+<td><code>reporter_id</code>, <code>reported_user_id</code></td>
+<td>SET NULL</td>
+<td>Quién reporta y a quién</td>
+</tr>
+<tr>
+<td>matches</td>
+<td><code>reports</code></td>
+<td><code>match_id</code></td>
+<td>SET NULL</td>
+<td>Chat donde ocurrió lo reportado</td>
+</tr>
+<tr>
+<td>users</td>
+<td><code>device_link_request</code></td>
+<td><code>user_id</code></td>
+<td>CASCADE</td>
+<td>Traspasos a otro teléfono</td>
+</tr>
+</tbody>
+</table>
+<p>CASCADE borra las filas hijas con el padre, SET NULL las conserva sin la referencia (un reporte sobrevive al borrado de la cuenta) y RESTRICT impide borrar un género que esté en uso. Las relaciones 1:1 son <code>users</code> → <code>user_keys</code> (identidad vigente) y <code>users</code> → <code>encrypted_backup</code> (un respaldo por persona). <code>banned_emails</code> no tiene llaves foráneas: guarda el HMAC de correos vetados, sin datos de la cuenta.</p>
+<p>Cada tabla tiene su ficha técnica (campos, tipos, nulos, llaves, restricciones, índices y significado de negocio) en el <em>Manual técnico</em>, sección 6.3, y los valores de los campos enumerados en el diccionario de datos de la sección 6.4.</p>
+<h3 id="44-modelo-entidad-relacion">4.4 Modelo entidad-relación</h3>
+<p>ERD global simplificado: las 25 tablas y sus relaciones, sin columnas. Cada línea es una llave foránea (o un par, cuando la tabla apunta dos veces a <code>users</code>); <code>banned_emails</code> aparece sola porque no tiene llaves foráneas.</p>
+<div class="mermaid">%%{init: {&quot;er&quot;: {&quot;layoutDirection&quot;: &quot;LR&quot;, &quot;fontSize&quot;: 20, &quot;minEntityHeight&quot;: 40, &quot;entityPadding&quot;: 8}}}%%
+erDiagram
+  user_consents }o--|| users : &quot;acepta&quot;
+  refresh_tokens }o--|| users : &quot;sesiones&quot;
+  device_push_tokens }o--|| users : &quot;registra&quot;
+  user_keys |o--|| users : &quot;identidad&quot;
+  user_box_keys }o--|| users : &quot;llaves de caja&quot;
+  delivered_message_ids }o--|| users : &quot;envió&quot;
+  message_franking_records }o--|| users : &quot;envía y recibe&quot;
+  encrypted_backup |o--|| users : &quot;respalda&quot;
+  device_link_request }o--|| users : &quot;vincula&quot;
+  blocks }o--|| users : &quot;bloquea&quot;
+  users ||--o{ swipes : &quot;califica&quot;
+  users ||--o{ user_genres : &quot;declara&quot;
+  users ||--o{ user_genre_scores : &quot;ADN&quot;
+  users ||--o{ user_artists : &quot;importa&quot;
+  users ||--o{ profile_reactions : &quot;reacciona&quot;
+  users ||--o{ event_attendances : &quot;asiste&quot;
+  users ||--o{ user_likes : &quot;da y recibe&quot;
+  users ||--o{ matches : &quot;forma pareja&quot;
+  users ||--o{ chat_messages : &quot;envía&quot;
+  users |o--o{ reports : &quot;reporta&quot;
+  genres ||--o{ songs : &quot;clasifica&quot;
+  genres ||--o{ user_genres : &quot;es declarado&quot;
+  genres ||--o{ user_genre_scores : &quot;pondera&quot;
+  songs ||--o{ swipes : &quot;recibe&quot;
+  events ||--o{ event_attendances : &quot;asistentes&quot;
+  events |o--o{ user_likes : &quot;contexto&quot;
+  events |o--o{ matches : &quot;origina&quot;
+  matches ||--o{ chat_messages : &quot;contiene&quot;
+  matches |o--o{ reports : &quot;contexto&quot;
+  banned_emails</div>
+<p>Las cinco vistas del ERD con sus llaves y los campos que definen cada regla están en el <em>Manual técnico</em>, sección 6.2.</p>
+<h3 id="45-conexiones-dependencias-migraciones-indices-y-respaldo">4.5 Conexiones, dependencias, migraciones, índices y respaldo</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>En Encorely</th>
+<th>Dónde está el detalle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conexiones</td>
+<td>Pool por defecto de Npgsql; una instancia de la API lo comparte entre REST, hub y tareas de fondo</td>
+<td><em>Manual técnico</em>, 6.1</td>
+</tr>
+<tr>
+<td>Dependencias</td>
+<td>Ninguna extensión de Postgres; advisory locks de transacción por usuario o por par para serializar operaciones (ver la secuencia del match en 6.3.1)</td>
+<td><em>Manual técnico</em>, 6.1</td>
+</tr>
+<tr>
+<td>Migraciones</td>
+<td>El esquema solo cambia con migraciones de EF Core: 11 migraciones, de <code>20261014050309_Initial</code> a <code>20261015155802_IndicesPurga</code></td>
+<td><em>Manual técnico</em>, 6.6</td>
+</tr>
+<tr>
+<td>Índices</td>
+<td>Además de los de llaves, índices para las purgas (<code>ix_refresh_tokens_expires_at</code>, <code>ix_chat_messages_created_at</code>) e índices únicos parciales para reglas de negocio</td>
+<td><em>Manual técnico</em>, 6.3 y 6.6</td>
+</tr>
+<tr>
+<td>Respaldo</td>
+<td>Producción: respaldo continuo con PITR más un volcado lógico diario guardado 30 días; RPO de 15 minutos y RTO de 2 horas como objetivos. Local: volcado manual antes de operaciones destructivas</td>
+<td><em>Manual técnico</em>, 9.5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="46-relacion-entre-componentes-y-estructuras-de-datos">4.6 Relación entre componentes y estructuras de datos</h3>
+<p>Qué componente lee y escribe cada tabla, y con qué tipo de acceso. La columna Tablas de la trazabilidad (6.5) resume la misma relación por módulo.</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Lee</th>
+<th>Escribe</th>
+<th>Tipo de acceso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AuthService</code>, <code>TokenService</code></td>
+<td><code>users</code>, <code>refresh_tokens</code>, <code>banned_emails</code></td>
+<td><code>users</code>, <code>refresh_tokens</code>, <code>user_consents</code></td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>UserService</code></td>
+<td><code>users</code>, <code>user_genres</code>, <code>user_consents</code> y todas las del usuario (exportación)</td>
+<td><code>users</code>, <code>user_genres</code>, <code>user_consents</code>; borrado en cascada</td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>ProfileService</code></td>
+<td><code>users</code>, <code>user_artists</code>, <code>user_genre_scores</code>, <code>event_attendances</code>, <code>profile_reactions</code>, <code>blocks</code></td>
+<td><code>profile_reactions</code></td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>MusicService</code>, <code>Dna</code></td>
+<td><code>songs</code>, <code>genres</code>, <code>swipes</code>, <code>user_genre_scores</code>, <code>user_genres</code></td>
+<td><code>swipes</code>, <code>user_genre_scores</code>, <code>user_artists</code></td>
+<td>EF Core con upsert atómico</td>
+</tr>
+<tr>
+<td><code>EventService</code></td>
+<td><code>events</code>, <code>event_attendances</code></td>
+<td><code>event_attendances</code></td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>RadarService</code></td>
+<td><code>event_attendances</code>, <code>swipes</code>, <code>user_genre_scores</code>, <code>user_genres</code>, <code>user_artists</code>, <code>blocks</code>, <code>users</code>, <code>user_likes</code>, <code>matches</code></td>
+<td>Ninguna</td>
+<td>Dapper (CTE con coseno en SQL)</td>
+</tr>
+<tr>
+<td><code>MatchingService</code></td>
+<td><code>user_likes</code>, <code>matches</code>, <code>event_attendances</code>, <code>blocks</code></td>
+<td><code>user_likes</code>, <code>matches</code></td>
+<td>EF Core + advisory lock por par</td>
+</tr>
+<tr>
+<td><code>ChatService</code>, <code>KeyService</code></td>
+<td><code>matches</code>, <code>user_keys</code>, <code>user_box_keys</code>, <code>chat_messages</code></td>
+<td><code>chat_messages</code>, <code>matches.last_seq</code>, <code>delivered_message_ids</code>, <code>message_franking_records</code>, <code>user_keys</code>, <code>user_box_keys</code></td>
+<td>EF Core + <code>UPDATE … RETURNING</code></td>
+</tr>
+<tr>
+<td><code>ModerationService</code></td>
+<td><code>blocks</code>, <code>reports</code>, <code>message_franking_records</code>, <code>matches</code></td>
+<td><code>blocks</code>, <code>reports</code>, <code>matches</code>, <code>user_likes</code>, <code>profile_reactions</code></td>
+<td>EF Core + advisory lock</td>
+</tr>
+<tr>
+<td><code>SyncService</code></td>
+<td><code>encrypted_backup</code>, <code>device_link_request</code></td>
+<td>Las mismas</td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>DeviceService</code>, <code>PushDispatcher</code>, <code>PushReceiptChecker</code></td>
+<td><code>device_push_tokens</code></td>
+<td><code>device_push_tokens</code></td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>AdminService</code></td>
+<td>Todas</td>
+<td><code>events</code>, <code>songs</code>, <code>reports</code>, <code>users.status</code>, <code>banned_emails</code></td>
+<td>EF Core</td>
+</tr>
+<tr>
+<td><code>MaintenanceService</code></td>
+<td>Tablas con vencimiento</td>
+<td>Borra en <code>device_link_request</code>, <code>refresh_tokens</code>, <code>chat_messages</code>, <code>message_franking_records</code>, <code>delivered_message_ids</code>; purga <code>reports</code></td>
+<td>EF Core <code>ExecuteDelete</code></td>
+</tr>
+<tr>
+<td><code>DatabaseHealthCheck</code></td>
+<td>Conexión</td>
+<td>Ninguna</td>
+<td><code>CanConnectAsync</code></td>
+</tr>
+<tr>
+<td>App <code>features/chat/local</code></td>
+<td><code>messages</code>, <code>sync_state</code> (SQLite local)</td>
+<td>Las mismas</td>
+<td><code>expo-sqlite</code> con SQLCipher</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-descripcion-y-analisis-del-problema">5. Descripción y análisis del problema</h2>
+<h3 id="51-contexto">5.1 Contexto</h3>
+<p>Mucha gente que quiere ir a un concierto termina yendo sola o no va: sus amigos no escuchan ese artista, no pueden ese día o no les interesa el género. Ir solo a un evento masivo es posible, pero pesa la falta de compañía en la fila, en el viaje y durante el show, y conocer a un desconocido por una red social general genera desconfianza. Las apps de citas no parten del concierto ni del gusto musical, y los grupos de fans en redes no filtran por afinidad ni protegen la conversación. Encorely nace para cubrir ese hueco: encontrar, entre quienes van al mismo concierto, a personas con gustos parecidos y conversar con ellas de forma privada antes del evento.</p>
+<p>Encorely existía antes de esta versión como prototipo académico: back en .NET 8 repartido en 9 proyectos, con Kafka, Redis, un Worker, Dapper y SignalR; app en Expo 54 orientada a la web; y despliegues en Render, Supabase, Vercel y Netlify sin infraestructura como código. En octubre de 2026 el equipo hizo una auditoría externa, un enjambre de QA con usuarios simulados, una auditoría de diseño y una de la app nativa, consolidadas en <code>reportes/ENCORELY-REPORTE-COMPLETO.md</code>. Ese diagnóstico es el punto de partida de este sistema.</p>
+<h3 id="52-problema-central">5.2 Problema central</h3>
+<p>La persona que quería encontrar compañía para un concierto no podía completar el recorrido prometido (registro, calificar canciones, ver compatibles del evento, hacer match y conversar) y, mientras lo intentaba, sus datos y sus conversaciones quedaban expuestos a cualquier otro usuario. En cifras del diagnóstico: 37 hallazgos, de los cuales los críticos rompían cada eslabón del flujo.</p>
+<table>
+<thead>
+<tr>
+<th>Eslabón</th>
+<th>Qué pasaba en el sistema anterior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Registro y login</td>
+<td>El registro por correo respondía "Próximamente"; Spotify, el login principal, admitía 5 usuarios; el JWT vencía a los 30 min sin renovación</td>
+</tr>
+<tr>
+<td>Calificar canciones</td>
+<td>Sin Spotify la pantalla quedaba en "Preparando tracks…"; 22 calificaciones de la misma canción contaban 22 veces</td>
+</tr>
+<tr>
+<td>ADN musical</td>
+<td>El perfil quedaba en 0,5/0,5/0,5; la afinidad daba 1,0 con el 78 % de la base</td>
+</tr>
+<tr>
+<td>Radar del evento</td>
+<td>Ignoraba el evento; los eventos estaban en el código con fechas pasadas; la UI mostraba cifras inventadas ("247 personas")</td>
+</tr>
+<tr>
+<td>Match</td>
+<td>Cada like a una canción creaba un match automático con un desconocido, sin reciprocidad ni estado</td>
+</tr>
+<tr>
+<td>Chat</td>
+<td>Todo envío daba 400; los mensajes se guardaban en claro y cualquier usuario autenticado podía leer cualquier chat</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-causas">5.3 Causas</h3>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Causa</th>
+<th>Ejemplo del diagnóstico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Técnica</td>
+<td>La identidad salía del cliente: cada endpoint recibía <code>userId</code> y lo creía (IDOR sistémico)</td>
+<td>Con el token de A se cambió la configuración de otra cuenta (204)</td>
+</tr>
+<tr>
+<td>Técnica</td>
+<td>No había fuentes de verdad versionadas: migraciones borradas, contrato escrito a mano en dos lados</td>
+<td>El umbral de swipes valía 25 en el back y 100 en el front</td>
+</tr>
+<tr>
+<td>De proceso</td>
+<td>El dominio nunca se especificó; los stubs de demo llegaron a producción</td>
+<td><code>EventService</code> devolvía una lista fija con fechas pasadas</td>
+</tr>
+<tr>
+<td>Externa</td>
+<td>El núcleo dependía de APIs de Spotify que cambiaron en 2026 (5 usuarios en modo desarrollo, sin email, <code>audio-features</code> deprecado)</td>
+<td>El back vinculaba identidades por un email que Spotify ya no entrega</td>
+</tr>
+<tr>
+<td>De arquitectura</td>
+<td>Componentes elegidos sin problema que resolver: Kafka con un consumidor, Redis para un perfil, 9 proyectos</td>
+<td>Cada swipe esperaba el timeout de un Kafka inexistente fuera de local</td>
+</tr>
+<tr>
+<td>De calidad</td>
+<td>Pruebas con repositorios simulados y sin gates en CI</td>
+<td>Un 500 en todo POST con cuerpo llegó a <code>main</code> con 52 tests en verde</td>
+</tr>
+<tr>
+<td>De proceso</td>
+<td>Se diseñó y probó en web aunque el objetivo era móvil nativo</td>
+<td>Nunca se compiló un build nativo</td>
+</tr>
+<tr>
+<td>Humana y de producto</td>
+<td>UI sin dirección ni dueño de producto</td>
+<td>"Match Certificado" para todos, "Night Vibes" fijo en el código</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-impacto">5.4 Impacto</h3>
+<table>
+<thead>
+<tr>
+<th>Dimensión</th>
+<th>Impacto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Riesgo y cumplimiento</td>
+<td>Lectura y escritura de datos ajenos, mensajes en claro: incumplimiento de la Ley 1581 de 2012 y bloqueo seguro en la revisión de tiendas</td>
+</tr>
+<tr>
+<td>Experiencia de usuario</td>
+<td>Pantallas sin salida, cifras falsas y matches con desconocidos: el producto no hacía lo que prometía</td>
+</tr>
+<tr>
+<td>Continuidad</td>
+<td>Sin build nativo, sin borrado de cuenta ni reportes, la app no se podía publicar</td>
+</tr>
+<tr>
+<td>Costos y tiempos</td>
+<td>El plan para arreglar el sistema en su lugar se estimó en unos 132 días-persona; reconstruir salía más barato porque el código era pequeño (back de unas 3,7 mil líneas, front de unas 8,7 mil) y los datos eran ficticios</td>
+</tr>
+<tr>
+<td>Mantenimiento</td>
+<td>Esquema sin migraciones (drift que daba 500) y documentación que describía otro sistema</td>
+</tr>
+</tbody>
+</table>
+<h3 id="55-usuarios-afectados-y-actores">5.5 Usuarios afectados y actores</h3>
+<table>
+<thead>
+<tr>
+<th>Actor</th>
+<th>Necesidad</th>
+<th>Cómo lo afectaba el problema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Persona usuaria (18 años o más, público principal de 18 a 30, Bogotá y Medellín)</td>
+<td>Encontrar compañía compatible para un concierto y conversar con privacidad</td>
+<td>No completaba el flujo y sus datos quedaban expuestos</td>
+</tr>
+<tr>
+<td>Administración y moderación</td>
+<td>Curar eventos y canciones, atender reportes, suspender cuentas abusivas</td>
+<td>No existía panel ni reportes</td>
+</tr>
+<tr>
+<td>Revisores de App Store y Google Play</td>
+<td>Probar la app con una cuenta demo y verificar requisitos de privacidad</td>
+<td>La app no cumplía requisitos de publicación</td>
+</tr>
+<tr>
+<td>Equipo de desarrollo y operación</td>
+<td>Cambiar el sistema sin romperlo, desplegarlo y recuperarlo</td>
+<td>Sin esquema, contrato ni pruebas confiables</td>
+</tr>
+</tbody>
+</table>
+<h3 id="56-requisitos-funcionales">5.6 Requisitos funcionales</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requisito</th>
+<th>Módulo back</th>
+<th>Módulo front</th>
+<th>Evidencia de cumplimiento</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF-01</td>
+<td>Registro e inicio de sesión con correo y contraseña; renovación y cierre de sesión</td>
+<td><code>Auth</code></td>
+<td><code>auth</code></td>
+<td><code>AuthTests</code></td>
+</tr>
+<tr>
+<td>RF-02</td>
+<td>Inicio de sesión y vinculación con Spotify (PKCE)</td>
+<td><code>Auth</code>, <code>Users</code></td>
+<td><code>spotify</code>, <code>auth</code></td>
+<td><code>SpotifyAuthTests</code></td>
+</tr>
+<tr>
+<td>RF-03</td>
+<td>Onboarding con fecha de nacimiento (18+), ciudad y géneros</td>
+<td><code>Users</code></td>
+<td><code>onboarding</code></td>
+<td><code>ProfileTests</code></td>
+</tr>
+<tr>
+<td>RF-04</td>
+<td>Consentimiento versionado, exportación de datos y borrado de cuenta en la app y en la web</td>
+<td><code>Users</code>, <code>Legal</code></td>
+<td><code>account</code></td>
+<td><code>LegalTests</code>, <code>ProfileTests</code></td>
+</tr>
+<tr>
+<td>RF-05</td>
+<td>Feed de canciones no calificadas con muestra de 30 s; like/dislike únicos por canción</td>
+<td><code>Music</code></td>
+<td><code>discover</code></td>
+<td><code>MusicTests</code></td>
+</tr>
+<tr>
+<td>RF-06</td>
+<td>ADN musical que cambia con cada calificación y con la importación de Spotify</td>
+<td><code>Music</code></td>
+<td><code>discover</code>, <code>spotify</code></td>
+<td><code>MusicTests</code></td>
+</tr>
+<tr>
+<td>RF-07</td>
+<td>Lista y detalle de eventos curados; marcar y desmarcar asistencia</td>
+<td><code>Events</code></td>
+<td><code>events</code></td>
+<td><code>EventsTests</code></td>
+</tr>
+<tr>
+<td>RF-08</td>
+<td>Radar por evento ordenado por afinidad, solo para quien asiste y desbloqueó el radar</td>
+<td><code>Events</code> (<code>RadarService</code>)</td>
+<td><code>events</code></td>
+<td><code>EventsTests</code></td>
+</tr>
+<tr>
+<td>RF-09</td>
+<td>Interés en una persona del mismo evento; match solo si es recíproco; deshacer match</td>
+<td><code>Matching</code></td>
+<td><code>match</code></td>
+<td><code>MatchingModerationTests</code></td>
+</tr>
+<tr>
+<td>RF-10</td>
+<td>Perfil social: perfil ajeno, reacciones a artistas y géneros, lista de reacciones recibidas, interruptor de visibilidad</td>
+<td><code>Profiles</code></td>
+<td><code>social</code>, <code>profile</code></td>
+<td><code>ProfileSocialTests</code></td>
+</tr>
+<tr>
+<td>RF-11</td>
+<td>Chat cifrado de extremo a extremo con aviso en tiempo real, paginación y confirmación de entrega</td>
+<td><code>Chat</code></td>
+<td><code>chat</code></td>
+<td><code>ChatTests</code>, <code>ChatCanaryTests</code></td>
+</tr>
+<tr>
+<td>RF-12</td>
+<td>Directorio de llaves públicas, rotación y aviso de cambio de llave</td>
+<td><code>Chat</code> (<code>KeyService</code>)</td>
+<td><code>chat</code></td>
+<td><code>KeysTests</code></td>
+</tr>
+<tr>
+<td>RF-13</td>
+<td>Respaldo cifrado opcional y traspaso de llaves a otro teléfono</td>
+<td><code>Sync</code></td>
+<td><code>chat/backup</code>, <code>chat/link</code></td>
+<td><code>SyncSessionsTests</code></td>
+</tr>
+<tr>
+<td>RF-14</td>
+<td>Bloquear y reportar con evidencia verificable (franking)</td>
+<td><code>Moderation</code></td>
+<td><code>safety</code></td>
+<td><code>MatchingModerationTests</code></td>
+</tr>
+<tr>
+<td>RF-15</td>
+<td>Notificaciones push sin contenido de mensajes y matches nuevos</td>
+<td><code>Devices</code>, <code>Infrastructure/Push</code></td>
+<td><code>push</code></td>
+<td><code>DevicesPushTests</code></td>
+</tr>
+<tr>
+<td>RF-16</td>
+<td>Ver y cerrar sesiones abiertas por dispositivo</td>
+<td><code>Sessions</code></td>
+<td><code>account</code></td>
+<td><code>SyncSessionsTests</code></td>
+</tr>
+<tr>
+<td>RF-17</td>
+<td>Panel de administración: eventos, canciones (con búsqueda en iTunes), reportes y suspensión</td>
+<td><code>Admin</code></td>
+<td><code>admin</code> y panel <code>/admin</code></td>
+<td><code>AdminTests</code>, <code>AdminPanelTests</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="57-requisitos-no-funcionales">5.7 Requisitos no funcionales</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Categoría</th>
+<th>Requisito</th>
+<th>Cómo se verifica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RNF-01</td>
+<td>Seguridad</td>
+<td>La identidad sale solo del JWT; un recurso ajeno responde 404</td>
+<td>Test "A no accede a lo de B" en cada endpoint con recursos</td>
+</tr>
+<tr>
+<td>RNF-02</td>
+<td>Privacidad</td>
+<td>El servidor nunca guarda texto plano del chat ni llaves privadas</td>
+<td><code>ChatCanaryTests</code> recorre todas las tablas y el log</td>
+</tr>
+<tr>
+<td>RNF-03</td>
+<td>Seguridad</td>
+<td>Contraseñas con BCrypt factor 12; sesión de 15 min con refresh rotativo y detección de reuso</td>
+<td><code>AuthTests</code>, <code>SecurityHardeningTests</code></td>
+</tr>
+<tr>
+<td>RNF-04</td>
+<td>Fiabilidad</td>
+<td>Ninguna entrada inválida produce un 500; errores en <code>application/problem+json</code> en español</td>
+<td><code>PlatformTests</code>, <code>SecurityHardeningTests</code></td>
+</tr>
+<tr>
+<td>RNF-05</td>
+<td>Rendimiento</td>
+<td>Peticiones de la app con timeout de 15 s; radar acotado a 200 asistentes; cuerpos de 256 KiB como máximo salvo excepciones</td>
+<td>Código (<code>client.ts</code>, <code>RadarService</code>), <code>SyncSessionsTests</code></td>
+</tr>
+<tr>
+<td>RNF-06</td>
+<td>Disponibilidad</td>
+<td>Objetivo propuesto de 99,5 % mensual para producción (ver <em>Manual técnico</em>, sección 9.2)</td>
+<td>Monitor externo sobre <code>/health/ready</code> (propuesto)</td>
+</tr>
+<tr>
+<td>RNF-07</td>
+<td>Mantenibilidad</td>
+<td>Esquema solo por migraciones; contrato generado desde el código y tipos del cliente generados desde el contrato</td>
+<td><code>OpenApiContractTests</code>, <code>pnpm gen:api</code> sin diferencias</td>
+</tr>
+<tr>
+<td>RNF-08</td>
+<td>Portabilidad</td>
+<td>App nativa Android e iOS desde una sola base de código; API en contenedor sin estado de disco</td>
+<td><code>pnpm build:bundles</code>, job <code>docker</code> de la CI</td>
+</tr>
+<tr>
+<td>RNF-09</td>
+<td>Accesibilidad</td>
+<td>Contraste AA en temas claro y oscuro, objetivos táctiles de 44 pt, alternativa con botones al gesto de swipe, respeto de "reducir movimiento"</td>
+<td>Revisión de diseño y <code>src/ui/tokens.ts</code></td>
+</tr>
+<tr>
+<td>RNF-10</td>
+<td>Cumplimiento</td>
+<td>Ley 1581 de 2012 (consentimiento, acceso, supresión) y requisitos de App Store y Google Play</td>
+<td><code>docs/privacidad-y-tiendas.md</code>, <code>docs/tiendas.md</code></td>
+</tr>
+<tr>
+<td>RNF-11</td>
+<td>Observabilidad</td>
+<td>Logs JSON con <code>traceId</code>, sin cuerpos ni tokens; health checks de vida y de preparación</td>
+<td><code>ObservabilityTests</code></td>
+</tr>
+<tr>
+<td>RNF-12</td>
+<td>Instalabilidad</td>
+<td>Levantar el entorno local en menos de 15 minutos con Docker y mise</td>
+<td>Procedimiento de la sección 5.1 del <em>Manual técnico</em>, verificado en clon limpio</td>
+</tr>
+</tbody>
+</table>
+<h3 id="58-objetivo-de-la-solucion-y-como-se-mide">5.8 Objetivo de la solución y cómo se mide</h3>
+<p>Objetivo: entregar un sistema reconstruido en el que la persona usuaria complete el flujo registro → canciones → radar → match → chat cifrado, sin exposición de datos entre cuentas, con esquema y contrato versionados y con pruebas que lo demuestren en cada cambio.</p>
+<table>
+<thead>
+<tr>
+<th>Indicador</th>
+<th>Sistema anterior</th>
+<th>Meta</th>
+<th>Cómo se mide</th>
+<th>Resultado medido el 2026-10-20</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Endpoints que permiten leer o escribir datos de otra cuenta</td>
+<td>Todos los que recibían <code>userId</code></td>
+<td>0</td>
+<td>Tests de aislamiento por endpoint con recursos</td>
+<td>0: suite del back 332 de 332 en verde</td>
+</tr>
+<tr>
+<td>Matches creados sin reciprocidad</td>
+<td>Uno por cada like</td>
+<td>0</td>
+<td>Test de like unilateral y de 20 rondas de likes cruzados concurrentes</td>
+<td>0 (pasa)</td>
+</tr>
+<tr>
+<td>Texto plano del chat en BD o logs</td>
+<td>Mensajes en claro</td>
+<td>0 apariciones</td>
+<td><code>ChatCanaryTests</code> (claro, base64 y hex)</td>
+<td>0 (pasa)</td>
+</tr>
+<tr>
+<td>ADN que cambia con las calificaciones</td>
+<td>Fijo en 0,5</td>
+<td>Cambia con cada swipe</td>
+<td><code>MusicTests</code></td>
+<td>Pasa</td>
+</tr>
+<tr>
+<td>Entradas inválidas que dan 500</td>
+<td>500 en todo POST con cuerpo</td>
+<td>0</td>
+<td>Tests de validación</td>
+<td>0 (pasa)</td>
+</tr>
+<tr>
+<td>Contrato front ↔ back sincronizado</td>
+<td>Escrito a mano en dos lados</td>
+<td>Un único contrato generado</td>
+<td><code>OpenApiContractTests</code> y <code>pnpm gen:api</code> sin diferencias</td>
+<td>Sincronizado en draft.17</td>
+</tr>
+<tr>
+<td>Pruebas del front</td>
+<td>Sin pruebas de lo que importa</td>
+<td>Suite verde</td>
+<td><code>pnpm verify</code></td>
+<td>56 suites, 490 tests en verde</td>
+</tr>
+<tr>
+<td>Cifras inventadas en la UI</td>
+<td>"247 personas", "Match Certificado"</td>
+<td>0</td>
+<td>Regla del design system y revisión manual de pantallas</td>
+<td>Revisión manual; no hay prueba automática</td>
+</tr>
+<tr>
+<td>Tiempo de arranque local</td>
+<td>No documentado</td>
+<td>Menos de 15 min</td>
+<td>Procedimiento de la sección 5.1 del <em>Manual técnico</em>, en un clon limpio</td>
+<td>Ejecutado con éxito; la API respondió <code>Healthy</code> unos 20 s después de <code>dotnet run</code>. El tiempo total no se cronometró</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-modulos-y-componentes-del-software">6. Módulos y componentes del software</h2>
+<h3 id="61-modulos-del-back">6.1 Módulos del back</h3>
+<p>Cada feature tiene <code>*Endpoints.cs</code> (rutas y metadatos OpenAPI), <code>*Contracts.cs</code> (DTOs validados), <code>*Service.cs</code> (reglas) y sus entidades.</p>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Propósito</th>
+<th>Entradas</th>
+<th>Salidas</th>
+<th>Dependencias</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Auth</code></td>
+<td>Registro, login, Spotify, refresh con rotación, logout</td>
+<td><code>/auth/*</code></td>
+<td>Access JWT, refresh opaco, <code>user</code></td>
+<td><code>users</code>, <code>refresh_tokens</code>, <code>banned_emails</code>, <code>TokenService</code>, <code>LoginThrottle</code>, Spotify</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Users</code></td>
+<td>Perfil propio, consentimientos, exportación y borrado de cuenta</td>
+<td><code>/me</code>, <code>/me/consents</code>, <code>/me/export</code>, <code>/me/spotify/link</code></td>
+<td>Perfil, archivo de datos, borrado en cascada</td>
+<td><code>users</code>, <code>user_genres</code>, <code>user_consents</code>, <code>SessionRevoker</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Profiles</code></td>
+<td>Perfil social: perfil ajeno, reacciones</td>
+<td><code>/users/{id}/profile</code>, <code>/users/{id}/reactions</code>, <code>/me/reactions/received</code></td>
+<td><code>PublicProfileDto</code>, reacciones paginadas</td>
+<td><code>profile_reactions</code>, <code>user_artists</code>, <code>blocks</code>, consentimiento</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Legal</code></td>
+<td>Versión de términos, páginas públicas, borrado web</td>
+<td><code>/legal/current</code>, <code>/account-deletion</code>, <code>/legal/*</code>, <code>/cuenta/eliminar</code></td>
+<td>Versión vigente, HTML, borrado</td>
+<td><code>appsettings.json</code> (<code>Legal</code>), <code>Auth</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Music</code></td>
+<td>Géneros, feed de canciones, swipes, ADN musical, importación de Spotify</td>
+<td><code>/genres</code>, <code>/songs/feed</code>, <code>/swipes</code>, <code>/me/dna</code>, <code>/me/spotify/import</code></td>
+<td>Canciones, vector de géneros, estado del radar</td>
+<td><code>genres</code>, <code>songs</code>, <code>swipes</code>, <code>user_genre_scores</code>, <code>user_artists</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Events</code></td>
+<td>Eventos curados, asistencia, radar por afinidad</td>
+<td><code>/events</code>, <code>/events/{id}/attendance</code>, <code>/events/{id}/radar</code>, <code>/me/events</code></td>
+<td>Eventos, asistentes con <code>affinity</code></td>
+<td><code>events</code>, <code>event_attendances</code>, <code>Dna</code>, Dapper</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Matching</code></td>
+<td>Interés entre personas, match recíproco, deshacer match</td>
+<td><code>/likes</code>, <code>/matches</code></td>
+<td><code>{matched, matchId}</code>, lista de matches, evento <code>MatchCreated</code></td>
+<td><code>user_likes</code>, <code>matches</code>, <code>AdvisoryLock</code>, <code>Notifier</code>, push</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Chat</code></td>
+<td>Directorio de llaves públicas, mensajes cifrados, ack</td>
+<td><code>/keys/me</code>, <code>/matches/{id}/peer-keys</code>, <code>/matches/{id}/messages</code></td>
+<td>Ciphertext ordenado por <code>seq</code>, eventos <code>MessageAvailable</code> y <code>PeerKeyChanged</code></td>
+<td><code>user_keys</code>, <code>user_box_keys</code>, <code>chat_messages</code>, <code>delivered_message_ids</code>, <code>message_franking_records</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Moderation</code></td>
+<td>Bloqueos y reportes con franking</td>
+<td><code>/blocks</code>, <code>/reports</code></td>
+<td>Bloqueo efectivo, reporte con evidencia verificada</td>
+<td><code>blocks</code>, <code>reports</code>, <code>message_franking_records</code>, <code>matches</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Devices</code></td>
+<td>Tokens push por sesión</td>
+<td><code>/devices/push-token</code></td>
+<td>Registro o borrado del token</td>
+<td><code>device_push_tokens</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Sync</code></td>
+<td>Respaldo cifrado y vinculación de dispositivos</td>
+<td><code>/me/backup</code>, <code>/keys/link-requests</code></td>
+<td>Blob opaco, buzón de un solo uso</td>
+<td><code>encrypted_backup</code>, <code>device_link_request</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Sessions</code></td>
+<td>Sesiones abiertas (familias de refresh)</td>
+<td><code>/me/sessions</code></td>
+<td>Lista y cierre de sesiones</td>
+<td><code>refresh_tokens</code>, <code>device_push_tokens</code>, <code>SessionRevoker</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Admin</code></td>
+<td>Eventos, canciones, reportes, suspensión; panel HTML</td>
+<td><code>/admin/*</code>, <code>/admin</code></td>
+<td>Catálogo y cola de moderación actualizados</td>
+<td>Todas las anteriores, <code>ITunesClient</code>, <code>AdminRoleFilter</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Auth</code></td>
+<td>JWT, BCrypt, bloqueo por intentos, revocación de sesiones</td>
+<td>Cada petición autenticada</td>
+<td>Identidad (<code>sub</code>, <code>sid</code>) validada</td>
+<td><code>refresh_tokens</code>, <code>users</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Database</code></td>
+<td><code>AppDbContext</code>, advisory locks, health check, limpieza horaria</td>
+<td>Servicios</td>
+<td>Persistencia, purgas</td>
+<td>PostgreSQL</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Realtime</code></td>
+<td><code>ChatHub</code> y <code>Notifier</code></td>
+<td>Conexiones WebSocket autenticadas</td>
+<td>Avisos al usuario</td>
+<td>Sesión vigente</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Push</code></td>
+<td>Cola acotada, envío a Expo Push, receipts</td>
+<td>Eventos de match y mensaje</td>
+<td>Notificaciones sin contenido</td>
+<td><code>device_push_tokens</code>, <code>exp.host</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Http</code></td>
+<td>ProblemDetails, validación, cabeceras de seguridad</td>
+<td>Toda petición</td>
+<td>Errores uniformes y cabeceras</td>
+<td>Ninguna</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td><code>Infrastructure/Configuration</code></td>
+<td><code>.env</code> en Development, mapeo de variables, validación al arrancar</td>
+<td>Variables de entorno</td>
+<td>Opciones tipadas o arranque fallido</td>
+<td>Ninguna</td>
+<td>Camilo Rincón</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-modulos-de-la-app">6.2 Módulos de la app</h3>
+<table>
+<thead>
+<tr>
+<th>Módulo (<code>src/…</code>)</th>
+<th>Propósito</th>
+<th>Entradas</th>
+<th>Salidas</th>
+<th>Dependencias</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/</code></td>
+<td>Rutas de expo-router: grupos <code>(auth)</code>, <code>(onboarding)</code>, <code>(app)</code> con tabs Descubrir, Conciertos, Chats y Tú</td>
+<td>Navegación, deep links <code>encorely://</code></td>
+<td>Pantalla de la feature</td>
+<td><code>features/*</code>, <code>lib/session</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>lib/api</code></td>
+<td>Cliente HTTP: base <code>/api/v1</code>, timeout de 15 s, un solo refresh en vuelo, errores en español</td>
+<td>Llamadas de las features</td>
+<td>Datos tipados o <code>ApiError</code></td>
+<td><code>schema.d.ts</code> generado, <code>lib/session</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>lib/session</code></td>
+<td>Sesión única y tokens en SecureStore</td>
+<td>Login, refresh, logout</td>
+<td>Estado de sesión</td>
+<td><code>expo-secure-store</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/auth</code>, <code>onboarding</code>, <code>account</code></td>
+<td>Entrar, crear cuenta, onboarding, consentimiento, sesiones, exportar y borrar cuenta</td>
+<td>Formularios</td>
+<td>Llamadas a <code>Auth</code> y <code>Users</code></td>
+<td><code>lib/api</code>, <code>spotify</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/discover</code></td>
+<td>Mazo de canciones con muestra de 30 s y ADN</td>
+<td>Gestos y botones accesibles</td>
+<td><code>POST /swipes</code></td>
+<td><code>expo-audio</code>, <code>Music</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/events</code>, <code>match</code></td>
+<td>Conciertos, asistencia, radar, "Me interesa", matches</td>
+<td>Selección del usuario</td>
+<td>Llamadas a <code>Events</code> y <code>Matching</code></td>
+<td><code>lib/api</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/chat</code></td>
+<td>Cifrado, llaves, historial SQLCipher, sincronización y ack, hub, respaldo, traspaso, verificación</td>
+<td>Texto del usuario, avisos del hub</td>
+<td>Sobres cifrados, mensajes descifrados</td>
+<td><code>@noble/*</code>, <code>expo-sqlite</code>, <code>@microsoft/signalr</code>, <code>expo-camera</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/social</code>, <code>profile</code></td>
+<td>Pestaña Tú, perfil ajeno, reacciones, visibilidad</td>
+<td>Perfil y reacciones</td>
+<td>Llamadas a <code>Profiles</code> y <code>Users</code></td>
+<td><code>src/ui</code> (stickers, motion)</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/safety</code></td>
+<td>Bloquear, reportar con evidencia, textos de E2EE</td>
+<td>Acción del usuario</td>
+<td><code>POST /blocks</code>, <code>POST /reports</code></td>
+<td><code>chat</code> (evidencia de franking)</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/push</code></td>
+<td>Permiso, canal Android, registro del token, navegación desde la notificación</td>
+<td>Token de Expo, toque en notificación</td>
+<td><code>PUT /devices/push-token</code>, navegación</td>
+<td><code>expo-notifications</code>, EAS project ID</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/spotify</code></td>
+<td>PKCE, login, vinculación, importación de artistas</td>
+<td>Redirect <code>encorely://spotify-callback</code></td>
+<td>Code al back o artistas importados</td>
+<td><code>expo-auth-session</code>, Spotify</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>features/admin</code></td>
+<td>Panel admin en la app: conciertos, canciones, reportes</td>
+<td>Formularios de admin</td>
+<td>Llamadas a <code>/admin/*</code></td>
+<td>Rol admin</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td><code>ui/</code></td>
+<td>Design system "La boleta compartida": tokens, tema, componentes, iconos, motion</td>
+<td>Props</td>
+<td>Componentes accesibles</td>
+<td>Fuentes Google, Phosphor, Reanimated</td>
+<td>Emmanuel Dávila</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-relaciones-entre-modulos-y-flujo-de-informacion">6.3 Relaciones entre módulos y flujo de información</h3>
+<p>Las relaciones de cada módulo están en la columna Dependencias de 6.1 y 6.2. El flujo general es este:</p>
+<ol>
+<li>En la app, las rutas de <code>src/app</code> abren las pantallas de <code>src/features</code>, que llaman a la API a través de <code>src/lib/api</code> (HTTPS con JWT) y escuchan los avisos del hub con el cliente SignalR.</li>
+<li>En la API, cada petición pasa por la infraestructura transversal (<code>Infrastructure/Http</code> e <code>Infrastructure/Auth</code>) antes de llegar al servicio de la feature.</li>
+<li>El servicio persiste con <code>Infrastructure/Database</code> y, cuando algo le importa a otra persona (un match, un mensaje), avisa con <code>Infrastructure/Realtime</code> y <code>Infrastructure/Push</code>. El aviso no lleva contenido: la app vuelve a consultar el REST, que es la fuente de verdad.</li>
+<li>El contrato <code>contracts/openapi.v1.json</code> une los dos lados: la API lo genera desde el código y la app genera sus tipos desde él (<code>pnpm gen:api</code>).</li>
+</ol>
+<p>Los diagramas de componentes de la app y de la API están en el <em>Manual técnico</em>, sección 4.3. Las dos secuencias siguientes muestran el flujo de información en los dos casos que cruzan más módulos.</p>
+<h4 id="631-secuencia-del-match-reciproco">6.3.1 Secuencia del match recíproco</h4>
+<p>Dos personas que asisten al mismo concierto se dan "Me interesa"; el match nace solo cuando el interés es mutuo.</p>
+<div class="mermaid">sequenceDiagram
+  autonumber
+  participant A as App de Ana
+  participant API as Encorely.Api
+  participant DB as PostgreSQL
+  participant H as ChatHub
+  participant X as Expo Push
+  participant B as App de Beto
+  A-&gt;&gt;API: POST /api/v1/likes con targetUserId de Beto
+  API-&gt;&gt;DB: comprueba evento compartido vigente y ausencia de bloqueo
+  API-&gt;&gt;DB: BEGIN y pg_advisory_xact_lock sobre el par
+  API-&gt;&gt;DB: INSERT user_likes Ana a Beto, idempotente
+  API-&gt;&gt;DB: busca user_likes Beto a Ana
+  alt no hay like recíproco
+    API-&gt;&gt;DB: COMMIT
+    API--&gt;&gt;A: 200 con matched false
+  else hay like recíproco
+    API-&gt;&gt;DB: INSERT matches con user_a_id menor que user_b_id y status Active
+    API-&gt;&gt;DB: COMMIT
+    API--&gt;&gt;A: 200 con matched true y matchId
+    API-)H: MatchCreated para Ana y Beto
+    H-)B: aviso por WebSocket
+    API-)X: push sin contenido Tienes un match nuevo
+    X-)B: notificación por FCM o APNs
+  end</div>
+<p>El advisory lock por par serializa likes cruzados, unmatch y bloqueo: dos likes simultáneos crean exactamente un match (hay una prueba con 20 rondas concurrentes) y un bloqueo concurrente no puede resucitar un match. El índice único parcial <code>ix_matches_user_a_id_user_b_id</code> (solo <code>status = 'Active'</code>) respalda la regla en la base.</p>
+<h4 id="632-secuencia-del-envio-de-un-mensaje-cifrado">6.3.2 Secuencia del envío de un mensaje cifrado</h4>
+<p>La app emisora cifra el mensaje y la API solo guarda y entrega el sobre cifrado hasta que la receptora confirma que lo guardó.</p>
+<div class="mermaid">sequenceDiagram
+  autonumber
+  participant A as App emisora
+  participant API as Encorely.Api
+  participant DB as PostgreSQL
+  participant H as ChatHub
+  participant X as Expo Push y FCM o APNs
+  participant B as App receptora
+  A-&gt;&gt;A: cifra con la llave del par
+  A-&gt;&gt;API: POST /api/v1/matches/id/messages con id, nonce, ciphertext, ids de llaves y frankingTag
+  API-&gt;&gt;DB: valida match activo, que A es miembro y que no hay bloqueo
+  alt recipientBoxKeyId no es la llave vigente de B
+    API--&gt;&gt;A: 409 stale_recipient_key
+    A-&gt;&gt;API: GET peer-keys, verifica la firma y vuelve a cifrar
+  else llave vigente
+    API-&gt;&gt;DB: UPDATE matches asigna el siguiente last_seq con RETURNING
+    API-&gt;&gt;DB: INSERT chat_messages y message_franking_records, COMMIT
+    API--&gt;&gt;A: 201 con seq
+    API-)H: MessageAvailable con matchId, id y seq
+    H-)B: aviso por WebSocket
+    API-)X: push sin contenido Tienes mensajes nuevos
+    X-)B: notificación
+  end
+  B-&gt;&gt;API: GET /api/v1/matches/id/messages?after=synced_seq
+  API--&gt;&gt;B: sobres cifrados en orden de seq
+  B-&gt;&gt;B: verifica AAD, descifra y guarda en SQLCipher
+  B-&gt;&gt;API: POST /api/v1/matches/id/messages/ack con upToSeq
+  API-&gt;&gt;DB: borra lo recibido hasta upToSeq y deja la lápida en delivered_message_ids</div>
+<p>En el paso 1 la app deriva la llave del par con X25519 y HKDF y cifra con XChaCha20-Poly1305, con el AAD descrito en el <em>Manual técnico</em>, sección 8.4. El servidor guarda por mensaje solo <code>id</code>, <code>match_id</code>, <code>sender_id</code>, <code>seq</code>, versión, ids de llaves, <code>nonce</code>, <code>ciphertext</code>, <code>franking_tag</code> opcional y fecha. Si el mismo <code>id</code> llega dos veces con el mismo contenido, responde 200 sin duplicar.</p>
+<h3 id="64-componentes-criticos-y-puntos-unicos-de-falla">6.4 Componentes críticos y puntos únicos de falla</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Por qué es crítico</th>
+<th>Punto único de falla</th>
+<th>Mitigación actual</th>
+<th>Mitigación propuesta para producción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Toda la información del servidor</td>
+<td>Sí: una sola instancia</td>
+<td>Migraciones versionadas, <code>/health/ready</code></td>
+<td>Postgres administrado con respaldo continuo y PITR (<em>Manual técnico</em>, 9.5); réplica de lectura si la carga lo exige</td>
+</tr>
+<tr>
+<td>Instancia de la API</td>
+<td>Única puerta de REST, hub y tareas</td>
+<td>Sí: una instancia (<code>plan: starter</code>)</td>
+<td>Health check <code>/health/live</code> en Render, reinicio automático del contenedor</td>
+<td>Segunda instancia con backplane de SignalR, contador de intentos compartido y migraciones como paso previo (<code>efbundle</code>)</td>
+</tr>
+<tr>
+<td><code>JWT_SIGNING_KEY</code></td>
+<td>Firma de todas las sesiones</td>
+<td>Sí</td>
+<td>Generada por Render (<code>generateValue</code>) y validada al arrancar</td>
+<td>Guardarla además en un gestor de secretos del equipo; procedimiento de rotación en el <em>Manual técnico</em>, 10.2</td>
+</tr>
+<tr>
+<td><code>BANNED_EMAIL_KEY</code></td>
+<td>Vetos de correos suspendidos</td>
+<td>Sí: si se pierde, los vetos guardados dejan de servir</td>
+<td>Igual que la anterior</td>
+<td>Igual que la anterior</td>
+</tr>
+<tr>
+<td><code>LoginThrottle</code> y <code>PushQueue</code></td>
+<td>Bloqueo por intentos y cola de push</td>
+<td>Viven en memoria: un reinicio los vacía</td>
+<td>Aceptado: un reinicio deja el contador de intentos en cero y descarta los avisos push pendientes</td>
+<td>Mover a Postgres o a un almacén compartido al pasar a varias instancias</td>
+</tr>
+<tr>
+<td>Expo Push, FCM y APNs</td>
+<td>Avisos fuera de la app</td>
+<td>Dependencia externa</td>
+<td>La app consulta al abrir; el hub avisa con la app abierta</td>
+<td>Monitorear receipts y tasa de errores (<em>Manual técnico</em>, 9.3)</td>
+</tr>
+<tr>
+<td>Llaves privadas del chat</td>
+<td>Leer el historial</td>
+<td>Viven solo en el teléfono</td>
+<td>Respaldo cifrado opcional y traspaso</td>
+<td>Promover el respaldo en la app</td>
+</tr>
+<tr>
+<td>Contrato <code>openapi.v1.json</code></td>
+<td>Acuerdo entre app y API</td>
+<td>Un cambio que rompa deja clientes viejos sin servicio</td>
+<td><code>OpenApiContractTests</code>, CHANGELOG con marca <strong>Rompe</strong></td>
+<td>Política de compatibilidad hacia atrás durante un ciclo de release (<em>Manual técnico</em>, 5.6)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="65-trazabilidad-entre-modulos-requisitos-datos-integraciones-y-seguridad">6.5 Trazabilidad entre módulos, requisitos, datos, integraciones y seguridad</h3>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Requisitos</th>
+<th>Tablas</th>
+<th>Integraciones</th>
+<th>Controles de seguridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Auth</code></td>
+<td>RF-01, RF-02, RNF-03</td>
+<td><code>users</code>, <code>refresh_tokens</code>, <code>banned_emails</code></td>
+<td>Spotify Accounts</td>
+<td>BCrypt, rate limit por IP, bloqueo (correo, IP), refresh con detección de reuso</td>
+</tr>
+<tr>
+<td><code>Users</code>, <code>Legal</code>, <code>Sessions</code></td>
+<td>RF-03, RF-04, RF-16, RNF-10</td>
+<td><code>users</code>, <code>user_genres</code>, <code>user_consents</code>, <code>refresh_tokens</code></td>
+<td>Ninguna</td>
+<td>Consentimiento versionado, borrado en cascada, 18+</td>
+</tr>
+<tr>
+<td><code>Profiles</code></td>
+<td>RF-10</td>
+<td><code>profile_reactions</code>, <code>user_artists</code>, <code>blocks</code></td>
+<td>Spotify (imágenes <code>i.scdn.co</code>)</td>
+<td>Visibilidad con consentimiento propio; 404 con bloqueo</td>
+</tr>
+<tr>
+<td><code>Music</code></td>
+<td>RF-05, RF-06</td>
+<td><code>genres</code>, <code>songs</code>, <code>swipes</code>, <code>user_genre_scores</code>, <code>user_artists</code></td>
+<td>iTunes (previews), Spotify (importación)</td>
+<td>Upsert atómico; token de Spotify nunca llega al servidor</td>
+</tr>
+<tr>
+<td><code>Events</code></td>
+<td>RF-07, RF-08</td>
+<td><code>events</code>, <code>event_attendances</code></td>
+<td>Ninguna</td>
+<td>Radar solo para asistentes; excluye bloqueos y suspendidos</td>
+</tr>
+<tr>
+<td><code>Matching</code></td>
+<td>RF-09</td>
+<td><code>user_likes</code>, <code>matches</code></td>
+<td>Expo Push</td>
+<td>Advisory lock por par, CHECK de par ordenado</td>
+</tr>
+<tr>
+<td><code>Chat</code></td>
+<td>RF-11, RF-12, RNF-02</td>
+<td><code>user_keys</code>, <code>user_box_keys</code>, <code>chat_messages</code>, <code>delivered_message_ids</code>, <code>message_franking_records</code></td>
+<td>Expo Push</td>
+<td>E2EE, solo miembros del match, push sin contenido</td>
+</tr>
+<tr>
+<td><code>Sync</code></td>
+<td>RF-13</td>
+<td><code>encrypted_backup</code>, <code>device_link_request</code></td>
+<td>Ninguna</td>
+<td>Blob opaco, buzón de 10 min y un solo uso</td>
+</tr>
+<tr>
+<td><code>Moderation</code></td>
+<td>RF-14</td>
+<td><code>blocks</code>, <code>reports</code>, <code>message_franking_records</code></td>
+<td>Ninguna</td>
+<td>Franking verificable, un reporte abierto por par, retención de 180 días</td>
+</tr>
+<tr>
+<td><code>Devices</code></td>
+<td>RF-15</td>
+<td><code>device_push_tokens</code></td>
+<td>Expo Push → FCM/APNs</td>
+<td>Token ligado a la sesión</td>
+</tr>
+<tr>
+<td><code>Admin</code></td>
+<td>RF-17</td>
+<td>Todas</td>
+<td>iTunes Search</td>
+<td>Rol admin confirmado en la base en cada petición</td>
+</tr>
+</tbody>
+</table>
+<h3 id="66-matriz-basica-de-documentacion-de-componentes">6.6 Matriz básica de documentación de componentes</h3>
+<p>Una fila por componente. El responsable es la persona que lo mantiene según los roles del capítulo 3: Camilo Rincón en el back, Emmanuel Dávila en la app (incluido el conector de Spotify) y Samuel Sierra en la infraestructura y la base de datos.</p>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Componente</th>
+<th>Tecnología</th>
+<th>Dependencias</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usuarios</td>
+<td>Autenticación (<code>Features/Auth</code>, <code>Infrastructure/Auth</code>)</td>
+<td>C# / ASP.NET Core 10, JwtBearer, BCrypt</td>
+<td>BD (<code>users</code>, <code>refresh_tokens</code>, <code>banned_emails</code>), Spotify</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Usuarios</td>
+<td>Perfil y cuenta (<code>Features/Users</code>, <code>Features/Sessions</code>)</td>
+<td>C# / EF Core 10</td>
+<td>BD (<code>users</code>, <code>user_genres</code>, <code>user_consents</code>)</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Usuarios</td>
+<td>Perfil social (<code>Features/Profiles</code>)</td>
+<td>C# / EF Core 10</td>
+<td>BD (<code>profile_reactions</code>, <code>user_artists</code>, <code>blocks</code>)</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Legal</td>
+<td>Términos, privacidad y borrado web (<code>Features/Legal</code>)</td>
+<td>C# / HTML con CSP</td>
+<td><code>appsettings.json</code>, <code>Auth</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Música</td>
+<td>Catálogo, swipes y ADN (<code>Features/Music</code>)</td>
+<td>C# / EF Core 10</td>
+<td>BD (<code>genres</code>, <code>songs</code>, <code>swipes</code>, <code>user_genre_scores</code>)</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Eventos</td>
+<td>Eventos, asistencia y radar (<code>Features/Events</code>)</td>
+<td>C# / EF Core 10 + Dapper</td>
+<td>BD (<code>events</code>, <code>event_attendances</code>), <code>Dna</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Match</td>
+<td>Like y match recíproco (<code>Features/Matching</code>)</td>
+<td>C# / EF Core 10, advisory locks</td>
+<td>BD (<code>user_likes</code>, <code>matches</code>), <code>Notifier</code>, push</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Chat</td>
+<td>Llaves y mensajes cifrados (<code>Features/Chat</code>)</td>
+<td>C# / EF Core 10</td>
+<td>BD (tablas de chat), <code>ChatHub</code>, push</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Chat</td>
+<td>Tiempo real (<code>ChatHub</code>, <code>Notifier</code>)</td>
+<td>SignalR (WebSocket)</td>
+<td>Sesión JWT vigente</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Moderación</td>
+<td>Bloqueos y reportes (<code>Features/Moderation</code>)</td>
+<td>C# / EF Core 10, HMAC-SHA256</td>
+<td>BD (<code>blocks</code>, <code>reports</code>, <code>message_franking_records</code>)</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Respaldo</td>
+<td>Respaldo cifrado y vinculación (<code>Features/Sync</code>)</td>
+<td>C# / EF Core 10</td>
+<td>BD (<code>encrypted_backup</code>, <code>device_link_request</code>)</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Administración</td>
+<td>API y panel (<code>Features/Admin</code>)</td>
+<td>C# / HTML</td>
+<td>Todas las features, iTunes Search</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Integraciones</td>
+<td>Push (<code>Infrastructure/Push</code>, <code>Features/Devices</code>)</td>
+<td>C# / HttpClient, cola en memoria</td>
+<td>Expo Push API → FCM/APNs, <code>device_push_tokens</code></td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>Integraciones</td>
+<td>Conector Spotify (<code>SpotifyClient</code>, <code>features/spotify</code>)</td>
+<td>C# y TypeScript, OAuth PKCE</td>
+<td>Spotify Accounts y Web API</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td>Integraciones</td>
+<td>Catálogo iTunes (<code>ITunesClient</code>, <code>scripts/curate_songs.py</code>)</td>
+<td>C# y Python</td>
+<td>iTunes Search API</td>
+<td>Camilo Rincón</td>
+</tr>
+<tr>
+<td>App móvil</td>
+<td>Navegación y pantallas (<code>src/app</code>, <code>src/features</code>)</td>
+<td>TypeScript / Expo SDK 57, React Native 0.86</td>
+<td>API REST, <code>src/ui</code></td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td>App móvil</td>
+<td>Cliente API y sesión (<code>src/lib</code>)</td>
+<td>TypeScript, TanStack Query</td>
+<td>Contrato OpenAPI, SecureStore</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td>App móvil</td>
+<td>Cifrado del chat (<code>src/features/chat</code>)</td>
+<td>TypeScript, <code>@noble/*</code>, SQLCipher</td>
+<td>SecureStore, API de llaves y mensajes</td>
+<td>Emmanuel Dávila</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>Base de datos</td>
+<td>PostgreSQL 16</td>
+<td>Servidor o servicio administrado, respaldo</td>
+<td>Samuel Sierra</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>Imagen de la API (<code>Dockerfile</code>, <code>render.yaml</code>)</td>
+<td>Docker, Render</td>
+<td>Registro de imágenes, variables de entorno</td>
+<td>Samuel Sierra</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>CI (<code>ci.yml</code>, <code>frontend.yml</code>)</td>
+<td>GitHub Actions</td>
+<td>Docker en el runner, pnpm, .NET SDK</td>
+<td>Samuel Sierra</td>
+</tr>
+<tr>
+<td>Infraestructura</td>
+<td>Builds de la app (<code>eas.json</code>)</td>
+<td>EAS Build</td>
+<td>Cuenta de Expo, credenciales de tiendas</td>
+<td>Samuel Sierra</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-conclusion">7. Conclusión</h2>
+<p>El análisis relaciona el problema de partida con lo que se construyó. Cada requisito funcional tiene un módulo del back, un módulo de la app y una prueba que lo evidencia (5.6); cada módulo tiene sus tablas, integraciones y controles de seguridad (6.5); y los indicadores de 5.8 dicen, con mediciones del 2026-10-20, en qué estado quedó cada eslabón que antes fallaba. También quedan a la vista los puntos únicos de falla que habría que resolver antes de escalar (6.4).</p>
+<p>Este documento y el <em>Manual técnico del sistema</em> cambian con el código: un requisito, un módulo o un componente nuevo se refleja aquí en el mismo PR que lo introduce, con una fila nueva en el historial de cambios (1.2).</p></body></html>

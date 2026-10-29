@@ -1,0 +1,2591 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Encorely — Manual técnico del sistema (avance)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 22mm 20mm 24mm 20mm;
+  @bottom-center { content: counter(page) " / " counter(pages); font: 9pt 'Archivo', sans-serif; color: #6b6259; }
+  @top-right { content: "Encorely · Manual técnico del sistema (avance)"; font: 8.5pt 'Archivo', sans-serif; color: #9a8f84; }
+}
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+@page portada { margin: 0; @top-right { content: none; } @bottom-center { content: none; } }
+:root { --ink: #1d1a17; --muted: #5c544c; --line: #e3ddd5; --soft: #f7f3ee; --accent: #3d3631; }
+html { font-size: 10.6pt; }
+body { font-family: 'Source Serif 4', Georgia, serif; color: var(--ink); line-height: 1.55; margin: 0; background: #fff; }
+h1, h2, h3, h4 { font-family: 'Archivo', system-ui, sans-serif; line-height: 1.2; color: var(--ink); break-after: avoid; }
+h1 { font-size: 24pt; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 6mm; }
+h2 { font-size: 16pt; font-weight: 750; margin: 11mm 0 4mm; padding-top: 3mm; border-top: 2.5pt solid var(--accent); break-before: page; }
+h3 { font-size: 12.5pt; font-weight: 700; margin: 7mm 0 2.5mm; }
+h4 { font-size: 11pt; font-weight: 700; margin: 5mm 0 2mm; color: var(--muted); }
+h1 + p, h1 + p + p { font-size: 12pt; color: var(--muted); }
+p { margin: 0 0 3mm; orphans: 3; widows: 3; }
+ul, ol { margin: 0 0 3.5mm; padding-left: 6mm; }
+li { margin: 0.8mm 0; }
+li > p { margin: 0; }
+strong { font-weight: 700; }
+a { color: var(--accent); text-decoration: none; }
+code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.86em; background: var(--soft); padding: 0.4mm 1.2mm; border-radius: 1mm; overflow-wrap: anywhere; }
+pre { background: var(--soft); border: 0.6pt solid var(--line); border-radius: 2mm; padding: 3mm 4mm; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; font-size: 8.6pt; line-height: 1.45; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-family: 'Archivo', system-ui, sans-serif; font-size: 8.8pt; line-height: 1.4; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { text-align: left; font-weight: 700; background: var(--soft); border-bottom: 1.2pt solid var(--ink); padding: 1.8mm 2.2mm; vertical-align: bottom; }
+td { border-bottom: 0.5pt solid var(--line); padding: 1.6mm 2.2mm; vertical-align: top; overflow-wrap: break-word; }
+td code { overflow-wrap: anywhere; }
+blockquote { margin: 3mm 0 4mm; padding: 2.5mm 4mm; border-left: 2.5pt solid var(--accent); background: var(--soft); color: var(--muted); }
+hr { border: none; border-top: 0.6pt solid var(--line); margin: 6mm 0; }
+img { max-width: 100%; max-height: 120mm; display: block; margin: 3mm auto 1mm; border: 0.6pt solid var(--line); border-radius: 1.5mm; break-inside: avoid; }
+.toc { font-family: 'Archivo', system-ui, sans-serif; font-size: 10pt; }
+.mermaid { margin: 4mm 0 5mm; text-align: center; break-inside: avoid; }
+.mermaid svg { max-width: 100%; max-height: 190mm; height: auto; }
+.junto { break-inside: avoid; display: inline-block; width: 100%; }
+.junto > h2 { break-before: page; }
+.plantuml { margin: 4mm 0 5mm; text-align: center; break-inside: avoid; }
+.plantuml svg { max-width: 100%; max-height: 200mm; height: auto !important; width: auto !important; }
+.plantuml.ancho svg { width: 100% !important; }
+.toc-paginas { break-before: page; break-after: page; font-family: 'Archivo', system-ui, sans-serif; }
+.toc-paginas ol { list-style: none; padding: 0; margin: 0; }
+.toc-paginas li { margin: 0; }
+.toc-paginas a { display: flex; align-items: baseline; gap: 2mm; color: var(--ink); padding: 0.9mm 0; }
+.toc-paginas b { flex: 1; border-bottom: 0.8pt dotted #a69b8f; transform: translateY(-1mm); }
+.toc-paginas em { font-style: normal; font-variant-numeric: tabular-nums; min-width: 7mm; text-align: right; }
+.toc-paginas .t2 { font-weight: 700; font-size: 10.5pt; margin-top: 2mm; }
+.toc-paginas .t3 { padding-left: 6mm; font-size: 9.6pt; }
+.toc-paginas .t4 { padding-left: 12mm; font-size: 9pt; color: var(--muted); }
+.fin-toc { color: #fff; font-size: 1pt; margin: 0; }
+/* Portada empresarial neutra: blanco y negro cálido, grises solo para jerarquía; el talón perforado es el único gesto de marca. */
+.portada { page: portada; break-after: page; width: 210mm; height: 297mm; display: flex; background: #fff; color: #1d1a17; font-family: 'Archivo', sans-serif; }
+.portada p { margin: 0; }
+.portada-cuerpo { flex: 1; padding: 30mm 16mm 24mm 22mm; display: flex; flex-direction: column; }
+.portada-marca { font-family: 'Big Shoulders Display', 'Big Shoulders', 'Archivo', sans-serif; font-weight: 800; font-size: 24pt; letter-spacing: 0.08em; color: #1d1a17; }
+.portada-tipo { margin-top: 58mm !important; font-family: 'IBM Plex Mono', monospace; font-size: 8.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; }
+.portada-titulo { margin-top: 5mm !important; font-family: 'Big Shoulders Display', 'Big Shoulders', 'Archivo', sans-serif; font-weight: 800; font-size: 48pt; line-height: 0.95; text-transform: uppercase; color: #1d1a17; }
+.portada-sub { margin-top: 7mm !important; max-width: 118mm; font-size: 11pt; line-height: 1.5; color: #5c544c; }
+.portada-datos { margin-top: auto; border-top: 0.8pt solid #1d1a17; padding-top: 6mm; display: grid; gap: 4.5mm; }
+.portada-datos span { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 7.5pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; margin-bottom: 1mm; }
+.portada-datos p { font-size: 10.5pt; color: #1d1a17; }
+.portada-talon { width: 46mm; padding: 30mm 8mm 24mm 9mm; border-left: 0.8pt dashed #b8afa5; display: flex; flex-direction: column; justify-content: flex-end; }
+.talon-etq { font-family: 'IBM Plex Mono', monospace; font-size: 7pt; letter-spacing: 0.14em; text-transform: uppercase; color: #7a7066; }
+.talon-val { font-family: 'IBM Plex Mono', monospace; font-size: 9pt; color: #1d1a17; margin-bottom: 5mm !important; }
+</style><script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+// deterministicIds: con el reloj virtual de Chrome los IDs por hora se repiten y los diagramas se pisan.
+mermaid.initialize({ startOnLoad: false, deterministicIds: true, theme: 'neutral', fontFamily: 'Archivo, sans-serif',
+  flowchart: { htmlLabels: false }, er: { useMaxWidth: true } });
+await mermaid.run({ querySelector: '.mermaid' });
+</script></head><body><section class="portada">
+<div class="portada-cuerpo">
+<p class="portada-marca">ENCORELY</p>
+<p class="portada-tipo">Documentación técnica · Avance</p>
+<p class="portada-titulo">Manual técnico del sistema</p>
+<p class="portada-sub">App móvil, API y base de datos: arquitectura, instalación, despliegue, seguridad y operación.</p>
+<div class="portada-datos">
+<div><span>Preparado por</span><p>Camilo Rincón · Emmanuel Dávila · Samuel Sierra · Juan Diego Calle</p></div>
+<div><span>Preparado para</span><p>Tecnológico de Antioquia · Despliegue de Sistemas</p></div>
+<div><span>Lugar y fecha</span><p>Itagüí, Antioquia · 22 de octubre de 2026</p></div>
+</div>
+</div>
+<aside class="portada-talon">
+<p class="talon-etq">Documento</p><p class="talon-val">ENC-MT-001</p>
+<p class="talon-etq">Versión</p><p class="talon-val">1.4</p>
+<p class="talon-etq">Contrato API</p><p class="talon-val">v1.0.0-draft.17</p>
+<p class="talon-etq">Clasificación</p><p class="talon-val">Uso interno</p>
+</aside>
+</section>
+
+<nav class="toc-paginas"><h2 class="toc-titulo">Tabla de contenido</h2><ol><li class="t2"><a href="#1-control-documental-e-historial-de-cambios"><span>1. Control documental e historial de cambios</span><b></b><em>6</em></a></li><li class="t3"><a href="#11-control-documental"><span>1.1 Control documental</span><b></b><em>6</em></a></li><li class="t3"><a href="#12-historial-de-cambios"><span>1.2 Historial de cambios</span><b></b><em>6</em></a></li><li class="t3"><a href="#13-proposito-y-publico-del-documento"><span>1.3 Propósito y público del documento</span><b></b><em>7</em></a></li><li class="t3"><a href="#14-responsables-y-periodicidad-de-actualizacion"><span>1.4 Responsables y periodicidad de actualización</span><b></b><em>7</em></a></li><li class="t3"><a href="#15-convenciones-de-nombres"><span>1.5 Convenciones de nombres</span><b></b><em>8</em></a></li><li class="t3"><a href="#16-convenciones-de-redaccion-y-de-comandos"><span>1.6 Convenciones de redacción y de comandos</span><b></b><em>8</em></a></li><li class="t3"><a href="#17-manejo-de-informacion-sensible"><span>1.7 Manejo de información sensible</span><b></b><em>8</em></a></li><li class="t3"><a href="#18-herramientas-de-elaboracion-del-manual"><span>1.8 Herramientas de elaboración del manual</span><b></b><em>8</em></a></li><li class="t2"><a href="#2-objetivo-alcance-y-descripcion-general-del-sistema"><span>2. Objetivo, alcance y descripción general del sistema</span><b></b><em>9</em></a></li><li class="t3"><a href="#21-objetivo-del-sistema"><span>2.1 Objetivo del sistema</span><b></b><em>9</em></a></li><li class="t3"><a href="#22-alcance-de-la-version-1"><span>2.2 Alcance de la versión 1</span><b></b><em>9</em></a></li><li class="t3"><a href="#23-descripcion-general"><span>2.3 Descripción general</span><b></b><em>9</em></a></li><li class="t2"><a href="#3-requisitos-de-hardware-software-y-red"><span>3. Requisitos de hardware, software y red</span><b></b><em>10</em></a></li><li class="t3"><a href="#31-ambientes-del-sistema"><span>3.1 Ambientes del sistema</span><b></b><em>10</em></a></li><li class="t3"><a href="#32-requisitos-de-hardware"><span>3.2 Requisitos de hardware</span><b></b><em>10</em></a></li><li class="t4"><a href="#321-estacion-de-desarrollo"><span>3.2.1 Estación de desarrollo</span><b></b><em>10</em></a></li><li class="t4"><a href="#322-dispositivos-moviles"><span>3.2.2 Dispositivos móviles</span><b></b><em>10</em></a></li><li class="t4"><a href="#323-servidores-de-produccion"><span>3.2.3 Servidores de producción</span><b></b><em>10</em></a></li><li class="t3"><a href="#33-requisitos-de-software"><span>3.3 Requisitos de software</span><b></b><em>10</em></a></li><li class="t4"><a href="#331-software-para-el-back"><span>3.3.1 Software para el back</span><b></b><em>10</em></a></li><li class="t4"><a href="#332-software-para-la-app"><span>3.3.2 Software para la app</span><b></b><em>10</em></a></li><li class="t3"><a href="#34-requisitos-de-red"><span>3.4 Requisitos de red</span><b></b><em>10</em></a></li><li class="t2"><a href="#4-arquitectura-y-diagramas-de-componentes"><span>4. Arquitectura y diagramas de componentes</span><b></b><em>11</em></a></li><li class="t3"><a href="#41-descripcion-de-la-arquitectura-del-sistema"><span>4.1 Descripción de la arquitectura del sistema</span><b></b><em>11</em></a></li><li class="t4"><a href="#411-capa-de-presentacion"><span>4.1.1 Capa de presentación</span><b></b><em>11</em></a></li><li class="t4"><a href="#412-capa-de-aplicacion"><span>4.1.2 Capa de aplicación</span><b></b><em>11</em></a></li><li class="t4"><a href="#413-capa-de-datos"><span>4.1.3 Capa de datos</span><b></b><em>11</em></a></li><li class="t4"><a href="#414-infraestructura"><span>4.1.4 Infraestructura</span><b></b><em>12</em></a></li><li class="t4"><a href="#415-integraciones"><span>4.1.5 Integraciones</span><b></b><em>12</em></a></li><li class="t4"><a href="#416-seguridad"><span>4.1.6 Seguridad</span><b></b><em>12</em></a></li><li class="t4"><a href="#417-operacion"><span>4.1.7 Operación</span><b></b><em>12</em></a></li><li class="t3"><a href="#42-diagrama-de-arquitectura-logica"><span>4.2 Diagrama de arquitectura lógica</span><b></b><em>12</em></a></li><li class="t3"><a href="#43-diagrama-de-componentes"><span>4.3 Diagrama de componentes</span><b></b><em>12</em></a></li><li class="t4"><a href="#431-componentes-de-la-app"><span>4.3.1 Componentes de la app</span><b></b><em>12</em></a></li><li class="t4"><a href="#432-componentes-de-la-api"><span>4.3.2 Componentes de la API</span><b></b><em>13</em></a></li><li class="t2"><a href="#5-instalacion-configuracion-y-despliegue"><span>5. Instalación, configuración y despliegue</span><b></b><em>14</em></a></li><li class="t3"><a href="#51-instalacion-local-de-la-api-y-la-base-de-datos"><span>5.1 Instalación local de la API y la base de datos</span><b></b><em>14</em></a></li><li class="t3"><a href="#52-instalacion-local-de-la-app"><span>5.2 Instalación local de la app</span><b></b><em>15</em></a></li><li class="t3"><a href="#53-configuracion"><span>5.3 Configuración</span><b></b><em>16</em></a></li><li class="t4"><a href="#531-variables-de-entorno-de-la-api"><span>5.3.1 Variables de entorno de la API</span><b></b><em>16</em></a></li><li class="t4"><a href="#532-variables-de-entorno-de-la-app"><span>5.3.2 Variables de entorno de la app</span><b></b><em>16</em></a></li><li class="t4"><a href="#533-configuracion-estatica-de-la-app"><span>5.3.3 Configuración estática de la app</span><b></b><em>16</em></a></li><li class="t3"><a href="#54-integracion-continua"><span>5.4 Integración continua</span><b></b><em>16</em></a></li><li class="t3"><a href="#55-plan-de-despliegue-a-produccion"><span>5.5 Plan de despliegue a producción</span><b></b><em>16</em></a></li><li class="t4"><a href="#551-estado-actual-del-despliegue"><span>5.5.1 Estado actual del despliegue</span><b></b><em>16</em></a></li><li class="t4"><a href="#552-cronograma-responsables-y-ventana"><span>5.5.2 Cronograma, responsables y ventana</span><b></b><em>16</em></a></li><li class="t4"><a href="#553-actividades-de-la-fase-de-despliegue"><span>5.5.3 Actividades de la fase de despliegue</span><b></b><em>16</em></a></li><li class="t4"><a href="#554-procedimiento-de-despliegue-de-la-api"><span>5.5.4 Procedimiento de despliegue de la API</span><b></b><em>16</em></a></li><li class="t4"><a href="#555-procedimiento-de-build-y-publicacion-de-la-app"><span>5.5.5 Procedimiento de build y publicación de la app</span><b></b><em>16</em></a></li><li class="t3"><a href="#56-plan-de-rollback"><span>5.6 Plan de rollback</span><b></b><em>16</em></a></li><li class="t3"><a href="#57-productos-del-despliegue"><span>5.7 Productos del despliegue</span><b></b><em>16</em></a></li><li class="t3"><a href="#58-diagramas-de-despliegue"><span>5.8 Diagramas de despliegue</span><b></b><em>16</em></a></li><li class="t4"><a href="#581-despliegue-objetivo-en-produccion"><span>5.8.1 Despliegue objetivo en producción</span><b></b><em>16</em></a></li><li class="t4"><a href="#582-despliegue-actual-de-la-demo-local"><span>5.8.2 Despliegue actual de la demo local</span><b></b><em>17</em></a></li><li class="t2"><a href="#6-base-de-datos-y-modelo-de-informacion"><span>6. Base de datos y modelo de información</span><b></b><em>18</em></a></li><li class="t3"><a href="#61-motor-conexion-y-convenciones"><span>6.1 Motor, conexión y convenciones</span><b></b><em>18</em></a></li><li class="t3"><a href="#62-diagrama-entidad-relacion"><span>6.2 Diagrama entidad-relación</span><b></b><em>18</em></a></li><li class="t4"><a href="#621-vista-de-cuenta-sesiones-y-moderacion"><span>6.2.1 Vista de cuenta, sesiones y moderación</span><b></b><em>19</em></a></li><li class="t4"><a href="#622-vista-de-musica-y-perfil-social"><span>6.2.2 Vista de música y perfil social</span><b></b><em>19</em></a></li><li class="t4"><a href="#623-vista-de-eventos-y-match"><span>6.2.3 Vista de eventos y match</span><b></b><em>20</em></a></li><li class="t4"><a href="#624-vista-de-chat-y-mensajes"><span>6.2.4 Vista de chat y mensajes</span><b></b><em>20</em></a></li><li class="t4"><a href="#625-vista-de-llaves-respaldo-y-vinculacion"><span>6.2.5 Vista de llaves, respaldo y vinculación</span><b></b><em>21</em></a></li><li class="t3"><a href="#63-fichas-tecnicas-de-las-tablas"><span>6.3 Fichas técnicas de las tablas</span><b></b><em>21</em></a></li><li class="t4"><a href="#631-tabla-users"><span>6.3.1 Tabla users</span><b></b><em>21</em></a></li><li class="t4"><a href="#632-tabla-user_consents"><span>6.3.2 Tabla user_consents</span><b></b><em>22</em></a></li><li class="t4"><a href="#633-tabla-refresh_tokens"><span>6.3.3 Tabla refresh_tokens</span><b></b><em>22</em></a></li><li class="t4"><a href="#634-tabla-device_push_tokens"><span>6.3.4 Tabla device_push_tokens</span><b></b><em>23</em></a></li><li class="t4"><a href="#635-tabla-banned_emails"><span>6.3.5 Tabla banned_emails</span><b></b><em>23</em></a></li><li class="t4"><a href="#636-tabla-genres"><span>6.3.6 Tabla genres</span><b></b><em>23</em></a></li><li class="t4"><a href="#637-tabla-songs"><span>6.3.7 Tabla songs</span><b></b><em>24</em></a></li><li class="t4"><a href="#638-tabla-swipes"><span>6.3.8 Tabla swipes</span><b></b><em>24</em></a></li><li class="t4"><a href="#639-tabla-user_genres"><span>6.3.9 Tabla user_genres</span><b></b><em>24</em></a></li><li class="t4"><a href="#6310-tabla-user_genre_scores"><span>6.3.10 Tabla user_genre_scores</span><b></b><em>25</em></a></li><li class="t4"><a href="#6311-tabla-user_artists"><span>6.3.11 Tabla user_artists</span><b></b><em>25</em></a></li><li class="t4"><a href="#6312-tabla-profile_reactions"><span>6.3.12 Tabla profile_reactions</span><b></b><em>26</em></a></li><li class="t4"><a href="#6313-tabla-events"><span>6.3.13 Tabla events</span><b></b><em>26</em></a></li><li class="t4"><a href="#6314-tabla-event_attendances"><span>6.3.14 Tabla event_attendances</span><b></b><em>27</em></a></li><li class="t4"><a href="#6315-tabla-user_likes"><span>6.3.15 Tabla user_likes</span><b></b><em>27</em></a></li><li class="t4"><a href="#6316-tabla-matches"><span>6.3.16 Tabla matches</span><b></b><em>27</em></a></li><li class="t4"><a href="#6317-tabla-user_keys"><span>6.3.17 Tabla user_keys</span><b></b><em>28</em></a></li><li class="t4"><a href="#6318-tabla-user_box_keys"><span>6.3.18 Tabla user_box_keys</span><b></b><em>28</em></a></li><li class="t4"><a href="#6319-tabla-chat_messages"><span>6.3.19 Tabla chat_messages</span><b></b><em>29</em></a></li><li class="t4"><a href="#6320-tabla-delivered_message_ids"><span>6.3.20 Tabla delivered_message_ids</span><b></b><em>29</em></a></li><li class="t4"><a href="#6321-tabla-message_franking_records"><span>6.3.21 Tabla message_franking_records</span><b></b><em>30</em></a></li><li class="t4"><a href="#6322-tabla-blocks"><span>6.3.22 Tabla blocks</span><b></b><em>30</em></a></li><li class="t4"><a href="#6323-tabla-reports"><span>6.3.23 Tabla reports</span><b></b><em>30</em></a></li><li class="t4"><a href="#6324-tabla-encrypted_backup"><span>6.3.24 Tabla encrypted_backup</span><b></b><em>31</em></a></li><li class="t4"><a href="#6325-tabla-device_link_request"><span>6.3.25 Tabla device_link_request</span><b></b><em>32</em></a></li><li class="t3"><a href="#64-diccionario-de-datos"><span>6.4 Diccionario de datos</span><b></b><em>32</em></a></li><li class="t3"><a href="#65-almacenamiento-en-el-dispositivo"><span>6.5 Almacenamiento en el dispositivo</span><b></b><em>34</em></a></li><li class="t4"><a href="#651-tabla-local-messages"><span>6.5.1 Tabla local messages</span><b></b><em>34</em></a></li><li class="t4"><a href="#652-tabla-local-sync_state"><span>6.5.2 Tabla local sync_state</span><b></b><em>34</em></a></li><li class="t3"><a href="#66-migraciones"><span>6.6 Migraciones</span><b></b><em>34</em></a></li><li class="t3"><a href="#67-datos-semilla"><span>6.7 Datos semilla</span><b></b><em>34</em></a></li><li class="t3"><a href="#68-relacion-entre-componentes-y-estructuras-de-datos"><span>6.8 Relación entre componentes y estructuras de datos</span><b></b><em>34</em></a></li><li class="t3"><a href="#69-politica-de-respaldo-de-la-base-de-datos"><span>6.9 Política de respaldo de la base de datos</span><b></b><em>34</em></a></li><li class="t3"><a href="#610-mantenimiento-de-este-capitulo"><span>6.10 Mantenimiento de este capítulo</span><b></b><em>34</em></a></li><li class="t2"><a href="#7-integraciones-apis-y-servicios-externos"><span>7. Integraciones, APIs y servicios externos</span><b></b><em>35</em></a></li><li class="t3"><a href="#71-api-rest-v1"><span>7.1 API REST v1</span><b></b><em>35</em></a></li><li class="t3"><a href="#72-operaciones-por-modulo"><span>7.2 Operaciones por módulo</span><b></b><em>35</em></a></li><li class="t3"><a href="#73-tiempo-real-con-signalr"><span>7.3 Tiempo real con SignalR</span><b></b><em>35</em></a></li><li class="t3"><a href="#74-servicios-externos"><span>7.4 Servicios externos</span><b></b><em>35</em></a></li><li class="t2"><a href="#8-seguridad-perfiles-y-permisos"><span>8. Seguridad, perfiles y permisos</span><b></b><em>36</em></a></li><li class="t3"><a href="#81-perfiles-de-usuario-y-permisos"><span>8.1 Perfiles de usuario y permisos</span><b></b><em>36</em></a></li><li class="t3"><a href="#82-autenticacion-y-sesiones"><span>8.2 Autenticación y sesiones</span><b></b><em>37</em></a></li><li class="t3"><a href="#83-autorizacion"><span>8.3 Autorización</span><b></b><em>37</em></a></li><li class="t3"><a href="#84-cifrado-de-extremo-a-extremo-del-chat"><span>8.4 Cifrado de extremo a extremo del chat</span><b></b><em>38</em></a></li><li class="t3"><a href="#85-segmentacion"><span>8.5 Segmentación</span><b></b><em>38</em></a></li><li class="t3"><a href="#86-auditoria"><span>8.6 Auditoría</span><b></b><em>38</em></a></li><li class="t3"><a href="#87-gestion-de-secretos"><span>8.7 Gestión de secretos</span><b></b><em>38</em></a></li><li class="t3"><a href="#88-datos-personales-y-ley-1581"><span>8.8 Datos personales y Ley 1581</span><b></b><em>38</em></a></li><li class="t2"><a href="#9-operacion-monitoreo-respaldo-y-recuperacion"><span>9. Operación, monitoreo, respaldo y recuperación</span><b></b><em>39</em></a></li><li class="t3"><a href="#91-estado-operativo-real-y-objetivos-propuestos"><span>9.1 Estado operativo real y objetivos propuestos</span><b></b><em>39</em></a></li><li class="t3"><a href="#92-disponibilidad-y-rendimiento"><span>9.2 Disponibilidad y rendimiento</span><b></b><em>39</em></a></li><li class="t3"><a href="#93-monitoreo-y-observabilidad"><span>9.3 Monitoreo y observabilidad</span><b></b><em>39</em></a></li><li class="t3"><a href="#94-tareas-programadas-del-sistema"><span>9.4 Tareas programadas del sistema</span><b></b><em>39</em></a></li><li class="t3"><a href="#95-respaldo-y-recuperacion"><span>9.5 Respaldo y recuperación</span><b></b><em>39</em></a></li><li class="t4"><a href="#951-politica-de-respaldo"><span>9.5.1 Política de respaldo</span><b></b><em>39</em></a></li><li class="t4"><a href="#952-procedimiento-de-respaldo-manual"><span>9.5.2 Procedimiento de respaldo manual</span><b></b><em>39</em></a></li><li class="t4"><a href="#953-procedimiento-de-restauracion"><span>9.5.3 Procedimiento de restauración</span><b></b><em>39</em></a></li><li class="t3"><a href="#96-ficha-de-operatividad"><span>9.6 Ficha de operatividad</span><b></b><em>39</em></a></li><li class="t3"><a href="#97-flujo-operativo-ante-una-falla"><span>9.7 Flujo operativo ante una falla</span><b></b><em>39</em></a></li><li class="t2"><a href="#10-solucion-de-incidentes-mantenimiento-y-anexos"><span>10. Solución de incidentes, mantenimiento y anexos</span><b></b><em>40</em></a></li><li class="t3"><a href="#101-gestion-de-incidentes"><span>10.1 Gestión de incidentes</span><b></b><em>40</em></a></li><li class="t3"><a href="#102-runbooks-de-incidentes"><span>10.2 Runbooks de incidentes</span><b></b><em>40</em></a></li><li class="t3"><a href="#103-solucion-de-problemas-en-desarrollo"><span>10.3 Solución de problemas en desarrollo</span><b></b><em>40</em></a></li><li class="t4"><a href="#1031-problemas-frecuentes-del-back"><span>10.3.1 Problemas frecuentes del back</span><b></b><em>40</em></a></li><li class="t4"><a href="#1032-problemas-frecuentes-de-la-app"><span>10.3.2 Problemas frecuentes de la app</span><b></b><em>40</em></a></li><li class="t3"><a href="#104-mantenimiento-preventivo"><span>10.4 Mantenimiento preventivo</span><b></b><em>40</em></a></li><li class="t3"><a href="#105-mantenimiento-correctivo"><span>10.5 Mantenimiento correctivo</span><b></b><em>40</em></a></li><li class="t3"><a href="#106-pendientes-tecnicos-conocidos"><span>10.6 Pendientes técnicos conocidos</span><b></b><em>40</em></a></li><li class="t3"><a href="#107-anexo-a-glosario"><span>10.7 Anexo A. Glosario</span><b></b><em>40</em></a></li><li class="t3"><a href="#108-anexo-b-plantillas-de-aceptacion-e-incidentes"><span>10.8 Anexo B. Plantillas de aceptación e incidentes</span><b></b><em>40</em></a></li></ol><p class="fin-toc">FINTOCMARCA</p></nav>
+<h2 id="1-control-documental-e-historial-de-cambios">1. Control documental e historial de cambios</h2>
+<h3 id="11-control-documental">1.1 Control documental</h3>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código del documento</td>
+<td>ENC-MT-001</td>
+</tr>
+<tr>
+<td>Sistema</td>
+<td>Encorely: app móvil <code>encorely-front</code> (Expo, Android e iOS) y API <code>encorly_back</code> (.NET 10 + PostgreSQL 16)</td>
+</tr>
+<tr>
+<td>Tipo de documento</td>
+<td>Manual técnico unificado · avance de entrega</td>
+</tr>
+<tr>
+<td>Versión vigente</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>Fecha de emisión</td>
+<td>2026-10-22</td>
+</tr>
+<tr>
+<td>Elaborado por</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+</tr>
+<tr>
+<td>Aprobado por</td>
+<td>Aprobado por: ____________________ (docente) · Fecha: ____________</td>
+</tr>
+<tr>
+<td>Responsable de mantenerlo</td>
+<td>Camilo Rincón (Product Owner) coordina las versiones; cada capítulo tiene su responsable en 1.4</td>
+</tr>
+<tr>
+<td>Periodicidad de actualización</td>
+<td>Con cada cambio de esquema de la base de datos, de contrato (draft) o de despliegue, y revisión completa por release</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-historial-de-cambios">1.2 Historial de cambios</h3>
+<table>
+<thead>
+<tr>
+<th>Versión</th>
+<th>Fecha</th>
+<th>Autores</th>
+<th>Cambios</th>
+<th>Aprobación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>2026-10-20</td>
+<td>Equipo Encorely</td>
+<td>Manuales técnicos por repositorio: <code>encorly_back/docs/MANUAL-TECNICO.md</code> y <code>encorely-front/docs/MANUAL-TECNICO.md</code></td>
+<td>No aplica (borrador)</td>
+</tr>
+<tr>
+<td>1.0</td>
+<td>2026-10-20</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Manual unificado según la estructura de la cátedra: análisis del problema, arquitectura por capas, matriz de componentes, fichas de las 25 tablas, plan de despliegue y rollback, diagrama de despliegue UML, operatividad e incidentes</td>
+<td>Pendiente de firma del docente</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Portada con identidad de Encorely y datos de entrega (Tecnológico de Antioquia, Despliegue de Sistemas)</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Estructura alineada a las diapositivas de la cátedra; el análisis del software pasa a documento propio; capítulo 1 sin portada, ficha fusionada en el control documental y sin "Documentos relacionados"</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Paridad estricta con las diapositivas: se quitan secciones no pedidas, se agregan segmentación, auditoría, alta disponibilidad, capacitación, dueños por aspecto operativo y diagramas de despliegue en UML con PlantUML</td>
+<td>Pendiente</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>2026-10-22</td>
+<td>Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle</td>
+<td>Depuración por bloque: se retira el texto que no explican las diapositivas (detalles de implementación, justificaciones, notas y columnas no pedidas); 7.2 queda solo con el título; diagramas de componentes y de despliegue rehechos en UML con el orden de los ejemplos de las diapositivas</td>
+<td>Pendiente</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-proposito-y-publico-del-documento">1.3 Propósito y público del documento</h3>
+<p>Este manual explica cómo está construido, configurado, desplegado y mantenido Encorely. Está dirigido a desarrollo (back y front), administración de base de datos e infraestructura y operación (DevOps).</p>
+<h3 id="14-responsables-y-periodicidad-de-actualizacion">1.4 Responsables y periodicidad de actualización</h3>
+<table>
+<thead>
+<tr>
+<th>Capítulo</th>
+<th>Responsable</th>
+<th>Disparador de actualización</th>
+<th>Plazo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Control documental</td>
+<td>Camilo Rincón (Product Owner)</td>
+<td>Cada versión nueva del documento</td>
+<td>Al emitir la versión</td>
+</tr>
+<tr>
+<td>2. Objetivo, alcance y descripción general</td>
+<td>Camilo Rincón (Product Owner)</td>
+<td>Cambio de alcance o de una decisión de producto</td>
+<td>En el mismo PR del cambio</td>
+</tr>
+<tr>
+<td>3. Requisitos de hardware, software y red</td>
+<td>Samuel Sierra (DevOps e infraestructura)</td>
+<td>Cambio de versión de una herramienta, de un puerto o de un nodo</td>
+<td>En el mismo PR del cambio</td>
+</tr>
+<tr>
+<td>4. Arquitectura y diagramas de componentes</td>
+<td>Camilo Rincón (arquitecto de software)</td>
+<td>Módulo, capa o componente nuevo</td>
+<td>En el mismo PR del cambio</td>
+</tr>
+<tr>
+<td>5. Instalación, configuración y despliegue</td>
+<td>Samuel Sierra; 5.2 y 5.5.5, Emmanuel Dávila (app)</td>
+<td>Cambio de <code>Dockerfile</code>, <code>render.yaml</code>, <code>eas.json</code> o de variables de entorno</td>
+<td>Antes de aplicar el cambio en un ambiente</td>
+</tr>
+<tr>
+<td>6. Base de datos y modelo de información</td>
+<td>Samuel Sierra (administrador de base de datos)</td>
+<td>Nueva migración de EF Core: fichas, diccionario, ERD y lista de migraciones</td>
+<td>En el mismo PR de la migración</td>
+</tr>
+<tr>
+<td>7. Integraciones, APIs y servicios externos</td>
+<td>Camilo Rincón (desarrollo back)</td>
+<td>Nueva entrada en <code>contracts/CHANGELOG.md</code> o integración nueva</td>
+<td>En el mismo PR del cambio de contrato</td>
+</tr>
+<tr>
+<td>8. Seguridad, perfiles y permisos</td>
+<td>Camilo Rincón (seguridad)</td>
+<td>Control, perfil o secreto nuevo</td>
+<td>En el mismo PR del cambio</td>
+</tr>
+<tr>
+<td>9. Operación, monitoreo, respaldo y recuperación</td>
+<td>Samuel Sierra; 9.3, Juan Diego Calle (monitoreo)</td>
+<td>Cambio de umbral, alerta, herramienta o política de respaldo</td>
+<td>Antes de aplicar el cambio en producción</td>
+</tr>
+<tr>
+<td>10. Solución de incidentes, mantenimiento y anexos</td>
+<td>Camilo Rincón (escalamiento de incidentes); 10.3.2, Emmanuel Dávila</td>
+<td>Incidente cerrado (runbooks y lecciones de 10.1 y 10.2) o procedimiento nuevo</td>
+<td>Hasta 5 días hábiles después del cierre</td>
+</tr>
+</tbody>
+</table>
+<p>En cada release (versión de la app o de la API) el equipo completo revisa el documento y agrega la fila del historial de cambios antes de etiquetar el release.</p>
+<p>Cada cambio sube la versión del documento: cambio menor (corrección o sección nueva) suma 0.1; cambio de estructura o de release suma 1.0.</p>
+<h3 id="15-convenciones-de-nombres">1.5 Convenciones de nombres</h3>
+<h3 id="16-convenciones-de-redaccion-y-de-comandos">1.6 Convenciones de redacción y de comandos</h3>
+<h3 id="17-manejo-de-informacion-sensible">1.7 Manejo de información sensible</h3>
+<h3 id="18-herramientas-de-elaboracion-del-manual">1.8 Herramientas de elaboración del manual</h3>
+<h2 id="2-objetivo-alcance-y-descripcion-general-del-sistema">2. Objetivo, alcance y descripción general del sistema</h2>
+<h3 id="21-objetivo-del-sistema">2.1 Objetivo del sistema</h3>
+<p>Encorely conecta a personas mayores de edad que van al mismo concierto y tienen gustos musicales parecidos, para que se conozcan antes del evento y vayan juntas. El objetivo técnico es que esa cadena funcione de punta a punta, con identidad verificada en el servidor, afinidad calculada con datos reales y una conversación privada que el propio servidor no puede leer.</p>
+<h3 id="22-alcance-de-la-version-1">2.2 Alcance de la versión 1</h3>
+<p>Dentro del alcance: los requisitos funcionales RF-01 a RF-17 (definidos en el documento <em>Análisis del software</em>), es decir, cuenta y onboarding, catálogo de canciones y ADN musical, eventos y radar, match recíproco, perfil social, chat cifrado de extremo a extremo con respaldo y traspaso, bloqueo y reporte, notificaciones push y panel de administración.</p>
+<p>Fuera del alcance:</p>
+<ul>
+<li>Salas grupales por evento.</li>
+<li>Login con Google y Apple.</li>
+<li>APIs externas distintas de iTunes Search, FCM/APNs (vía Expo Push) y el conector de Spotify.</li>
+<li>Publicación en tiendas y hosting de producción.</li>
+<li>QA en iOS.</li>
+</ul>
+<h3 id="23-descripcion-general">2.3 Descripción general</h3>
+<h2 id="3-requisitos-de-hardware-software-y-red">3. Requisitos de hardware, software y red</h2>
+<h3 id="31-ambientes-del-sistema">3.1 Ambientes del sistema</h3>
+<table>
+<thead>
+<tr>
+<th>Ambiente</th>
+<th>Dónde corre</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Desarrollo local (<code>Development</code>)</td>
+<td>PC del equipo: Postgres en Docker, API con <code>dotnet run</code>, app en emulador o teléfono</td>
+<td>En uso y verificado</td>
+</tr>
+<tr>
+<td>Pruebas automatizadas (<code>Testing</code>)</td>
+<td>Testcontainers en el PC o en el runner de GitHub Actions</td>
+<td>En uso y verificado</td>
+</tr>
+<tr>
+<td>Integración continua</td>
+<td>GitHub Actions (<code>ubuntu-24.04</code> y <code>ubuntu-latest</code>)</td>
+<td>En uso</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>Propuesto: Render + perfil EAS <code>preview</code> (<code>https://api-staging.encorely.example</code>, marcador)</td>
+<td>Preparado, no creado</td>
+</tr>
+<tr>
+<td>Producción (<code>Production</code>)</td>
+<td>Propuesto: Render (servicio web + Postgres administrado) + tiendas</td>
+<td>Preparado, no desplegado</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-requisitos-de-hardware">3.2 Requisitos de hardware</h3>
+<h4 id="321-estacion-de-desarrollo">3.2.1 Estación de desarrollo</h4>
+<h4 id="322-dispositivos-moviles">3.2.2 Dispositivos móviles</h4>
+<h4 id="323-servidores-de-produccion">3.2.3 Servidores de producción</h4>
+<h3 id="33-requisitos-de-software">3.3 Requisitos de software</h3>
+<h4 id="331-software-para-el-back">3.3.1 Software para el back</h4>
+<h4 id="332-software-para-la-app">3.3.2 Software para la app</h4>
+<h3 id="34-requisitos-de-red">3.4 Requisitos de red</h3>
+<h2 id="4-arquitectura-y-diagramas-de-componentes">4. Arquitectura y diagramas de componentes</h2>
+<h3 id="41-descripcion-de-la-arquitectura-del-sistema">4.1 Descripción de la arquitectura del sistema</h3>
+<p>El back es un monolito modular: un solo proceso ASP.NET Core 10 con una carpeta por feature (<code>Features/&lt;Feature&gt;</code>) y la infraestructura transversal en <code>Infrastructure/</code>. La app es un cliente nativo que guarda en el teléfono solo tokens, llaves y el historial cifrado del chat. El contrato <code>contracts/openapi.v1.json</code> une los dos lados: la API lo genera desde el código y la app genera sus tipos desde él.</p>
+<h4 id="411-capa-de-presentacion">4.1.1 Capa de presentación</h4>
+<p>Componentes en Encorely: app móvil (<code>encorely-front/src/app</code>, <code>src/features</code>, <code>src/ui</code>); panel de administración HTML en <code>/admin</code>; páginas <code>/legal/terminos</code>, <code>/legal/privacidad</code> y <code>/cuenta/eliminar</code> servidas por la API.</p>
+<p>Tecnología: Expo SDK 57, React Native 0.86, React 19.2, TypeScript 6; HTML.</p>
+<h4 id="412-capa-de-aplicacion">4.1.2 Capa de aplicación</h4>
+<p>Componentes en Encorely: API REST <code>/api/v1</code> (Minimal APIs), servicios de dominio por feature, <code>ChatHub</code>, tareas en segundo plano (<code>PushDispatcher</code>, <code>PushReceiptChecker</code>, <code>MaintenanceService</code>).</p>
+<p>Tecnología: ASP.NET Core 10, C#, SignalR.</p>
+<h4 id="413-capa-de-datos">4.1.3 Capa de datos</h4>
+<p>Componentes en Encorely: PostgreSQL 16 con 25 tablas; en el teléfono, SQLCipher para el historial y SecureStore para tokens y llaves.</p>
+<p>Tecnología: EF Core 10 + Npgsql, Dapper (radar), <code>expo-sqlite</code>, <code>expo-secure-store</code>.</p>
+<h4 id="414-infraestructura">4.1.4 Infraestructura</h4>
+<h4 id="415-integraciones">4.1.5 Integraciones</h4>
+<h4 id="416-seguridad">4.1.6 Seguridad</h4>
+<h4 id="417-operacion">4.1.7 Operación</h4>
+<h3 id="42-diagrama-de-arquitectura-logica">4.2 Diagrama de arquitectura lógica</h3>
+<h3 id="43-diagrama-de-componentes">4.3 Diagrama de componentes</h3>
+<div class="junto"><h4 id="431-componentes-de-la-app">4.3.1 Componentes de la app</h4>
+<div class="plantuml ancho"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:736px;height:383px;background:#FFFFFF;" width="736px" height="383px" viewBox="0 0 736 383" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.9?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster Presentación--><g class="cluster" data-qualified-name="Presentaci.n" id="ent0001" data-source-line="8"><path d="M317.5,4 L414.4,4 A3.75,3.75 0 0 1 416.9,6.5 L423.9,25.133 L472.5,25.133 A2.5,2.5 0 0 1 475,27.633 L475,119.5 A2.5,2.5 0 0 1 472.5,122 L317.5,122 A2.5,2.5 0 0 1 315,119.5 L315,6.5 A2.5,2.5 0 0 1 317.5,4" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="315" y1="25.133" x2="423.9" y2="25.133" style="stroke:#000;stroke-width:1.5;"/><text x="319" y="18.067" fill="#000" font-size="13" textLength="95.9" font-weight="700" font-family="Archivo">Presentación</text></g><!--cluster Aplicación--><g class="cluster" data-qualified-name="Aplicaci.n" id="ent0003" data-source-line="11"><path d="M140.5,130 L216.605,130 A3.75,3.75 0 0 1 219.105,132.5 L226.105,151.133 L725.5,151.133 A2.5,2.5 0 0 1 728,153.633 L728,230.5 A2.5,2.5 0 0 1 725.5,233 L140.5,233 A2.5,2.5 0 0 1 138,230.5 L138,132.5 A2.5,2.5 0 0 1 140.5,130" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="138" y1="151.133" x2="226.105" y2="151.133" style="stroke:#000;stroke-width:1.5;"/><text x="142" y="144.067" fill="#000" font-size="13" textLength="75.105" font-weight="700" font-family="Archivo">Aplicación</text></g><!--cluster Datos--><g class="cluster" data-qualified-name="Datos" id="ent0008" data-source-line="17"><path d="M16.5,241 L59.947,241 A3.75,3.75 0 0 1 62.447,243.5 L69.447,262.133 L438.5,262.133 A2.5,2.5 0 0 1 441,264.633 L441,356.5 A2.5,2.5 0 0 1 438.5,359 L16.5,359 A2.5,2.5 0 0 1 14,356.5 L14,243.5 A2.5,2.5 0 0 1 16.5,241" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="14" y1="262.133" x2="69.447" y2="262.133" style="stroke:#000;stroke-width:1.5;"/><text x="18" y="255.067" fill="#000" font-size="13" textLength="42.447" font-weight="700" font-family="Archivo">Datos</text></g><!--entity API REST--><g class="entity" data-qualified-name="API REST" id="ent0018" data-source-line="28"><ellipse cx="466" cy="310" rx="8" ry="8" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="436.931" y="339.067" fill="#000" font-size="13" textLength="58.138" font-family="Archivo">API REST</text></g><!--entity Hub de chat--><g class="entity" data-qualified-name="Hub de chat" id="ent0020" data-source-line="29"><ellipse cx="619" cy="310" rx="8" ry="8" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="579.384" y="339.067" fill="#000" font-size="13" textLength="79.231" font-family="Archivo">Hub de chat</text></g><!--entity UI--><g class="entity" data-qualified-name="Presentaci.n.UI" id="ent0002" data-source-line="9"><rect x="331.5" y="46" width="126.709" height="60.266" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="438.209" y="51" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="436.209" y="53" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="436.209" y="57" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="346.5" y="78.067" fill="#000" font-size="13" textLength="59.071" font-family="Archivo">Pantallas</text><text x="346.5" y="93.2" fill="#000" font-size="13" textLength="86.709" font-family="Archivo">(expo-router)</text></g><!--entity SES--><g class="entity" data-qualified-name="Aplicaci.n.SES" id="ent0004" data-source-line="12"><rect x="296.5" y="172" width="82.828" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="359.328" y="177" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="357.328" y="179" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="357.328" y="183" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="311.5" y="204.067" fill="#000" font-size="13" textLength="42.828" font-family="Archivo">Sesión</text></g><!--entity API--><g class="entity" data-qualified-name="Aplicaci.n.API" id="ent0005" data-source-line="13"><rect x="398" y="172" width="110.332" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="488.332" y="177" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="486.332" y="179" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="486.332" y="183" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="413" y="204.067" fill="#000" font-size="13" textLength="70.332" font-family="Archivo">Cliente API</text></g><!--entity CRY--><g class="entity" data-qualified-name="Aplicaci.n.CRY" id="ent0006" data-source-line="14"><rect x="154" y="172" width="123.827" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="257.827" y="177" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="255.827" y="179" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="255.827" y="183" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="169" y="204.067" fill="#000" font-size="13" textLength="83.827" font-family="Archivo">Cifrado E2EE</text></g><!--entity RT--><g class="entity" data-qualified-name="Aplicaci.n.RT" id="ent0007" data-source-line="15"><rect x="526.5" y="172" width="184.777" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="691.277" y="177" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="689.277" y="179" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="689.277" y="183" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="541.5" y="204.067" fill="#000" font-size="13" textLength="144.777" font-family="Archivo">Cliente de tiempo real</text></g><!--entity SEC--><g class="entity" data-qualified-name="Datos.SEC" id="ent0009" data-source-line="18"><rect x="225.5" y="283" width="198.742" height="60.266" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="404.242" y="288" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="402.242" y="290" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="402.242" y="294" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="240.5" y="315.067" fill="#000" font-size="13" textLength="158.742" font-family="Archivo">Almacenamiento seguro</text><text x="240.5" y="330.2" fill="#000" font-size="13" textLength="89.769" font-family="Archivo">(SecureStore)</text></g><!--entity LOC--><g class="entity" data-qualified-name="Datos.LOC" id="ent0010" data-source-line="19"><rect x="30.5" y="283" width="177.154" height="60.266" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="187.654" y="288" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="185.654" y="290" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="185.654" y="294" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="45.5" y="315.067" fill="#000" font-size="13" textLength="137.154" font-family="Archivo">Historial local cifrado</text><text x="45.5" y="330.2" fill="#000" font-size="13" textLength="78.394" font-family="Archivo">(SQLCipher)</text></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0004" id="lnk11" data-link-type="dependency"><polygon points="348.655,171.723,356.203,165.397,350.852,167.232,349.017,161.881,348.655,171.723" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M380.764,106.097 C370.805,126.451 359.914,148.711 350.852,167.232" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0005" id="lnk12" data-link-type="dependency"><polygon points="442.158,171.723,441.728,161.883,439.93,167.247,434.566,165.449,442.158,171.723" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M409.486,106.097 C419.619,126.451 430.709,148.726 439.93,167.247" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0006" id="lnk13" data-link-type="dependency"><polygon points="237.095,171.824,246.335,168.415,240.679,168.337,240.757,162.681,237.095,171.824" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M331.414,104.609 C316.403,112.094 300.77,120.721 287,130 C268.897,142.198 254.17,155.213 240.679,168.337" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0007" id="lnk14" data-link-type="dependency"><polygon points="587.099,171.949,581.755,163.676,582.914,169.213,577.377,170.372,587.099,171.949" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M458.523,102.499 C477.598,110.714 498.393,120.234 517,130 C541.196,142.699 563.153,156.293 582.914,169.213" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0004" data-entity-2="ent0009" id="lnk15" data-link-type="dependency"><polygon points="328.284,282.569,333.258,274.068,328.839,277.6,325.307,273.181,328.284,282.569" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M335.585,217.14 C333.529,235.564 331.111,257.238 328.839,277.6" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0006" data-entity-2="ent0009" id="lnk16" data-link-type="dependency"><polygon points="297.464,282.569,294.236,273.264,294.048,278.918,288.394,278.73,297.464,282.569" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M236.247,217.14 C253.485,235.564 274.997,258.556 294.048,278.918" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0006" data-entity-2="ent0010" id="lnk17" data-link-type="dependency"><polygon points="143.505,282.569,152.337,278.212,146.704,278.727,146.189,273.093,143.505,282.569" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M197.982,217.14 C182.642,235.564 163.658,258.365 146.704,278.727" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0005" data-entity-2="ent0018" id="lnk19"><path d="M472.804,296.717 A9,9 0 0 0 455.994 298.592" fill="none" style="stroke:#181818;stroke-width:1.5;"/><path d="M455.415,217.14 C458.176,241.882 461.481,271.504 463.632,290.775" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0007" data-entity-2="ent0020" id="lnk21"><path d="M627.457,297.636 A9,9 0 0 0 610.543 297.636" fill="none" style="stroke:#181818;stroke-width:1.5;"/><path d="M619,217.14 C619,241.882 619,271.443 619,290.714" style="stroke:#181818;stroke-width:1;" fill="none"/></g><?plantuml-src RL5DJyCm3BttLvYTng47nXrfAaMRDC5Onm411vDvQxGahfAKJ_6h-0dyCPnIH15S4kVvFTlFEMWyxYo2mMTk8mHB4HrcOQzTWnujM7QiQi-M8FgM1faDRR4ryOnTF4T9JxsgzGF_pwZq2y7HyI0PQjpmetOxsA89myAARSEEH1IV3K5hpIIBt41akESOMGfhJofgTbc3QeyxWj7IKn09AltnxaRmcW7SB540Op3SkZ4zDPnxyKZ-y0ummDKyU_kHJnkZrIznHI6zEcvLLWagZ9OMudGvxs2vErXllNY1SbAM7LwiheVqZQnEatW2JsWwncezR7wAaKFVTceiAd9eavOXqAxrBFDNf5fFLMHFX_rCHUBFT11Cem73IaxrDKnIN2uAtTJVVXSNXVIycaEUdtI6-Z2PwCCqTn_AWCBfkKKccJznAYXYoEKRNJwM7SfZLLRhKRPQ_w2pzZvjGDKOHvy0?></g></svg></div></div>
+<div class="junto"><h4 id="432-componentes-de-la-api">4.3.2 Componentes de la API</h4>
+<div class="plantuml"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:625px;height:507px;background:#FFFFFF;" width="625px" height="507px" viewBox="0 0 625 507" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.9?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster Presentación--><g class="cluster" data-qualified-name="Presentaci.n" id="ent0001" data-source-line="8"><path d="M24.5,4 L121.4,4 A3.75,3.75 0 0 1 123.9,6.5 L130.9,25.133 L371.5,25.133 A2.5,2.5 0 0 1 374,27.633 L374,164.5 A2.5,2.5 0 0 1 371.5,167 L24.5,167 A2.5,2.5 0 0 1 22,164.5 L22,6.5 A2.5,2.5 0 0 1 24.5,4" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="22" y1="25.133" x2="130.9" y2="25.133" style="stroke:#000;stroke-width:1.5;"/><text x="26" y="18.067" fill="#000" font-size="13" textLength="95.9" font-weight="700" font-family="Archivo">Presentación</text></g><!--cluster Aplicación--><g class="cluster" data-qualified-name="Aplicaci.n" id="ent0006" data-source-line="14"><path d="M16.5,175 L92.605,175 A3.75,3.75 0 0 1 95.105,177.5 L102.105,196.133 L366.5,196.133 A2.5,2.5 0 0 1 369,198.633 L369,400.5 A2.5,2.5 0 0 1 366.5,403 L16.5,403 A2.5,2.5 0 0 1 14,400.5 L14,177.5 A2.5,2.5 0 0 1 16.5,175" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="14" y1="196.133" x2="102.105" y2="196.133" style="stroke:#000;stroke-width:1.5;"/><text x="18" y="189.067" fill="#000" font-size="13" textLength="75.105" font-weight="700" font-family="Archivo">Aplicación</text></g><!--cluster Datos--><g class="cluster" data-qualified-name="Datos" id="ent0010" data-source-line="19"><path d="M387.5,300 L430.947,300 A3.75,3.75 0 0 1 433.447,302.5 L440.447,321.133 L614.5,321.133 A2.5,2.5 0 0 1 617,323.633 L617,480.5 A2.5,2.5 0 0 1 614.5,483 L387.5,483 A2.5,2.5 0 0 1 385,480.5 L385,302.5 A2.5,2.5 0 0 1 387.5,300" style="stroke:#000;stroke-width:1.5;" fill="none"/><line x1="385" y1="321.133" x2="440.447" y2="321.133" style="stroke:#000;stroke-width:1.5;"/><text x="389" y="314.067" fill="#000" font-size="13" textLength="42.447" font-weight="700" font-family="Archivo">Datos</text></g><!--entity IREST--><g class="entity" data-qualified-name="Presentaci.n.IREST" id="ent0002" data-source-line="9"><ellipse cx="287" cy="55" rx="8" ry="8" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="257.931" y="84.067" fill="#000" font-size="13" textLength="58.138" font-family="Archivo">API REST</text></g><!--entity IHUB--><g class="entity" data-qualified-name="Presentaci.n.IHUB" id="ent0003" data-source-line="10"><ellipse cx="118" cy="55" rx="8" ry="8" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="78.384" y="84.067" fill="#000" font-size="13" textLength="79.231" font-family="Archivo">Hub de chat</text></g><!--entity EP--><g class="entity" data-qualified-name="Presentaci.n.EP" id="ent0004" data-source-line="11"><rect x="216" y="106" width="142.204" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="338.204" y="111" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="336.204" y="113" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="336.204" y="117" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="231" y="138.067" fill="#000" font-size="13" textLength="102.204" font-family="Archivo">Endpoints REST</text></g><!--entity HUB--><g class="entity" data-qualified-name="Presentaci.n.HUB" id="ent0005" data-source-line="12"><rect x="38" y="106" width="159.888" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="177.888" y="111" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="175.888" y="113" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="175.888" y="117" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="53" y="138.067" fill="#000" font-size="13" textLength="119.888" font-family="Archivo">ChatHub (SignalR)</text></g><!--entity AUTH--><g class="entity" data-qualified-name="Aplicaci.n.AUTH" id="ent0007" data-source-line="15"><rect x="223.5" y="232" width="129.242" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="332.742" y="237" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="330.742" y="239" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="330.742" y="243" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="238.5" y="264.067" fill="#000" font-size="13" textLength="89.242" font-family="Archivo">Autenticación</text></g><!--entity SVC--><g class="entity" data-qualified-name="Aplicaci.n.SVC" id="ent0008" data-source-line="16"><rect x="30.5" y="217" width="175.186" height="75.398" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="185.686" y="222" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="183.686" y="224" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="183.686" y="228" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="45.5" y="249.067" fill="#000" font-size="13" textLength="135.186" font-family="Archivo">Servicios de dominio</text><text x="45.5" y="264.2" fill="#000" font-size="13" textLength="115.623" font-family="Archivo">(música, eventos,</text><text x="45.5" y="279.333" fill="#000" font-size="13" textLength="82.9" font-family="Archivo">match, chat)</text></g><!--entity PUSH--><g class="entity" data-qualified-name="Aplicaci.n.PUSH" id="ent0009" data-source-line="17"><rect x="34.5" y="342" width="167.048" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="181.548" y="347" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="179.548" y="349" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="179.548" y="353" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="49.5" y="374.067" fill="#000" font-size="13" textLength="127.048" font-family="Archivo">Notificaciones push</text></g><!--entity CTX--><g class="entity" data-qualified-name="Datos.CTX" id="ent0011" data-source-line="20"><rect x="401.5" y="342" width="199.288" height="45.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><rect x="580.788" y="347" width="15" height="10" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="578.788" y="349" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><rect x="578.788" y="353" width="4" height="2" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;"/><text x="416.5" y="374.067" fill="#000" font-size="13" textLength="159.288" font-family="Archivo">AppDbContext (EF Core)</text></g><!--entity PG--><g class="entity" data-qualified-name="Datos.PG" id="ent0012" data-source-line="21"><path d="M443,433 C443,423 500.83,423 500.83,423 C500.83,423 558.659,423 558.659,433 L558.659,457.133 C558.659,467.133 500.83,467.133 500.83,467.133 C500.83,467.133 443,467.133 443,457.133 L443,433" style="stroke:#181818;stroke-width:0.5;" fill="#F1F1F1"/><path d="M443,433 C443,443 500.83,443 500.83,443 C500.83,443 558.659,443 558.659,433" style="stroke:#181818;stroke-width:0.5;" fill="none"/><text x="453" y="459.067" fill="#000" font-size="13" textLength="95.659" font-family="Archivo">PostgreSQL 16</text></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0004" id="lnk13" data-link-type="association"><path d="M287,70.006 C287,79.612 287,93.837 287,105.734" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0003" data-entity-2="ent0005" id="lnk14" data-link-type="association"><path d="M118,70.006 C118,79.612 118,93.837 118,105.734" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0004" data-entity-2="ent0007" id="lnk15" data-link-type="dependency"><polygon points="287.824,231.732,291.752,222.7,287.784,226.732,283.752,222.765,287.824,231.732" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M287.174,151.099 C287.357,173.72 287.601,204.049 287.784,226.732" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0004" data-entity-2="ent0008" id="lnk16" data-link-type="dependency"><polygon points="160.563,216.731,170.041,214.052,164.408,213.534,164.926,207.901,160.563,216.731" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M250.385,151.053 C238.562,158.345 225.535,166.741 214,175 C195.97,187.91 180.753,199.942 164.408,213.534" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0008" data-entity-2="ent0009" id="lnk17" data-link-type="dependency"><polygon points="118,341.783,122,332.783,118,336.783,114,332.783,118,341.783" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M118,292.064 C118,308.586 118,322.549 118,336.783" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0008" data-entity-2="ent0005" id="lnk18" data-link-type="dependency"><polygon points="118,151.099,114,160.099,118,156.099,122,160.099,118,151.099" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M118,216.611 C118,195.265 118,174.14 118,156.099" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0008" data-entity-2="ent0011" id="lnk19" data-link-type="dependency"><polygon points="467.205,341.92,461.482,333.904,462.897,339.381,457.42,340.796,467.205,341.92" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M205.56,290.046 C208.39,290.759 211.208,291.414 214,292 C283.248,306.528 304.539,282.125 373,300 C406.843,308.836 437.928,324.663 462.897,339.381" style="stroke:#181818;stroke-width:1;" fill="none"/></g><g class="link" data-entity-1="ent0011" data-entity-2="ent0012" id="lnk20" data-link-type="dependency"><polygon points="501,422.792,505,413.792,501,417.792,497,413.792,501,422.792" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M501,387.367 C501,398.436 501,406.817 501,417.792" style="stroke:#181818;stroke-width:1;" fill="none"/></g><?plantuml-src RL4zRzim4DtzAwwU7C0PqW8T2wYA4WSe0ZMoYm99XpD5IqH47a6UtAP5VrMthlbZEL8ngg43WIUz3puzlV41Euimu1ED3D5gHeUB-6YSnu0MB3bIVI2hWSEePqoh3pWEV4MERr7e8gZU7Ed_YiRyr73nRaR67blwRbm71npYF5YHzUIqcFXfq33QuUs2oGCJx8cP9DW4hTYGMtXKZzXfMDP1Hx6WCiz_t19-BG1MPx0iwXkugvhj4Z32JKAln6RSIpzGFVB4RNOVXRglNEl9E8xPzYrHLPs8KfJ9j6fCvt2uEyjSSlt-rwBmWr7p3lV5o5Bhz39xYjrsawX6XwDHXc8gqf8rpj23Mzddlr7qQz17SL9SFpYBhFfrBZjTstmfKy8jiJdaRDahWXzZd-bwrspcjIvHSaw5lB_Sb_9Bz0-6LNK59GKzfPRRhw9eaN6FCMrAaRkWcy-VuE9zNgc-bjWy8voVfs7IR0cc7QfQq8VfyrvnwYadurpgz93q9vokbJE9hby0?></g></svg></div></div>
+<h2 id="5-instalacion-configuracion-y-despliegue">5. Instalación, configuración y despliegue</h2>
+<h3 id="51-instalacion-local-de-la-api-y-la-base-de-datos">5.1 Instalación local de la API y la base de datos</h3>
+<p><strong>Prerrequisitos</strong></p>
+<ul>
+<li>Software de 3.3.1 instalado: mise, Docker con <code>docker compose</code> v2.</li>
+<li>Repositorio <code>encorly_back</code> clonado y en la rama <code>dev</code>.</li>
+<li>Puertos 5000 y 5432 libres (o usar los puertos alternos del final de esta sección).</li>
+<li>Si mise no está activado en la shell (<code>eval "$(mise activate zsh)"</code>), anteponer <code>mise exec --</code> a cada <code>dotnet</code>.</li>
+</ul>
+<p><strong>Pasos</strong></p>
+<ol>
+<li>Instalar el SDK definido por el repositorio:</li>
+</ol>
+<p><code>bash
+   mise trust     # solo la primera vez en un clon nuevo
+   mise install</code></p>
+<ol start="2">
+<li>Crear la configuración local y completar los cuatro valores marcados (los demás ya sirven para local):</li>
+</ol>
+<p><code>bash
+   cp .env.example .env
+   # DB_PASSWORD         la que se quiera; docker compose crea la BD con ella
+   # JWT_SIGNING_KEY     openssl rand -base64 48
+   # BANNED_EMAIL_KEY    openssl rand -base64 48   (distinta de la anterior)
+   # DEMO_USER_PASSWORD  opcional: contraseña de las 16 cuentas demo</code></p>
+<ol start="3">
+<li>Levantar PostgreSQL y esperar a que esté sano:</li>
+</ol>
+<p><code>bash
+   docker compose up -d --wait</code></p>
+<ol start="4">
+<li>Arrancar la API. En <code>Development</code> aplica las 11 migraciones y siembra el catálogo al arrancar:</li>
+</ol>
+<p><code>bash
+   mise exec -- dotnet run --project src/Encorely.Api</code></p>
+<ol start="5">
+<li>Comprobar el servicio y, si se definió <code>DEMO_USER_PASSWORD</code>, iniciar sesión con una cuenta demo:</li>
+</ol>
+<p><code>bash
+   curl http://localhost:5000/health/live
+   curl http://localhost:5000/health/ready
+   curl -s http://localhost:5000/openapi/v1.json | jq -r .info.title
+   curl -s -X POST http://localhost:5000/api/v1/auth/login \
+     -H 'content-type: application/json' \
+     -d '{"email":"valentina.rojas@encorely.demo","password":"&lt;DEMO_USER_PASSWORD&gt;"}' | jq '.user'</code></p>
+<p><strong>Criterio de validación</strong></p>
+<ul>
+<li>El log de arranque muestra <code>Applying migration '20261014050309_Initial'</code> hasta <code>'20261015155802_IndicesPurga'</code> y las líneas <code>Seed: 15 géneros</code>, <code>Seed: 120 canciones</code>, <code>Seed: 24 eventos</code> (más <code>Seed: 16 usuarios demo</code> y <code>Seed: match demo del revisor</code> si hay <code>DEMO_USER_PASSWORD</code>). En una base que ya tenía datos estas líneas no aparecen.</li>
+<li><code>/health/live</code> y <code>/health/ready</code> responden <code>Healthy</code>.</li>
+<li><code>/openapi/v1.json</code> devuelve el título <code>Encorely API</code>.</li>
+<li>El login responde <code>accessToken</code>, <code>refreshToken</code>, <code>expiresIn: 900</code> y <code>user</code>.</li>
+</ul>
+<p><strong>Variantes</strong></p>
+<ul>
+<li>Puertos alternos: <code>--urls http://127.0.0.1:5100</code> al arrancar la API y <code>DB_PORT=5433</code> para Postgres.</li>
+<li>Todo en contenedores, sin SDK: <code>docker compose --profile full up -d --build</code>.</li>
+</ul>
+<h3 id="52-instalacion-local-de-la-app">5.2 Instalación local de la app</h3>
+<p><strong>Prerrequisitos</strong></p>
+<ul>
+<li>Software de 3.3.2: Node 24, pnpm 12.11.2, JDK 17 activo, Android SDK 36 con <code>ANDROID_HOME</code> apuntando a él y un AVD (referencia: <code>encorely_api35</code>).</li>
+<li><code>encorely-front</code> clonado en la rama <code>Dev</code>, con <code>encorly_back</code> en la carpeta hermana.</li>
+<li>API local corriendo y validada según 5.1.</li>
+</ul>
+<p><strong>Pasos</strong></p>
+<ol>
+<li>Instalar dependencias exactamente como dice el lockfile:</li>
+</ol>
+<p><code>bash
+   pnpm install --frozen-lockfile</code></p>
+<ol start="2">
+<li>Verificar el código sin emulador:</li>
+</ol>
+<p><code>bash
+   pnpm typecheck &amp;&amp; pnpm lint &amp;&amp; pnpm test</code></p>
+<ol start="3">
+<li>Configurar la URL de la API:</li>
+</ol>
+<p><code>bash
+   cp .env.example .env
+   # EXPO_PUBLIC_API_URL=http://10.0.2.2:5000        (emulador Android)
+   # EXPO_PUBLIC_API_URL=http://&lt;IP-del-PC&gt;:5000     (teléfono en la misma red)</code></p>
+<ol start="4">
+<li>Compilar e instalar el development build y arrancar Metro en otra terminal:</li>
+</ol>
+<p><code>bash
+   export ANDROID_HOME="$HOME/Android/Sdk"
+   ~/Android/Sdk/emulator/emulator -avd encorely_api35 &amp;
+   pnpm android
+   pnpm start</code></p>
+<p><strong>Criterio de validación</strong></p>
+<ul>
+<li><code>pnpm install --frozen-lockfile</code> termina sin cambiar <code>pnpm-lock.yaml</code>.</li>
+<li><code>typecheck</code>, <code>lint</code> y <code>test</code> pasan.</li>
+<li>La app abre en la pantalla de bienvenida; no aparece "Falta configurar el servidor".</li>
+<li>Con una cuenta demo se entra y la pestaña Conciertos lista los eventos del seed.</li>
+</ul>
+<h3 id="53-configuracion">5.3 Configuración</h3>
+<h4 id="531-variables-de-entorno-de-la-api">5.3.1 Variables de entorno de la API</h4>
+<h4 id="532-variables-de-entorno-de-la-app">5.3.2 Variables de entorno de la app</h4>
+<h4 id="533-configuracion-estatica-de-la-app">5.3.3 Configuración estática de la app</h4>
+<h3 id="54-integracion-continua">5.4 Integración continua</h3>
+<h3 id="55-plan-de-despliegue-a-produccion">5.5 Plan de despliegue a producción</h3>
+<h4 id="551-estado-actual-del-despliegue">5.5.1 Estado actual del despliegue</h4>
+<h4 id="552-cronograma-responsables-y-ventana">5.5.2 Cronograma, responsables y ventana</h4>
+<h4 id="553-actividades-de-la-fase-de-despliegue">5.5.3 Actividades de la fase de despliegue</h4>
+<h4 id="554-procedimiento-de-despliegue-de-la-api">5.5.4 Procedimiento de despliegue de la API</h4>
+<h4 id="555-procedimiento-de-build-y-publicacion-de-la-app">5.5.5 Procedimiento de build y publicación de la app</h4>
+<h3 id="56-plan-de-rollback">5.6 Plan de rollback</h3>
+<h3 id="57-productos-del-despliegue">5.7 Productos del despliegue</h3>
+<h3 id="58-diagramas-de-despliegue">5.8 Diagramas de despliegue</h3>
+<div class="junto"><h4 id="581-despliegue-objetivo-en-produccion">5.8.1 Despliegue objetivo en producción</h4>
+<div class="plantuml ancho"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:1108px;height:222px;background:#FFFFFF;" width="1108px" height="222px" viewBox="0 0 1108 222" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.9?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster CLI--><g class="cluster" data-qualified-name="CLI" id="ent0001" data-source-line="9"><polygon points="14,50.5,24,40.5,200,40.5,200,188.5,190,198.5,14,198.5,14,50.5" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="190" y1="50.5" x2="200" y2="40.5" style="stroke:#181818;stroke-width:1;"/><line x1="14" y1="50.5" x2="190" y2="50.5" style="stroke:#181818;stroke-width:1;"/><line x1="190" y1="50.5" x2="190" y2="198.5" style="stroke:#181818;stroke-width:1;"/><text x="73.696" y="65.567" fill="#000" font-size="13" textLength="58.608" font-style="italic" font-family="Archivo">«device»</text><text x="77.222" y="80.7" fill="#000" font-size="13" textLength="51.556" font-weight="700" font-family="Archivo">Cliente</text></g><!--cluster API--><g class="cluster" data-qualified-name="API" id="ent0004" data-source-line="13"><polygon points="524,50.5,534,40.5,767,40.5,767,188.5,757,198.5,524,198.5,524,50.5" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="757" y1="50.5" x2="767" y2="40.5" style="stroke:#181818;stroke-width:1;"/><line x1="524" y1="50.5" x2="757" y2="50.5" style="stroke:#181818;stroke-width:1;"/><line x1="757" y1="50.5" x2="757" y2="198.5" style="stroke:#181818;stroke-width:1;"/><text x="557.952" y="65.567" fill="#000" font-size="13" textLength="167.096" font-style="italic" font-family="Archivo">«execution environment»</text><text x="584.285" y="80.7" fill="#000" font-size="13" textLength="114.429" font-weight="700" font-family="Archivo">Contenedor API</text></g><!--cluster DB--><g class="cluster" data-qualified-name="DB" id="ent0006" data-source-line="16"><polygon points="849,19.5,859,9.5,1092,9.5,1092,188.5,1082,198.5,849,198.5,849,19.5" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="1082" y1="19.5" x2="1092" y2="9.5" style="stroke:#181818;stroke-width:1;"/><line x1="849" y1="19.5" x2="1082" y2="19.5" style="stroke:#181818;stroke-width:1;"/><line x1="1082" y1="19.5" x2="1082" y2="198.5" style="stroke:#181818;stroke-width:1;"/><text x="882.952" y="34.567" fill="#000" font-size="13" textLength="167.096" font-style="italic" font-family="Archivo">«execution environment»</text><text x="914.814" y="49.7" fill="#000" font-size="13" textLength="103.372" font-weight="700" font-family="Archivo">Base de datos</text><text x="925.716" y="64.833" fill="#000" font-size="13" textLength="81.567" font-weight="700" font-family="Archivo">gestionada</text></g><!--entity LB--><g class="entity" data-qualified-name="LB" id="ent0003" data-source-line="12"><polygon points="266,139,276,129,475.096,129,475.096,194.398,465.096,204.398,266,204.398,266,139" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="465.096" y1="139" x2="475.096" y2="129" style="stroke:#181818;stroke-width:0.5;"/><line x1="266" y1="139" x2="465.096" y2="139" style="stroke:#181818;stroke-width:0.5;"/><line x1="465.096" y1="139" x2="465.096" y2="204.398" style="stroke:#181818;stroke-width:0.5;"/><text x="282" y="161.067" fill="#000" font-size="13" textLength="167.096" font-style="italic" font-family="Archivo">«execution environment»</text><text x="324.866" y="176.2" fill="#000" font-size="13" textLength="81.364" font-family="Archivo">Balanceador</text><text x="324.866" y="191.333" fill="#000" font-size="13" textLength="57.059" font-family="Archivo">de carga</text></g><!--entity A1--><g class="entity" data-qualified-name="CLI.A1" id="ent0002" data-source-line="10"><rect x="34" y="106.5" width="146.486" height="38.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="163.486,111.5,163.486,125.5,175.486,125.5,175.486,117.5,169.486,111.5,163.486,111.5" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="169.486" y1="111.5" x2="169.486" y2="117.5" style="stroke:#181818;stroke-width:0.5;"/><line x1="175.486" y1="117.5" x2="169.486" y2="117.5" style="stroke:#181818;stroke-width:0.5;"/><text x="44" y="131.567" fill="#000" font-size="13" textLength="116.486" font-family="Archivo">com.encorely.app</text></g><!--entity A2--><g class="entity" data-qualified-name="API.A2" id="ent0005" data-source-line="14"><rect x="590" y="106.5" width="110.507" height="38.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="683.507,111.5,683.507,125.5,695.507,125.5,695.507,117.5,689.507,111.5,683.507,111.5" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="689.507" y1="111.5" x2="689.507" y2="117.5" style="stroke:#181818;stroke-width:0.5;"/><line x1="695.507" y1="117.5" x2="689.507" y2="117.5" style="stroke:#181818;stroke-width:0.5;"/><text x="600" y="131.567" fill="#000" font-size="13" textLength="80.507" font-family="Archivo">encorely-api</text></g><!--entity A3--><g class="entity" data-qualified-name="DB.A3" id="ent0007" data-source-line="17"><rect x="925" y="91" width="89.89" height="53.266" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="997.89,96,997.89,110,1009.89,110,1009.89,102,1003.89,96,997.89,96" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="1003.89" y1="96" x2="1003.89" y2="102" style="stroke:#181818;stroke-width:0.5;"/><line x1="1009.89" y1="102" x2="1003.89" y2="102" style="stroke:#181818;stroke-width:0.5;"/><text x="935" y="116.067" fill="#000" font-size="13" textLength="59.89" font-family="Archivo">esquema</text><text x="935" y="131.2" fill="#000" font-size="13" textLength="55.986" font-family="Archivo">encorely</text></g><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk8" data-link-type="dependency"><polygon points="265.701,166.5,256.701,162.5,260.701,166.5,256.701,170.5,265.701,166.5" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M200.202,166.5 C201.123,166.5 202.047,166.5 202.974,166.5 C204.827,166.5 206.69,166.5 208.563,166.5 C212.307,166.5 216.087,166.5 219.888,166.5 C235.093,166.5 245.646,166.5 260.701,166.5" style="stroke:#181818;stroke-width:1;" fill="none"/><text x="210" y="161.567" fill="#000" font-size="13" textLength="41.749" font-family="Archivo">HTTPS</text></g><g class="link" data-entity-1="ent0003" data-entity-2="ent0004" id="lnk9" data-link-type="dependency"><polygon points="523.499,166.5,514.499,162.5,518.499,166.5,514.499,170.5,523.499,166.5" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M475.099,166.5 C483.131,166.5 491.325,166.5 499.56,166.5 C503.677,166.5 507.805,166.5 511.928,166.5 C513.989,166.5 516.05,166.5 518.107,166.5 C519.136,166.5 520.163,166.5 521.19,166.5 C521.704,166.5 522.217,166.5 522.73,166.5 C522.986,166.5 518.242,166.5 518.499,166.5" style="stroke:#181818;stroke-width:1;" fill="none"/><text x="490" y="161.567" fill="#000" font-size="13" textLength="24.857" font-family="Archivo">TCP</text></g><g class="link" data-entity-1="ent0004" data-entity-2="ent0006" id="lnk10" data-link-type="dependency"><polygon points="848.287,166.5,839.287,162.5,843.287,166.5,839.287,170.5,848.287,166.5" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M767.412,166.5 C768.42,166.5 769.429,166.5 770.441,166.5 C774.488,166.5 778.568,166.5 782.671,166.5 C790.876,166.5 799.169,166.5 807.464,166.5 C815.759,166.5 824.054,166.5 832.263,166.5 C836.368,166.5 840.45,166.5 844.5,166.5 C845.513,166.5 846.523,166.5 847.532,166.5 C847.784,166.5 843.036,166.5 843.287,166.5" style="stroke:#181818;stroke-width:1;" fill="none"/><text x="777" y="161.567" fill="#000" font-size="13" textLength="62.074" font-family="Archivo">TCP 5432</text></g><?plantuml-src XP11Qm8n48Nl-okcUrUgrek8u2fIGOgWHoz3ChiRJ2RR96jhI_zx4xR28WLlmvityxwPfyPXPH0qNcqRm1iAo9Zvi-867HembgsedJK4mRNKwqWgiTLXOpcyOMmldQZLnVxlEAWlWj6ar_GrIlkXk88IjUylTiXdJmsCfpsHhQGaZfupJMM0OC6fgWuWbICHbEKiMI1VQKKSA8VvND952Lei03siTblupW3G1LMY290BQuR4mZhIro4sJPvior7syxUeG8qiA5Aw4qT1eAimhQLF4crA1EABSfPD3EnITiMD8jvCJ74MblljWwdek6ExSGsmKHtNkCVbARuM90RhJroHJrjHFc9R5_SX_hqbWoU-fNL9avYKlZKOBE8zC8FNut5_o6APbCGwW-DgdwKgAUkY4s3wCXd_0W00?></g></svg></div></div>
+<p>Cliente: teléfono Android o iOS. Balanceador y contenedor: Render. Base de datos gestionada: PostgreSQL 16. Cada nodo aloja exactamente el artefacto que le corresponde. Hay una sola réplica del contenedor; el balanceador no reparte carga entre varias.</p>
+<div class="junto"><h4 id="582-despliegue-actual-de-la-demo-local">5.8.2 Despliegue actual de la demo local</h4>
+<div class="plantuml ancho"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="DESCRIPTION" style="width:874px;height:209px;background:#FFFFFF;" width="874px" height="209px" viewBox="0 0 874 209" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.9?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><!--cluster CLI--><g class="cluster" data-qualified-name="CLI" id="ent0001" data-source-line="7"><polygon points="14,29,24,19,200,19,200,175,190,185,14,185,14,29" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="190" y1="29" x2="200" y2="19" style="stroke:#181818;stroke-width:1;"/><line x1="14" y1="29" x2="190" y2="29" style="stroke:#181818;stroke-width:1;"/><line x1="190" y1="29" x2="190" y2="185" style="stroke:#181818;stroke-width:1;"/><text x="73.696" y="44.067" fill="#000" font-size="13" textLength="58.608" font-style="italic" font-family="Archivo">«device»</text><text x="77.222" y="59.2" fill="#000" font-size="13" textLength="51.556" font-weight="700" font-family="Archivo">Cliente</text></g><!--cluster APP--><g class="cluster" data-qualified-name="APP" id="ent0003" data-source-line="10"><polygon points="290,14,300,4,533,4,533,175,523,185,290,185,290,14" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="523" y1="14" x2="533" y2="4" style="stroke:#181818;stroke-width:1;"/><line x1="290" y1="14" x2="523" y2="14" style="stroke:#181818;stroke-width:1;"/><line x1="523" y1="14" x2="523" y2="185" style="stroke:#181818;stroke-width:1;"/><text x="323.952" y="29.067" fill="#000" font-size="13" textLength="167.096" font-style="italic" font-family="Archivo">«execution environment»</text><text x="365.091" y="44.2" fill="#000" font-size="13" textLength="84.817" font-weight="700" font-family="Archivo">Servidor de</text><text x="362.314" y="59.333" fill="#000" font-size="13" textLength="90.372" font-weight="700" font-family="Archivo">aplicaciones</text></g><!--cluster DB--><g class="cluster" data-qualified-name="DB" id="ent0005" data-source-line="13"><polygon points="615,14,625,4,858,4,858,175,848,185,615,185,615,14" fill="none" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="848" y1="14" x2="858" y2="4" style="stroke:#181818;stroke-width:1;"/><line x1="615" y1="14" x2="848" y2="14" style="stroke:#181818;stroke-width:1;"/><line x1="848" y1="14" x2="848" y2="185" style="stroke:#181818;stroke-width:1;"/><text x="648.952" y="29.067" fill="#000" font-size="13" textLength="167.096" font-style="italic" font-family="Archivo">«execution environment»</text><text x="690.091" y="44.2" fill="#000" font-size="13" textLength="84.817" font-weight="700" font-family="Archivo">Servidor de</text><text x="681.116" y="59.333" fill="#000" font-size="13" textLength="102.769" font-weight="700" font-family="Archivo">base de datos</text></g><!--entity A1--><g class="entity" data-qualified-name="CLI.A1" id="ent0002" data-source-line="8"><rect x="34" y="85" width="146.486" height="38.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="163.486,90,163.486,104,175.486,104,175.486,96,169.486,90,163.486,90" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="169.486" y1="90" x2="169.486" y2="96" style="stroke:#181818;stroke-width:0.5;"/><line x1="175.486" y1="96" x2="169.486" y2="96" style="stroke:#181818;stroke-width:0.5;"/><text x="44" y="110.067" fill="#000" font-size="13" textLength="116.486" font-family="Archivo">com.encorely.app</text></g><!--entity A2--><g class="entity" data-qualified-name="APP.A2" id="ent0004" data-source-line="11"><rect x="346" y="85" width="130.699" height="38.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="459.699,90,459.699,104,471.699,104,471.699,96,465.699,90,459.699,90" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="465.699" y1="90" x2="465.699" y2="96" style="stroke:#181818;stroke-width:0.5;"/><line x1="471.699" y1="96" x2="465.699" y2="96" style="stroke:#181818;stroke-width:0.5;"/><text x="356" y="110.067" fill="#000" font-size="13" textLength="100.699" font-family="Archivo">Encorely.Api.dll</text></g><!--entity A3--><g class="entity" data-qualified-name="DB.A3" id="ent0006" data-source-line="14"><rect x="676" y="85" width="121.108" height="38.133" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><polygon points="780.108,90,780.108,104,792.108,104,792.108,96,786.108,90,780.108,90" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;stroke-linejoin:miter;stroke-miterlimit:10;"/><line x1="786.108" y1="90" x2="786.108" y2="96" style="stroke:#181818;stroke-width:0.5;"/><line x1="792.108" y1="96" x2="786.108" y2="96" style="stroke:#181818;stroke-width:0.5;"/><text x="686" y="110.067" fill="#000" font-size="13" textLength="91.108" font-family="Archivo">base encorely</text></g><g class="link" data-entity-1="ent0001" data-entity-2="ent0003" id="lnk7" data-link-type="dependency"><polygon points="289.342,153,280.342,149,284.342,153,280.342,157,289.342,153" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M201.21,153 C201.659,153 202.109,153 202.559,153 C206.164,153 209.82,153 213.515,153 C228.297,153 243.723,153 259.15,153 C266.863,153 274.577,153 282.211,153 C284.119,153 286.023,153 287.92,153 C288.394,153 283.868,153 284.342,153" style="stroke:#181818;stroke-width:1;" fill="none"/><text x="210" y="148.067" fill="#000" font-size="13" textLength="70.713" font-family="Archivo">HTTP 5000</text></g><g class="link" data-entity-1="ent0003" data-entity-2="ent0005" id="lnk8" data-link-type="dependency"><polygon points="614.6,153,605.6,149,609.6,153,605.6,157,614.6,153" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M533.6,153 C534.609,153 535.62,153 536.633,153 C540.687,153 544.773,153 548.882,153 C557.1,153 565.406,153 573.714,153 C582.021,153 590.33,153 598.551,153 C602.662,153 606.751,153 610.807,153 C611.821,153 612.834,153 613.843,153 C614.096,153 609.348,153 609.6,153" style="stroke:#181818;stroke-width:1;" fill="none"/><text x="543" y="148.067" fill="#000" font-size="13" textLength="62.074" font-family="Archivo">TCP 5432</text></g><?plantuml-src XSzVIyCm403mztwAi-yRswelOmpgL1H41jkZBsToNG-JN4dIwXI_k-dgO8o1Rxa_kT_TLUDnPn4CxgMD42n5T9Y5TtODUhHWnOcglLY2w5iwgMYgi3NnGLnymLGklQgvayiT6_uYc1OdnL2ZbWzsEwZG1CeCLH6YWETT7K6p9nLPNEP44-Ghm-GYvR1OQEfOqN89663r_0JV6G3wo1Mg2BaIEoQdn9FPZx5fyhwjd6O_VuCsv3lMujDohmuRmmfLOYZqe-cJLDkhGAvZByucT93AzVfCkZygPSDZRSmWpIvBRnWeFK1ZbF-ekzipwV3vUDJ058dfZn-DbeVLvl2utQxXPZAPP7tSvzESEMnNANjTp7u1?></g></svg></div></div>
+<p>Cliente: emulador o teléfono Android. Servidor de aplicaciones: .NET 10 en el PC de desarrollo. Servidor de base de datos: contenedor Docker con PostgreSQL 16. Cada nodo aloja exactamente el artefacto que le corresponde.</p>
+<h2 id="6-base-de-datos-y-modelo-de-informacion">6. Base de datos y modelo de información</h2>
+<h3 id="61-motor-conexion-y-convenciones">6.1 Motor, conexión y convenciones</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Motor</td>
+<td>PostgreSQL 16 (local: imagen <code>postgres:16-alpine</code>; producción propuesta: Render PostgreSQL 16)</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td><code>encorely</code> (nombre por defecto de compose; en producción el que entregue el proveedor)</td>
+</tr>
+<tr>
+<td>Acceso</td>
+<td>EF Core 10 con Npgsql 10.0.3; Dapper solo para la consulta del radar (<code>Features/Events/RadarService.cs</code>)</td>
+</tr>
+<tr>
+<td>Cadena de conexión</td>
+<td>Se arma con <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code> y <code>DB_SSL_MODE</code>; nunca se escribe en archivos versionados</td>
+</tr>
+<tr>
+<td>Nombres</td>
+<td><code>snake_case</code> generado por <code>UseSnakeCaseNamingConvention</code>; restricciones <code>pk_</code>, <code>fk_</code>, <code>ix_</code>, <code>ck_</code></td>
+</tr>
+<tr>
+<td>Identificadores</td>
+<td>UUID versión 7 generados por la API (<code>Guid.CreateVersion7()</code>), salvo <code>genres.id</code> y <code>user_consents.id</code> (identidad de Postgres) y <code>chat_messages.id</code> (lo genera el cliente)</td>
+</tr>
+<tr>
+<td>Enums</td>
+<td>Guardados como texto de hasta 32 caracteres (<code>varchar(32)</code>)</td>
+</tr>
+<tr>
+<td>Fechas</td>
+<td><code>timestamp with time zone</code> en UTC; <code>users.birth_date</code> es <code>date</code></td>
+</tr>
+<tr>
+<td>Tablas</td>
+<td>25 de dominio más <code>__EFMigrationsHistory</code> de EF Core</td>
+</tr>
+<tr>
+<td>Dependencias de la base</td>
+<td>Ninguna extensión de Postgres</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-diagrama-entidad-relacion">6.2 Diagrama entidad-relación</h3>
+<p>El modelo se presenta en cinco vistas; <code>users</code> y <code>matches</code> se repiten como ancla entre vistas. El detalle de cada campo está en las fichas de 6.3.</p>
+<div class="junto"><h4 id="621-vista-de-cuenta-sesiones-y-moderacion">6.2.1 Vista de cuenta, sesiones y moderación</h4>
+<div class="mermaid">erDiagram
+  users {
+    uuid id PK
+    varchar(254) email UK
+    varchar(100) password_hash
+    varchar(128) spotify_id UK
+    varchar(32) role
+    varchar(32) status
+  }
+  user_consents {
+    bigint id PK
+    uuid user_id FK
+    varchar(32) version
+  }
+  refresh_tokens {
+    uuid id PK
+    uuid user_id FK
+    uuid family_id
+    bytea token_hash UK
+  }
+  device_push_tokens {
+    uuid id PK
+    uuid user_id FK
+    varchar(200) token UK
+    uuid session_id
+  }
+  banned_emails {
+    bytea email_hash PK
+  }
+  blocks {
+    uuid blocker_id PK, FK
+    uuid blocked_id PK, FK
+  }
+  reports {
+    uuid id PK
+    uuid reporter_id FK
+    uuid reported_user_id FK
+    uuid match_id FK
+    varchar(32) status
+    jsonb evidence
+  }
+  matches {
+    uuid id PK
+  }
+  users ||--o{ user_consents : &quot;acepta&quot;
+  users ||--o{ refresh_tokens : &quot;abre sesiones&quot;
+  users ||--o{ device_push_tokens : &quot;registra&quot;
+  users ||--o{ blocks : &quot;bloquea&quot;
+  users ||--o{ blocks : &quot;es bloqueado&quot;
+  users |o--o{ reports : &quot;reporta&quot;
+  users |o--o{ reports : &quot;es reportado&quot;
+  matches |o--o{ reports : &quot;da contexto&quot;</div></div>
+<div class="junto"><h4 id="622-vista-de-musica-y-perfil-social">6.2.2 Vista de música y perfil social</h4>
+<div class="mermaid">erDiagram
+  users {
+    uuid id PK
+    varchar(50) display_name
+    boolean show_profile_to_others
+  }
+  genres {
+    integer id PK
+    varchar(40) slug UK
+    varchar(60) name
+  }
+  user_genres {
+    uuid user_id PK, FK
+    integer genre_id PK, FK
+  }
+  songs {
+    uuid id PK
+    integer genre_id FK
+    bigint itunes_track_id UK
+    boolean is_active
+  }
+  swipes {
+    uuid user_id PK, FK
+    uuid song_id PK, FK
+    varchar(32) direction
+  }
+  user_genre_scores {
+    uuid user_id PK, FK
+    integer genre_id PK, FK
+    integer likes
+    integer dislikes
+    double imported_weight
+  }
+  user_artists {
+    uuid user_id PK, FK
+    varchar(100) key PK
+    integer rank
+  }
+  profile_reactions {
+    uuid from_user_id PK, FK
+    uuid to_user_id PK, FK
+    varchar(32) target_kind PK
+    varchar(100) target_key PK
+    varchar(32) reaction
+  }
+  users ||--o{ user_genres : &quot;declara&quot;
+  genres ||--o{ user_genres : &quot;es declarado&quot;
+  genres ||--o{ songs : &quot;clasifica&quot;
+  users ||--o{ swipes : &quot;califica&quot;
+  songs ||--o{ swipes : &quot;recibe&quot;
+  users ||--o{ user_genre_scores : &quot;ADN musical&quot;
+  genres ||--o{ user_genre_scores : &quot;pondera&quot;
+  users ||--o{ user_artists : &quot;top de Spotify&quot;
+  users ||--o{ profile_reactions : &quot;reacciona&quot;
+  users ||--o{ profile_reactions : &quot;recibe&quot;</div></div>
+<div class="junto"><h4 id="623-vista-de-eventos-y-match">6.2.3 Vista de eventos y match</h4>
+<div class="mermaid">erDiagram
+  users {
+    uuid id PK
+    varchar(32) status
+  }
+  events {
+    uuid id PK
+    varchar(200) name
+    varchar(80) city
+    timestamptz starts_at
+    boolean is_published
+  }
+  event_attendances {
+    uuid event_id PK, FK
+    uuid user_id PK, FK
+  }
+  user_likes {
+    uuid from_user_id PK, FK
+    uuid to_user_id PK, FK
+    uuid event_id FK
+  }
+  matches {
+    uuid id PK
+    uuid user_a_id FK
+    uuid user_b_id FK
+    uuid event_id FK
+    varchar(32) status
+    bigint last_seq
+  }
+  events ||--o{ event_attendances : &quot;tiene asistentes&quot;
+  users ||--o{ event_attendances : &quot;asiste&quot;
+  users ||--o{ user_likes : &quot;da like&quot;
+  users ||--o{ user_likes : &quot;recibe like&quot;
+  events |o--o{ user_likes : &quot;da contexto&quot;
+  users ||--o{ matches : &quot;es user_a&quot;
+  users ||--o{ matches : &quot;es user_b&quot;
+  events |o--o{ matches : &quot;origina&quot;</div></div>
+<div class="junto"><h4 id="624-vista-de-chat-y-mensajes">6.2.4 Vista de chat y mensajes</h4>
+<div class="mermaid">erDiagram
+  users {
+    uuid id PK
+  }
+  matches {
+    uuid id PK
+    bigint last_seq
+  }
+  chat_messages {
+    uuid id PK
+    uuid match_id FK
+    uuid sender_id FK
+    bigint seq
+    bytea ciphertext
+  }
+  delivered_message_ids {
+    uuid message_id PK
+    uuid match_id
+    uuid sender_id FK
+  }
+  message_franking_records {
+    uuid message_id PK
+    uuid match_id
+    uuid sender_id FK
+    uuid recipient_id FK
+    bytea franking_tag
+  }
+  matches ||--o{ chat_messages : &quot;contiene&quot;
+  users ||--o{ chat_messages : &quot;envía&quot;
+  users ||--o{ delivered_message_ids : &quot;envió&quot;
+  users ||--o{ message_franking_records : &quot;es remitente&quot;
+  users ||--o{ message_franking_records : &quot;es destinatario&quot;</div></div>
+<div class="junto"><h4 id="625-vista-de-llaves-respaldo-y-vinculacion">6.2.5 Vista de llaves, respaldo y vinculación</h4>
+<div class="mermaid">erDiagram
+  users {
+    uuid id PK
+  }
+  user_keys {
+    uuid user_id PK, FK
+    bytea identity_key
+    integer current_box_key_id
+  }
+  user_box_keys {
+    uuid user_id PK, FK
+    integer box_key_id PK
+    bytea box_key
+    bytea signature
+  }
+  encrypted_backup {
+    uuid user_id PK, FK
+    bytea ciphertext
+    varchar(20) kdf_algorithm
+  }
+  device_link_request {
+    uuid id PK
+    uuid user_id FK
+    varchar(32) status
+    timestamptz expires_at
+  }
+  users ||--o| user_keys : &quot;identidad vigente&quot;
+  users ||--o{ user_box_keys : &quot;historial de llaves&quot;
+  users ||--o| encrypted_backup : &quot;respalda&quot;
+  users ||--o{ device_link_request : &quot;vincula dispositivo&quot;</div></div>
+<h3 id="63-fichas-tecnicas-de-las-tablas">6.3 Fichas técnicas de las tablas</h3>
+<h4 id="631-tabla-users">6.3.1 Tabla users</h4>
+<p>Propósito: cuenta y perfil de cada persona. Es la tabla central: 20 tablas la referencian. PK <code>pk_users (id)</code>. Índices únicos <code>ix_users_email (email)</code> e <code>ix_users_spotify_id (spotify_id)</code>. Borrar una fila borra en cascada sus swipes, likes, matches, mensajes, llaves, sesiones y respaldos; los reportes quedan con la referencia en <code>NULL</code>. Componentes: <code>Auth</code>, <code>Users</code>, <code>Profiles</code>, <code>Admin</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador de la cuenta</td>
+</tr>
+<tr>
+<td>email</td>
+<td>varchar(254)</td>
+<td>NOT NULL</td>
+<td>UNIQUE</td>
+<td>Correo de acceso, guardado sin espacios y en minúsculas</td>
+</tr>
+<tr>
+<td>password_hash</td>
+<td>varchar(100)</td>
+<td>NULL</td>
+<td></td>
+<td>Hash BCrypt (factor 12) de la contraseña; <code>NULL</code> si la cuenta se creó con Spotify</td>
+</tr>
+<tr>
+<td>spotify_id</td>
+<td>varchar(128)</td>
+<td>NULL</td>
+<td>UNIQUE</td>
+<td>Usuario de Spotify vinculado para entrar con Spotify</td>
+</tr>
+<tr>
+<td>show_profile_to_others</td>
+<td>boolean</td>
+<td>NOT NULL</td>
+<td>DEFAULT <code>true</code></td>
+<td>Si la persona permite que otras vean su perfil</td>
+</tr>
+<tr>
+<td>display_name</td>
+<td>varchar(50)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nombre que ven las demás personas</td>
+</tr>
+<tr>
+<td>birth_date</td>
+<td>date</td>
+<td>NULL</td>
+<td></td>
+<td>Fecha de nacimiento</td>
+</tr>
+<tr>
+<td>city</td>
+<td>varchar(80)</td>
+<td>NULL</td>
+<td></td>
+<td>Ciudad que escribe la persona</td>
+</tr>
+<tr>
+<td>bio</td>
+<td>varchar(300)</td>
+<td>NULL</td>
+<td></td>
+<td>Texto libre del perfil</td>
+</tr>
+<tr>
+<td>role</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Rol: persona usuaria o administración</td>
+</tr>
+<tr>
+<td>status</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Cuenta activa o suspendida</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Alta de la cuenta</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Último cambio del perfil</td>
+</tr>
+</tbody>
+</table>
+<h4 id="632-tabla-user_consents">6.3.2 Tabla user_consents</h4>
+<p>Propósito: prueba del consentimiento de términos y política de datos (Ley 1581), una fila por aceptación. PK <code>pk_user_consents (id)</code>. FK <code>fk_user_consents_users_user_id</code> → <code>users.id</code> ON DELETE CASCADE. Índice <code>ix_user_consents_user_id</code>. Componentes: <code>Users</code>, <code>Legal</code>, <code>Profiles</code> (consentimiento del perfil público).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>bigint</td>
+<td>NOT NULL</td>
+<td>PK, identidad generada por defecto</td>
+<td>Número de la aceptación</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Quién aceptó</td>
+</tr>
+<tr>
+<td>version</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Versión de los documentos aceptados (vigente: <code>2026-10-14</code>)</td>
+</tr>
+<tr>
+<td>accepted_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Cuándo aceptó</td>
+</tr>
+</tbody>
+</table>
+<h4 id="633-tabla-refresh_tokens">6.3.3 Tabla refresh_tokens</h4>
+<p>Propósito: sesiones. Cada fila es un refresh token opaco del que solo se guarda el SHA-256; las filas de una misma <code>family_id</code> son una sesión. PK <code>pk_refresh_tokens (id)</code>. FK <code>fk_refresh_tokens_users_user_id</code> → <code>users.id</code> CASCADE. Índices: <code>ix_refresh_tokens_token_hash</code> (único), <code>ix_refresh_tokens_family_id</code>, <code>ix_refresh_tokens_user_id</code>, <code>ix_refresh_tokens_expires_at</code> (purga horaria). Componentes: <code>Auth</code>, <code>Sessions</code>, <code>Infrastructure/Auth</code>, <code>MaintenanceService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del token</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Dueño de la sesión</td>
+</tr>
+<tr>
+<td>family_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>Índice</td>
+<td>Sesión</td>
+</tr>
+<tr>
+<td>token_hash</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td>UNIQUE</td>
+<td>SHA-256 del refresh token</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Emisión</td>
+</tr>
+<tr>
+<td>expires_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice</td>
+<td>Vencimiento (30 días por defecto)</td>
+</tr>
+<tr>
+<td>revoked_at</td>
+<td>timestamptz</td>
+<td>NULL</td>
+<td></td>
+<td>Cuándo se revocó (logout, rotación, reuso o suspensión)</td>
+</tr>
+<tr>
+<td>replaced_by_token_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>Sin FK</td>
+<td>Token que lo reemplazó al rotar</td>
+</tr>
+</tbody>
+</table>
+<h4 id="634-tabla-device_push_tokens">6.3.4 Tabla device_push_tokens</h4>
+<p>Propósito: tokens push de Expo por dispositivo, ligados a la sesión que los registró. PK <code>pk_device_push_tokens (id)</code>. FK <code>fk_device_push_tokens_users_user_id</code> → <code>users.id</code> CASCADE. Índices: <code>ix_device_push_tokens_token</code> (único), <code>ix_device_push_tokens_user_id</code>, <code>ix_device_push_tokens_session_id</code>. Componentes: <code>Devices</code>, <code>Sessions</code>, <code>Infrastructure/Push</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del registro</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Cuenta que recibe los avisos</td>
+</tr>
+<tr>
+<td>token</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td>UNIQUE</td>
+<td>Token <code>ExponentPushToken[…]</code> o <code>ExpoPushToken[…]</code></td>
+</tr>
+<tr>
+<td>platform</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Sistema operativo del teléfono</td>
+</tr>
+<tr>
+<td>session_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>Índice, sin FK</td>
+<td>Sesión (<code>family_id</code>) que lo registró</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Primer registro</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Último registro o cambio de dueño</td>
+</tr>
+</tbody>
+</table>
+<h4 id="635-tabla-banned_emails">6.3.5 Tabla banned_emails</h4>
+<p>Propósito: impedir que una cuenta suspendida se borre y se registre otra vez con el mismo correo. Guarda solo el HMAC-SHA256 del correo normalizado con <code>BANNED_EMAIL_KEY</code>. PK <code>pk_banned_emails (email_hash)</code>. Sin relaciones. Componentes: <code>Auth</code>, <code>Admin</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email_hash</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Huella del correo vetado; no permite recuperar el correo sin la llave</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Fecha del veto</td>
+</tr>
+</tbody>
+</table>
+<h4 id="636-tabla-genres">6.3.6 Tabla genres</h4>
+<p>Propósito: catálogo de los 15 géneros musicales. PK <code>pk_genres (id)</code>. Índice único <code>ix_genres_slug</code>. Referenciada por <code>songs</code>, <code>user_genres</code> y <code>user_genre_scores</code> con ON DELETE RESTRICT (un género en uso no se puede borrar). Componentes: <code>Music</code>, <code>Users</code>, <code>Events</code> (radar).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td>PK, identidad generada por defecto</td>
+<td>Identificador interno</td>
+</tr>
+<tr>
+<td>slug</td>
+<td>varchar(40)</td>
+<td>NOT NULL</td>
+<td>UNIQUE</td>
+<td>Identificador estable que viaja en la API (por ejemplo <code>vallenato</code>)</td>
+</tr>
+<tr>
+<td>name</td>
+<td>varchar(60)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nombre visible del género</td>
+</tr>
+</tbody>
+</table>
+<h4 id="637-tabla-songs">6.3.7 Tabla songs</h4>
+<p>Propósito: catálogo curado de canciones para calificar, con portada y muestra de 30 s de iTunes. PK <code>pk_songs (id)</code>. FK <code>fk_songs_genres_genre_id</code> → <code>genres.id</code> RESTRICT. Índices <code>ix_songs_genre_id</code> e <code>ix_songs_itunes_track_id</code> (único). Componentes: <code>Music</code>, <code>Admin</code>, <code>scripts/curate_songs.py</code> (seed).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador de la canción</td>
+</tr>
+<tr>
+<td>title</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Título</td>
+</tr>
+<tr>
+<td>artist</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Artista</td>
+</tr>
+<tr>
+<td>genre_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td>FK → <code>genres.id</code></td>
+<td>Género al que suma la calificación</td>
+</tr>
+<tr>
+<td>cover_url</td>
+<td>varchar(500)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>URL de la portada</td>
+</tr>
+<tr>
+<td>preview_url</td>
+<td>varchar(500)</td>
+<td>NULL</td>
+<td></td>
+<td>URL de la muestra de 30 s</td>
+</tr>
+<tr>
+<td>itunes_track_id</td>
+<td>bigint</td>
+<td>NULL</td>
+<td>UNIQUE</td>
+<td>Id de la pista en iTunes, evita duplicados en el catálogo</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>boolean</td>
+<td>NOT NULL</td>
+<td></td>
+<td><code>false</code> la saca del feed sin borrarla</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Alta en el catálogo</td>
+</tr>
+</tbody>
+</table>
+<h4 id="638-tabla-swipes">6.3.8 Tabla swipes</h4>
+<p>Propósito: calificaciones de canciones. PK <code>pk_swipes (user_id, song_id)</code>. FK <code>fk_swipes_users_user_id</code> → <code>users.id</code> CASCADE y <code>fk_swipes_songs_song_id</code> → <code>songs.id</code> CASCADE. Índice <code>ix_swipes_song_id</code>. Componentes: <code>Music</code>, <code>Admin</code> (conteo de likes por canción).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Quién calificó</td>
+</tr>
+<tr>
+<td>song_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>songs.id</code></td>
+<td>Canción calificada</td>
+</tr>
+<tr>
+<td>direction</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Me gusta o paso</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Momento de la calificación</td>
+</tr>
+</tbody>
+</table>
+<h4 id="639-tabla-user_genres">6.3.9 Tabla user_genres</h4>
+<p>Propósito: géneros que la persona declara como favoritos en el onboarding o el perfil. PK <code>pk_user_genres (user_id, genre_id)</code>. FK <code>fk_user_genres_users_user_id</code> → <code>users.id</code> CASCADE y <code>fk_user_genres_genres_genre_id</code> → <code>genres.id</code> RESTRICT. Índice <code>ix_user_genres_genre_id</code>. Componentes: <code>Users</code>, <code>Music</code> (bono en el ADN), <code>Profiles</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona</td>
+</tr>
+<tr>
+<td>genre_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>genres.id</code></td>
+<td>Género declarado</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6310-tabla-user_genre_scores">6.3.10 Tabla user_genre_scores</h4>
+<p>Propósito: componentes del ADN musical por género. PK <code>pk_user_genre_scores (user_id, genre_id)</code>. FK <code>fk_user_genre_scores_users_user_id</code> → <code>users.id</code> CASCADE y <code>fk_user_genre_scores_genres_genre_id</code> → <code>genres.id</code> RESTRICT. Índice <code>ix_user_genre_scores_genre_id</code>. Componentes: <code>Music</code>, <code>Events</code> (radar), <code>Profiles</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona</td>
+</tr>
+<tr>
+<td>genre_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>genres.id</code></td>
+<td>Género</td>
+</tr>
+<tr>
+<td>likes</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Canciones de ese género marcadas "me gusta"</td>
+</tr>
+<tr>
+<td>dislikes</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Canciones de ese género marcadas "paso"</td>
+</tr>
+<tr>
+<td>imported_weight</td>
+<td>double precision</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Aporte de la importación de Spotify; se reemplaza en cada importación</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6311-tabla-user_artists">6.3.11 Tabla user_artists</h4>
+<p>Propósito: artistas más escuchados importados de Spotify, para el perfil y las reacciones. PK <code>pk_user_artists (user_id, key)</code>. FK <code>fk_user_artists_users_user_id</code> → <code>users.id</code> CASCADE. Componentes: <code>Music</code>, <code>Profiles</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona</td>
+</tr>
+<tr>
+<td>key</td>
+<td>varchar(100)</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Nombre normalizado (sin tildes ni signos, con guiones) para cruzar artistas entre perfiles</td>
+</tr>
+<tr>
+<td>name</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nombre del artista como lo da Spotify</td>
+</tr>
+<tr>
+<td>rank</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Posición en el top (0 es el más escuchado)</td>
+</tr>
+<tr>
+<td>image_url</td>
+<td>varchar(500)</td>
+<td>NULL</td>
+<td></td>
+<td>Imagen del artista</td>
+</tr>
+<tr>
+<td>genres</td>
+<td>text[]</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Géneros que Spotify asigna al artista</td>
+</tr>
+<tr>
+<td>imported_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Fecha de la importación</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6312-tabla-profile_reactions">6.3.12 Tabla profile_reactions</h4>
+<p>Propósito: reacciones de una persona a un artista o género del perfil de otra ("Yo también", "Vamos a verlo", "Pásame una"). Una por objetivo y par. PK <code>pk_profile_reactions (from_user_id, to_user_id, target_kind, target_key)</code>. FK <code>fk_profile_reactions_users_from_user_id</code> y <code>fk_profile_reactions_users_to_user_id</code> → <code>users.id</code> CASCADE. Índice <code>ix_profile_reactions_to_user_id_updated_at</code>. Componente: <code>Profiles</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>from_user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Quién reacciona</td>
+</tr>
+<tr>
+<td>to_user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Dueño del perfil</td>
+</tr>
+<tr>
+<td>target_kind</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>PK, valores de 6.4</td>
+<td>Si el objetivo es un artista o un género</td>
+</tr>
+<tr>
+<td>target_key</td>
+<td>varchar(100)</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td><code>slug</code> del género o <code>key</code> del artista</td>
+</tr>
+<tr>
+<td>target_name</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td>DEFAULT <code>''</code></td>
+<td>Nombre del objetivo al reaccionar</td>
+</tr>
+<tr>
+<td>reaction</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Tipo de reacción</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Primera reacción</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice con <code>to_user_id</code></td>
+<td>Último cambio; ordena la lista de recibidas</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6313-tabla-events">6.3.13 Tabla events</h4>
+<p>Propósito: conciertos curados por la administración (seed y panel). PK <code>pk_events (id)</code>. Índice <code>ix_events_city_starts_at (city, starts_at)</code>. Referenciada por <code>event_attendances</code> (CASCADE), <code>user_likes</code> y <code>matches</code> (SET NULL). Componentes: <code>Events</code>, <code>Admin</code>, <code>Matching</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del evento</td>
+</tr>
+<tr>
+<td>name</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nombre del concierto</td>
+</tr>
+<tr>
+<td>artist_lineup</td>
+<td>text[]</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Artistas del cartel</td>
+</tr>
+<tr>
+<td>venue</td>
+<td>varchar(200)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Lugar</td>
+</tr>
+<tr>
+<td>city</td>
+<td>varchar(80)</td>
+<td>NOT NULL</td>
+<td>Índice con <code>starts_at</code></td>
+<td>Ciudad</td>
+</tr>
+<tr>
+<td>starts_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Fecha y hora de inicio</td>
+</tr>
+<tr>
+<td>image_url</td>
+<td>varchar(500)</td>
+<td>NULL</td>
+<td></td>
+<td>Imagen del cartel</td>
+</tr>
+<tr>
+<td>description</td>
+<td>varchar(2000)</td>
+<td>NULL</td>
+<td></td>
+<td>Descripción</td>
+</tr>
+<tr>
+<td>is_published</td>
+<td>boolean</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Visible para las personas usuarias</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Alta del evento</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6314-tabla-event_attendances">6.3.14 Tabla event_attendances</h4>
+<p>Propósito: quién marcó que va a cada evento; habilita el radar y el like entre asistentes. PK <code>pk_event_attendances (event_id, user_id)</code>. FK <code>fk_event_attendances_events_event_id</code> → <code>events.id</code> CASCADE y <code>fk_event_attendances_users_user_id</code> → <code>users.id</code> CASCADE. Índice <code>ix_event_attendances_user_id</code>. Componentes: <code>Events</code>, <code>Matching</code>, <code>Profiles</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>event_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>events.id</code></td>
+<td>Evento</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona que va</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Cuándo marcó la asistencia</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6315-tabla-user_likes">6.3.15 Tabla user_likes</h4>
+<p>Propósito: interés de una persona en otra con la que comparte un evento. El match nace solo con el like recíproco. PK <code>pk_user_likes (from_user_id, to_user_id)</code>. FK <code>fk_user_likes_users_from_user_id</code> y <code>fk_user_likes_users_to_user_id</code> → <code>users.id</code> CASCADE; <code>fk_user_likes_events_event_id</code> → <code>events.id</code> SET NULL. Índices <code>ix_user_likes_to_user_id</code>, <code>ix_user_likes_event_id</code>. CHECK <code>ck_user_likes_not_self (from_user_id &lt;&gt; to_user_id)</code>. Componente: <code>Matching</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>from_user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code>, CHECK</td>
+<td>Quién da el like</td>
+</tr>
+<tr>
+<td>to_user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code>, CHECK</td>
+<td>Quién lo recibe</td>
+</tr>
+<tr>
+<td>event_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>FK → <code>events.id</code></td>
+<td>Evento compartido en que se dio</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Momento del like</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6316-tabla-matches">6.3.16 Tabla matches</h4>
+<p>Propósito: relación mutua entre dos personas que habilita el chat. El par se guarda ordenado y solo puede haber un match activo por par; los cerrados quedan como historial. PK <code>pk_matches (id)</code>. FK <code>fk_matches_users_user_a_id</code> y <code>fk_matches_users_user_b_id</code> → <code>users.id</code> CASCADE; <code>fk_matches_events_event_id</code> → <code>events.id</code> SET NULL. Índices: <code>ix_matches_user_a_id_user_b_id</code> único parcial <code>WHERE status = 'Active'</code>, <code>ix_matches_user_b_id</code>, <code>ix_matches_event_id</code>. CHECK <code>ck_matches_ordered_pair (user_a_id &lt; user_b_id)</code>. Componentes: <code>Matching</code>, <code>Chat</code>, <code>Moderation</code>, <code>Admin</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del match</td>
+</tr>
+<tr>
+<td>user_a_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code>, CHECK</td>
+<td>Persona con el UUID menor del par</td>
+</tr>
+<tr>
+<td>user_b_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code>, CHECK</td>
+<td>Persona con el UUID mayor</td>
+</tr>
+<tr>
+<td>status</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4; parte del índice parcial</td>
+<td>Activo o cerrado</td>
+</tr>
+<tr>
+<td>event_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>FK → <code>events.id</code></td>
+<td>Evento donde nació el match</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Fecha del match</td>
+</tr>
+<tr>
+<td>closed_at</td>
+<td>timestamptz</td>
+<td>NULL</td>
+<td></td>
+<td>Fecha de cierre</td>
+</tr>
+<tr>
+<td>closed_by_user_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>Sin FK</td>
+<td>Quién lo cerró</td>
+</tr>
+<tr>
+<td>close_reason</td>
+<td>varchar(32)</td>
+<td>NULL</td>
+<td>Valores de 6.4</td>
+<td>Por qué se cerró</td>
+</tr>
+<tr>
+<td>last_seq</td>
+<td>bigint</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Último número de secuencia asignado a un mensaje</td>
+</tr>
+<tr>
+<td>last_message_at</td>
+<td>timestamptz</td>
+<td>NULL</td>
+<td></td>
+<td>Fecha del último mensaje; ordena la lista de chats</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6317-tabla-user_keys">6.3.17 Tabla user_keys</h4>
+<p>Propósito: estado vigente de las llaves públicas del chat de cada persona. PK <code>pk_user_keys (user_id)</code>. FK <code>fk_user_keys_users_user_id</code> → <code>users.id</code> CASCADE, relación uno a uno. Componentes: <code>Chat</code> (<code>KeyService</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona</td>
+</tr>
+<tr>
+<td>identity_key</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Llave pública de identidad Ed25519 (32 bytes)</td>
+</tr>
+<tr>
+<td>current_box_key_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Número de la llave de caja vigente</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Última publicación o rotación</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6318-tabla-user_box_keys">6.3.18 Tabla user_box_keys</h4>
+<p>Propósito: historial de llaves de caja X25519 públicas, firmadas por la identidad, para descifrar mensajes viejos. PK <code>pk_user_box_keys (user_id, box_key_id)</code>. FK <code>fk_user_box_keys_users_user_id</code> → <code>users.id</code> CASCADE. Componente: <code>Chat</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Persona</td>
+</tr>
+<tr>
+<td>box_key_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Número de la llave, estrictamente creciente</td>
+</tr>
+<tr>
+<td>identity_key</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Identidad que firmó esta llave</td>
+</tr>
+<tr>
+<td>box_key</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Llave pública X25519</td>
+</tr>
+<tr>
+<td>signature</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Firma Ed25519 de <code>ENCORELY-BOXKEY-v1 ‖ box_key_id ‖ box_key</code>, verificada por el cliente</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Publicación</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6319-tabla-chat_messages">6.3.19 Tabla chat_messages</h4>
+<p>Propósito: mensajes cifrados de extremo a extremo pendientes de entrega. PK <code>pk_chat_messages (id)</code>. FK <code>fk_chat_messages_matches_match_id</code> → <code>matches.id</code> CASCADE y <code>fk_chat_messages_users_sender_id</code> → <code>users.id</code> CASCADE. Índices <code>ix_chat_messages_match_id_seq</code> (único), <code>ix_chat_messages_sender_id</code>, <code>ix_chat_messages_created_at</code> (purga). Componentes: <code>Chat</code>, <code>MaintenanceService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, lo genera el cliente</td>
+<td>Identificador del mensaje</td>
+</tr>
+<tr>
+<td>match_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>matches.id</code>, UNIQUE con <code>seq</code></td>
+<td>Conversación</td>
+</tr>
+<tr>
+<td>sender_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Remitente</td>
+</tr>
+<tr>
+<td>seq</td>
+<td>bigint</td>
+<td>NOT NULL</td>
+<td>UNIQUE con <code>match_id</code></td>
+<td>Orden total del mensaje en la conversación, sin huecos</td>
+</tr>
+<tr>
+<td>version</td>
+<td>smallint</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Versión del formato del sobre</td>
+</tr>
+<tr>
+<td>sender_box_key_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Llave de caja del remitente usada</td>
+</tr>
+<tr>
+<td>recipient_box_key_id</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Llave de caja del destinatario usada</td>
+</tr>
+<tr>
+<td>nonce</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nonce aleatorio de 24 bytes de XChaCha20-Poly1305</td>
+</tr>
+<tr>
+<td>ciphertext</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Mensaje cifrado</td>
+</tr>
+<tr>
+<td>franking_tag</td>
+<td>bytea</td>
+<td>NULL</td>
+<td></td>
+<td>Compromiso HMAC-SHA256 para reportes verificables</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice</td>
+<td>Recepción en el servidor</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6320-tabla-delivered_message_ids">6.3.20 Tabla delivered_message_ids</h4>
+<p>Propósito: "lápida" del id de un mensaje sin franking ya confirmado por el receptor. Al borrar el mensaje, impide que el mismo id se reutilice con otro <code>seq</code>. PK <code>pk_delivered_message_ids (message_id)</code>. FK <code>fk_delivered_message_ids_users_sender_id</code> → <code>users.id</code> CASCADE. Índices <code>ix_delivered_message_ids_sender_id</code> e <code>ix_delivered_message_ids_delivered_at</code> (purga a los 180 días). Componentes: <code>Chat</code>, <code>MaintenanceService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>message_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Id del mensaje entregado</td>
+</tr>
+<tr>
+<td>match_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>Sin FK</td>
+<td>Conversación</td>
+</tr>
+<tr>
+<td>sender_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Remitente</td>
+</tr>
+<tr>
+<td>delivered_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice</td>
+<td>Momento del ack</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6321-tabla-message_franking_records">6.3.21 Tabla message_franking_records</h4>
+<p>Propósito: copia del compromiso de franking de cada mensaje con tag, con vida propia: el ack borra el mensaje pero un reporte posterior debe poder verificarse. PK <code>pk_message_franking_records (message_id)</code>. FK <code>fk_message_franking_records_users_sender_id</code> y <code>fk_message_franking_records_users_recipient_id</code> → <code>users.id</code> CASCADE. Índices por <code>match_id</code>, <code>sender_id</code>, <code>recipient_id</code> y <code>created_at</code>. Componentes: <code>Chat</code>, <code>Moderation</code>, <code>MaintenanceService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>message_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Mensaje al que pertenece el compromiso</td>
+</tr>
+<tr>
+<td>match_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>Índice, sin FK</td>
+<td>Conversación</td>
+</tr>
+<tr>
+<td>sender_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Remitente (el reportable)</td>
+</tr>
+<tr>
+<td>recipient_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Destinatario (quien puede reportar)</td>
+</tr>
+<tr>
+<td>franking_tag</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>HMAC-SHA256 del mensaje con la llave de franking</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice</td>
+<td>Fecha del mensaje</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6322-tabla-blocks">6.3.22 Tabla blocks</h4>
+<p>Propósito: bloqueos entre personas. PK <code>pk_blocks (blocker_id, blocked_id)</code>. FK <code>fk_blocks_users_blocker_id</code> y <code>fk_blocks_users_blocked_id</code> → <code>users.id</code> CASCADE. Índice <code>ix_blocks_blocked_id</code>. CHECK <code>ck_blocks_not_self (blocker_id &lt;&gt; blocked_id)</code>. Componentes: <code>Moderation</code>, <code>Events</code>, <code>Profiles</code>, <code>Matching</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>blocker_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code>, CHECK</td>
+<td>Quién bloquea</td>
+</tr>
+<tr>
+<td>blocked_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code>, CHECK</td>
+<td>Quién queda bloqueado</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Fecha del bloqueo</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6323-tabla-reports">6.3.23 Tabla reports</h4>
+<p>Propósito: reportes de moderación con evidencia verificable. Sobreviven al borrado de las cuentas (las referencias pasan a <code>NULL</code>). Solo puede haber un reporte abierto por par (quien reporta, reportado). PK <code>pk_reports (id)</code>. FK <code>fk_reports_users_reporter_id</code> y <code>fk_reports_users_reported_user_id</code> → <code>users.id</code> SET NULL; <code>fk_reports_matches_match_id</code> → <code>matches.id</code> SET NULL. Índices: <code>ix_reports_reporter_id_reported_user_id</code> único parcial <code>WHERE status = 'Open'</code>, <code>ix_reports_status_created_at</code>, <code>ix_reports_resolved_at</code> parcial <code>WHERE evidence_purged_at IS NULL</code>, <code>ix_reports_reporter_id</code>, <code>ix_reports_reported_user_id</code>, <code>ix_reports_match_id</code>. Componentes: <code>Moderation</code>, <code>Admin</code>, <code>MaintenanceService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del reporte</td>
+</tr>
+<tr>
+<td>reporter_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Quién reporta; <code>NULL</code> si borró su cuenta</td>
+</tr>
+<tr>
+<td>reported_user_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Persona reportada</td>
+</tr>
+<tr>
+<td>match_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>FK → <code>matches.id</code></td>
+<td>Conversación en la que ocurrió, si aplica</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Motivo</td>
+</tr>
+<tr>
+<td>detail</td>
+<td>varchar(1000)</td>
+<td>NULL</td>
+<td></td>
+<td>Explicación libre</td>
+</tr>
+<tr>
+<td>evidence</td>
+<td>jsonb</td>
+<td>NULL</td>
+<td></td>
+<td>Lista de <code>{MessageId, Plaintext, Verified}</code>: mensajes revelados y si su franking coincide</td>
+</tr>
+<tr>
+<td>status</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Estado en la cola de moderación</td>
+</tr>
+<tr>
+<td>resolution_note</td>
+<td>varchar(1000)</td>
+<td>NULL</td>
+<td></td>
+<td>Nota de quien modera</td>
+</tr>
+<tr>
+<td>resolved_by_user_id</td>
+<td>uuid</td>
+<td>NULL</td>
+<td>Sin FK</td>
+<td>Admin que resolvió</td>
+</tr>
+<tr>
+<td>resolved_at</td>
+<td>timestamptz</td>
+<td>NULL</td>
+<td>Índice parcial</td>
+<td>Fecha de resolución</td>
+</tr>
+<tr>
+<td>evidence_purged_at</td>
+<td>timestamptz</td>
+<td>NULL</td>
+<td></td>
+<td>Cuándo se borraron <code>detail</code> y el texto de la evidencia (quedan <code>MessageId</code> y <code>Verified</code>)</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice con <code>status</code></td>
+<td>Fecha del reporte</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6324-tabla-encrypted_backup">6.3.24 Tabla encrypted_backup</h4>
+<p>Propósito: respaldo opcional del historial y las llaves, cifrado en el teléfono. Un blob por persona. PK <code>pk_encrypted_backup (user_id)</code>. FK <code>fk_encrypted_backup_users_user_id</code> → <code>users.id</code> CASCADE, uno a uno. Componente: <code>Sync</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK, FK → <code>users.id</code></td>
+<td>Dueño del respaldo</td>
+</tr>
+<tr>
+<td>version</td>
+<td>integer</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Versión del formato del respaldo</td>
+</tr>
+<tr>
+<td>ciphertext</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Contenido cifrado</td>
+</tr>
+<tr>
+<td>nonce</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Nonce del cifrado</td>
+</tr>
+<tr>
+<td>salt</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Sal de la derivación de la llave</td>
+</tr>
+<tr>
+<td>kdf_algorithm</td>
+<td>varchar(20)</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Algoritmo de derivación aceptado (<code>argon2id</code>, <code>scrypt</code> o <code>pbkdf2-sha256</code>)</td>
+</tr>
+<tr>
+<td>kdf_ops_limit</td>
+<td>bigint</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Parámetro de costo de la derivación</td>
+</tr>
+<tr>
+<td>kdf_mem_limit</td>
+<td>bigint</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Parámetro de memoria de la derivación</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Última subida</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6325-tabla-device_link_request">6.3.25 Tabla device_link_request</h4>
+<p>Propósito: buzón de un solo uso (10 minutos) para traspasar las llaves a un teléfono nuevo. PK <code>pk_device_link_request (id)</code>. FK <code>fk_device_link_request_users_user_id</code> → <code>users.id</code> CASCADE. Índice <code>ix_device_link_request_user_id_expires_at</code>. Componentes: <code>Sync</code>, <code>MaintenanceService</code> (borra los vencidos).</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Nulo</th>
+<th>Restricción o defecto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>PK</td>
+<td>Identificador del buzón (va en el QR)</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>uuid</td>
+<td>NOT NULL</td>
+<td>FK → <code>users.id</code></td>
+<td>Cuenta que vincula</td>
+</tr>
+<tr>
+<td>new_device_ephemeral_key</td>
+<td>bytea</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Llave efímera X25519 pública del teléfono nuevo</td>
+</tr>
+<tr>
+<td>status</td>
+<td>varchar(32)</td>
+<td>NOT NULL</td>
+<td>Valores de 6.4</td>
+<td>Pendiente o listo para recoger</td>
+</tr>
+<tr>
+<td>sender_ephemeral_key</td>
+<td>bytea</td>
+<td>NULL</td>
+<td></td>
+<td>Llave efímera del teléfono viejo</td>
+</tr>
+<tr>
+<td>nonce</td>
+<td>bytea</td>
+<td>NULL</td>
+<td></td>
+<td>Nonce del material cifrado</td>
+</tr>
+<tr>
+<td>ciphertext</td>
+<td>bytea</td>
+<td>NULL</td>
+<td></td>
+<td>Llaves cifradas hacia el teléfono nuevo</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td></td>
+<td>Apertura del buzón</td>
+</tr>
+<tr>
+<td>expires_at</td>
+<td>timestamptz</td>
+<td>NOT NULL</td>
+<td>Índice con <code>user_id</code></td>
+<td>Vencimiento</td>
+</tr>
+</tbody>
+</table>
+<h3 id="64-diccionario-de-datos">6.4 Diccionario de datos</h3>
+<p>Valores permitidos de los campos enumerados:</p>
+<table>
+<thead>
+<tr>
+<th>Tabla.campo</th>
+<th>Valores</th>
+<th>Significado de negocio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>users.role</code></td>
+<td><code>User</code>, <code>Admin</code></td>
+<td>Persona usuaria; administración con acceso a <code>/admin</code></td>
+</tr>
+<tr>
+<td><code>users.status</code></td>
+<td><code>Active</code>, <code>Banned</code></td>
+<td>Cuenta en uso; cuenta suspendida por moderación (no entra y su correo queda vetado)</td>
+</tr>
+<tr>
+<td><code>swipes.direction</code></td>
+<td><code>Like</code>, <code>Dislike</code></td>
+<td>"Me gusta" suma 1 al género; "Paso" resta 0,5</td>
+</tr>
+<tr>
+<td><code>device_push_tokens.platform</code></td>
+<td><code>Android</code>, <code>Ios</code></td>
+<td>Sistema operativo del teléfono</td>
+</tr>
+<tr>
+<td><code>matches.status</code></td>
+<td><code>Active</code>, <code>Closed</code></td>
+<td>Conversación habilitada; conversación cerrada (se puede leer el historial, no escribir)</td>
+</tr>
+<tr>
+<td><code>matches.close_reason</code></td>
+<td><code>Unmatched</code>, <code>Blocked</code>, <code>AccountDeleted</code>, <code>Banned</code></td>
+<td>Una persona deshizo el match; hubo bloqueo; se borró una cuenta; se suspendió una cuenta</td>
+</tr>
+<tr>
+<td><code>reports.reason</code></td>
+<td><code>Spam</code>, <code>Harassment</code>, <code>Inappropriate</code>, <code>FakeProfile</code>, <code>Underage</code>, <code>Other</code></td>
+<td>Spam; acoso; contenido inapropiado; perfil falso; menor de edad; otro</td>
+</tr>
+<tr>
+<td><code>reports.status</code></td>
+<td><code>Open</code>, <code>Resolved</code>, <code>Dismissed</code></td>
+<td>En cola; resuelto con acción; descartado</td>
+</tr>
+<tr>
+<td><code>profile_reactions.target_kind</code></td>
+<td><code>Artist</code>, <code>Genre</code></td>
+<td>La reacción es a un artista o a un género del perfil</td>
+</tr>
+<tr>
+<td><code>profile_reactions.reaction</code></td>
+<td><code>MeToo</code>, <code>LetsGo</code>, <code>SendOne</code></td>
+<td>"Yo también", "Vamos a verlo", "Pásame una"</td>
+</tr>
+<tr>
+<td><code>device_link_request.status</code></td>
+<td><code>Pending</code>, <code>Ready</code></td>
+<td>Esperando al teléfono viejo; material listo para recoger</td>
+</tr>
+</tbody>
+</table>
+<p>Términos de negocio que aparecen en varias tablas:</p>
+<table>
+<thead>
+<tr>
+<th>Término</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADN musical</td>
+<td>Vector de pesos por género de una persona, calculado desde <code>user_genre_scores</code> y <code>user_genres</code></td>
+</tr>
+<tr>
+<td>Afinidad</td>
+<td>Coseno entre dos ADN, de 0 a 100; <code>null</code> si alguna persona no tiene señal suficiente (menos de <code>AFFINITY_MIN_SWIPES</code> calificaciones y sin Spotify)</td>
+</tr>
+<tr>
+<td>Radar</td>
+<td>Lista de asistentes de un evento ordenada por afinidad; se desbloquea con <code>RADAR_MIN_SWIPES</code> calificaciones</td>
+</tr>
+<tr>
+<td>Match</td>
+<td>Relación mutua entre dos personas que se dieron like en un evento compartido</td>
+</tr>
+<tr>
+<td>Ack</td>
+<td>Confirmación del receptor de que guardó los mensajes hasta un <code>seq</code>; el servidor los borra</td>
+</tr>
+<tr>
+<td>Franking</td>
+<td>Compromiso criptográfico que permite verificar un mensaje reportado sin leer el resto del chat</td>
+</tr>
+<tr>
+<td>Llave de caja</td>
+<td>Llave X25519 con la que se cifran los mensajes hacia una persona; rota cada 7 días en la app</td>
+</tr>
+<tr>
+<td>Sesión</td>
+<td>Familia de refresh tokens (<code>refresh_tokens.family_id</code>), visible en Tú → Sesiones</td>
+</tr>
+</tbody>
+</table>
+<h3 id="65-almacenamiento-en-el-dispositivo">6.5 Almacenamiento en el dispositivo</h3>
+<h4 id="651-tabla-local-messages">6.5.1 Tabla local messages</h4>
+<h4 id="652-tabla-local-sync_state">6.5.2 Tabla local sync_state</h4>
+<h3 id="66-migraciones">6.6 Migraciones</h3>
+<h3 id="67-datos-semilla">6.7 Datos semilla</h3>
+<h3 id="68-relacion-entre-componentes-y-estructuras-de-datos">6.8 Relación entre componentes y estructuras de datos</h3>
+<h3 id="69-politica-de-respaldo-de-la-base-de-datos">6.9 Política de respaldo de la base de datos</h3>
+<h3 id="610-mantenimiento-de-este-capitulo">6.10 Mantenimiento de este capítulo</h3>
+<h2 id="7-integraciones-apis-y-servicios-externos">7. Integraciones, APIs y servicios externos</h2>
+<h3 id="71-api-rest-v1">7.1 API REST v1</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Regla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base</td>
+<td><code>/api/v1</code> (en las tablas de este capítulo se omite)</td>
+</tr>
+<tr>
+<td>Contrato</td>
+<td><code>encorly_back/contracts/openapi.v1.json</code>, 68 operaciones; las versiones <code>v1.0.0-draft.N</code> se registran en <code>contracts/CHANGELOG.md</code></td>
+</tr>
+<tr>
+<td>Autenticación</td>
+<td><code>Authorization: Bearer &lt;accessToken&gt;</code> en todo lo que no está marcado como público</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>JSON en <code>camelCase</code>, enums como string <code>camelCase</code>, fechas ISO-8601 en UTC, binarios en base64 estándar</td>
+</tr>
+</tbody>
+</table>
+<p>Fuera del contrato, la API sirve <code>/health/live</code> y <code>/health/ready</code> (públicas, sin detalle), el hub <code>/hubs/chat</code> (JWT), el panel <code>/admin</code> y las páginas <code>/legal/terminos</code>, <code>/legal/privacidad</code> y <code>/cuenta/eliminar</code>.</p>
+<h3 id="72-operaciones-por-modulo">7.2 Operaciones por módulo</h3>
+<h3 id="73-tiempo-real-con-signalr">7.3 Tiempo real con SignalR</h3>
+<h3 id="74-servicios-externos">7.4 Servicios externos</h3>
+<h2 id="8-seguridad-perfiles-y-permisos">8. Seguridad, perfiles y permisos</h2>
+<h3 id="81-perfiles-de-usuario-y-permisos">8.1 Perfiles de usuario y permisos</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>Cómo se obtiene</th>
+<th>Qué puede hacer</th>
+<th>Qué no puede hacer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Visitante anónimo</td>
+<td>Sin token</td>
+<td>Registrarse, entrar, renovar sesión, ver géneros, términos, política y borrar su cuenta desde la web</td>
+<td>Cualquier otra operación (401)</td>
+</tr>
+<tr>
+<td>Persona usuaria con onboarding pendiente</td>
+<td>Cuenta <code>User</code> sin fecha, ciudad o géneros</td>
+<td>Completar el onboarding, aceptar consentimiento, gestionar su cuenta</td>
+<td>La app no la deja pasar a las tabs hasta completar el onboarding</td>
+</tr>
+<tr>
+<td>Persona usuaria</td>
+<td><code>role = User</code>, <code>status = Active</code></td>
+<td>Todo lo de 7.2 salvo <code>/admin/*</code>, solo sobre sus propios recursos</td>
+<td>Ver o modificar recursos ajenos (404), entrar a <code>/admin</code> (403)</td>
+</tr>
+<tr>
+<td>Administración</td>
+<td><code>role = Admin</code>, confirmado en la base en cada petición</td>
+<td>Todo lo anterior más <code>/admin/*</code> y el panel <code>/admin</code></td>
+<td>Suspender a otra cuenta admin (403 <code>cannot_change_admin_status</code>)</td>
+</tr>
+<tr>
+<td>Cuenta suspendida</td>
+<td><code>status = Banned</code> por moderación</td>
+<td>Borrar su cuenta (derecho de supresión)</td>
+<td>Entrar: recibe 403 <code>account_banned</code> solo con la contraseña correcta; todos sus tokens dejan de servir al instante</td>
+</tr>
+<tr>
+<td>Revisor de tiendas</td>
+<td>Cuenta <code>revisor@encorely.demo</code> sembrada con <code>SEED_REVIEWER_ONLY=true</code></td>
+<td>Lo mismo que una persona usuaria, con un match ya creado para probar el chat</td>
+<td>Lo mismo que una persona usuaria</td>
+</tr>
+</tbody>
+</table>
+<p>Matriz de permisos por módulo:</p>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Anónimo</th>
+<th>Persona usuaria</th>
+<th>Administración</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Registro, login, refresh, logout</td>
+<td>Sí</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Perfil propio, consentimientos, exportación, borrado</td>
+<td>Solo borrado web</td>
+<td>Sí, solo el propio</td>
+<td>Sí, solo el propio</td>
+</tr>
+<tr>
+<td>Perfil ajeno y reacciones</td>
+<td>No</td>
+<td>Sí, si la otra persona lo permite y no hay bloqueo</td>
+<td>Igual que una persona usuaria</td>
+</tr>
+<tr>
+<td>Catálogo, swipes, ADN</td>
+<td>Solo géneros</td>
+<td>Sí</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Eventos y radar</td>
+<td>No</td>
+<td>Sí; radar solo si asiste y desbloqueó</td>
+<td>Igual; además ve eventos no publicados en <code>/admin/events</code></td>
+</tr>
+<tr>
+<td>Likes, matches y chat</td>
+<td>No</td>
+<td>Sí, solo sus matches</td>
+<td>Igual que una persona usuaria (no lee chats ajenos: son ciphertext)</td>
+</tr>
+<tr>
+<td>Bloqueos y reportes</td>
+<td>No</td>
+<td>Sí</td>
+<td>Sí, y resuelve reportes</td>
+</tr>
+<tr>
+<td>Eventos y canciones (gestión)</td>
+<td>No</td>
+<td>No</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Suspender y reactivar cuentas</td>
+<td>No</td>
+<td>No</td>
+<td>Sí, salvo otras cuentas admin</td>
+</tr>
+</tbody>
+</table>
+<p>Perfiles técnicos de operación (propuestos, con mínimo privilegio): acceso al panel de Render y a la base de producción solo para quien esté de guardia; acceso de lectura a la base para consultas de diagnóstico; cuentas de Expo, Apple y Google con dos factores.</p>
+<h3 id="82-autenticacion-y-sesiones">8.2 Autenticación y sesiones</h3>
+<ul>
+<li>Contraseñas con BCrypt factor 12, de 12 a 72 bytes; una contraseña más larga se rechaza en vez de truncarse.</li>
+<li>Access token JWT HS256 de 15 minutos con <code>issuer</code> y <code>audience</code> validados y tolerancia de reloj de 30 s; lleva <code>sub</code> (persona) y <code>sid</code> (sesión).</li>
+<li>Refresh token opaco de 256 bits, guardado como SHA-256, válido 30 días, rotado en cada uso. Presentar uno ya usado revoca la familia completa (detección de robo).</li>
+<li>Cada petición autenticada comprueba en la base que la cuenta existe, no está suspendida y que la sesión sigue abierta: logout, cierre de sesión remoto, reuso de refresh o suspensión cortan el acceso al instante, también en el hub.</li>
+<li>Contra la enumeración de cuentas, un correo inexistente se verifica contra un hash ficticio (mismo tiempo y mismo 401).</li>
+<li>Límite de frecuencia por IP: 10 por minuto en registro, login y borrado web, y 60 por minuto en refresh y logout. Al pasarse, la API responde 429 con <code>Retry-After</code>.</li>
+<li>Bloqueo por intentos: 5 fallos seguidos bloquean 15 minutos el par (correo, IP), en memoria.</li>
+<li>En la app, una sola sesión (<code>SessionContext</code>) con tokens en SecureStore.</li>
+</ul>
+<h3 id="83-autorizacion">8.3 Autorización</h3>
+<ul>
+<li>La identidad sale solo del JWT (<code>ClaimsPrincipal.UserId()</code>); ningún contrato acepta un <code>userId</code> para decidir quién llama.</li>
+<li>Política de respaldo: todo endpoint exige autenticación salvo los marcados <code>AllowAnonymous()</code>.</li>
+<li>Autorización por pertenencia en cada servicio; un recurso ajeno responde 404.</li>
+<li><code>/admin/*</code> exige rol admin confirmado en la base en cada petición (<code>AdminRoleFilter</code>).</li>
+</ul>
+<h3 id="84-cifrado-de-extremo-a-extremo-del-chat">8.4 Cifrado de extremo a extremo del chat</h3>
+<h3 id="85-segmentacion">8.5 Segmentación</h3>
+<h3 id="86-auditoria">8.6 Auditoría</h3>
+<h3 id="87-gestion-de-secretos">8.7 Gestión de secretos</h3>
+<h3 id="88-datos-personales-y-ley-1581">8.8 Datos personales y Ley 1581</h3>
+<h2 id="9-operacion-monitoreo-respaldo-y-recuperacion">9. Operación, monitoreo, respaldo y recuperación</h2>
+<h3 id="91-estado-operativo-real-y-objetivos-propuestos">9.1 Estado operativo real y objetivos propuestos</h3>
+<h3 id="92-disponibilidad-y-rendimiento">9.2 Disponibilidad y rendimiento</h3>
+<h3 id="93-monitoreo-y-observabilidad">9.3 Monitoreo y observabilidad</h3>
+<h3 id="94-tareas-programadas-del-sistema">9.4 Tareas programadas del sistema</h3>
+<h3 id="95-respaldo-y-recuperacion">9.5 Respaldo y recuperación</h3>
+<h4 id="951-politica-de-respaldo">9.5.1 Política de respaldo</h4>
+<h4 id="952-procedimiento-de-respaldo-manual">9.5.2 Procedimiento de respaldo manual</h4>
+<h4 id="953-procedimiento-de-restauracion">9.5.3 Procedimiento de restauración</h4>
+<h3 id="96-ficha-de-operatividad">9.6 Ficha de operatividad</h3>
+<h3 id="97-flujo-operativo-ante-una-falla">9.7 Flujo operativo ante una falla</h3>
+<h2 id="10-solucion-de-incidentes-mantenimiento-y-anexos">10. Solución de incidentes, mantenimiento y anexos</h2>
+<h3 id="101-gestion-de-incidentes">10.1 Gestión de incidentes</h3>
+<h3 id="102-runbooks-de-incidentes">10.2 Runbooks de incidentes</h3>
+<h3 id="103-solucion-de-problemas-en-desarrollo">10.3 Solución de problemas en desarrollo</h3>
+<h4 id="1031-problemas-frecuentes-del-back">10.3.1 Problemas frecuentes del back</h4>
+<h4 id="1032-problemas-frecuentes-de-la-app">10.3.2 Problemas frecuentes de la app</h4>
+<h3 id="104-mantenimiento-preventivo">10.4 Mantenimiento preventivo</h3>
+<h3 id="105-mantenimiento-correctivo">10.5 Mantenimiento correctivo</h3>
+<h3 id="106-pendientes-tecnicos-conocidos">10.6 Pendientes técnicos conocidos</h3>
+<h3 id="107-anexo-a-glosario">10.7 Anexo A. Glosario</h3>
+<h3 id="108-anexo-b-plantillas-de-aceptacion-e-incidentes">10.8 Anexo B. Plantillas de aceptación e incidentes</h3></body></html>
