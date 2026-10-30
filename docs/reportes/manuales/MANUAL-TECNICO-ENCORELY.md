@@ -7,12 +7,12 @@
 <div class="portada-datos">
 <div><span>Preparado por</span><p>Camilo Rincón · Emmanuel Dávila · Samuel Sierra · Juan Diego Calle</p></div>
 <div><span>Preparado para</span><p>Tecnológico de Antioquia · Despliegue de Sistemas</p></div>
-<div><span>Lugar y fecha</span><p>Itagüí, Antioquia · 22 de octubre de 2026</p></div>
+<div><span>Lugar y fecha</span><p>Itagüí, Antioquia · 29 de octubre de 2026</p></div>
 </div>
 </div>
 <aside class="portada-talon">
 <p class="talon-etq">Documento</p><p class="talon-val">ENC-MT-001</p>
-<p class="talon-etq">Versión</p><p class="talon-val">1.4</p>
+<p class="talon-etq">Versión</p><p class="talon-val">1.5</p>
 <p class="talon-etq">Contrato API</p><p class="talon-val">v1.0.0-draft.17</p>
 <p class="talon-etq">Clasificación</p><p class="talon-val">Uso interno</p>
 </aside>
@@ -29,8 +29,8 @@
 | Código del documento | ENC-MT-001 |
 | Sistema | Encorely: app móvil `encorely-front` (Expo, Android e iOS) y API `encorly_back` (.NET 10 + PostgreSQL 16) |
 | Tipo de documento | Manual técnico unificado |
-| Versión vigente | 1.4 |
-| Fecha de emisión | 2026-10-22 |
+| Versión vigente | 1.5 |
+| Fecha de emisión | 2026-10-29 |
 | Elaborado por | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle |
 | Aprobado por | Aprobado por: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ (docente) · Fecha: \_\_\_\_\_\_\_\_\_\_\_\_ |
 | Responsable de mantenerlo | Camilo Rincón (Product Owner) coordina las versiones; cada capítulo tiene su responsable en 1.4 |
@@ -46,6 +46,7 @@
 | 1.2 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Estructura alineada a las diapositivas de la cátedra; el análisis del software pasa a documento propio; capítulo 1 sin portada, ficha fusionada en el control documental y sin "Documentos relacionados" | Pendiente |
 | 1.3 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Paridad estricta con las diapositivas: se quitan secciones no pedidas, se agregan segmentación, auditoría, alta disponibilidad, capacitación, dueños por aspecto operativo y diagramas de despliegue en UML con PlantUML | Pendiente |
 | 1.4 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Depuración por bloque: se retira el texto que no explican las diapositivas (detalles de implementación, justificaciones, notas y columnas no pedidas); 7.2 queda solo con el título; diagramas de componentes y de despliegue rehechos en UML con el orden de los ejemplos de las diapositivas | Pendiente |
+| 1.5 | 2026-10-29 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | La producción propuesta pasa de Render a Microsoft Azure según el documento "Requisitos de despliegue en Azure" (Juan Diego Calle): dos servidores Ubuntu Server 24.04 LTS detrás de un Application Gateway. Se llenan 3.2.3, 3.3.3 y 3.4.1 y se actualizan 3.1, 4.1, 5.3.1, 5.5, 5.6, 5.8.1, 6.1, 7, 8.1, 8.5, 8.7, 9 y 10. Ajustes frente al código: el contenedor escucha en 8080, producción exige `FORWARDED_TRUSTED_NETWORKS` y `PUBLIC_BASE_URL`, las migraciones corren al arrancar y `/openapi/v1.json` no existe en producción | Pendiente |
 
 ### 1.3 Propósito y público del documento
 
@@ -162,8 +163,8 @@ Flujo principal de la persona usuaria:
 | Desarrollo local (`Development`) | PC del equipo: Postgres en Docker, API con `dotnet run`, app en emulador o teléfono | En uso y verificado |
 | Pruebas automatizadas (`Testing`) | Testcontainers en el PC o en el runner de GitHub Actions | En uso y verificado |
 | Integración continua | GitHub Actions (`ubuntu-24.04` y `ubuntu-latest`) | En uso |
-| Staging | Propuesto: Render + perfil EAS `preview` (`https://api-staging.encorely.example`, marcador) | Preparado, no creado |
-| Producción (`Production`) | Propuesto: Render (servicio web + Postgres administrado) + tiendas | Preparado, no desplegado |
+| Staging | Propuesto: Microsoft Azure con la misma topología de producción y apagado automático fuera de uso + perfil EAS `preview` (`https://api-staging.encorely.example`, marcador) | Preparado, no creado |
+| Producción (`Production`) | Propuesto: Microsoft Azure (Application Gateway, servidor de aplicaciones y servidor de base de datos, 3.2.3) + tiendas | Preparado, no desplegado |
 
 ### 3.2 Requisitos de hardware
 
@@ -187,13 +188,29 @@ Flujo principal de la persona usuaria:
 
 #### 3.2.3 Servidores de producción
 
-Propuesta, no desplegada.
+Propuesta, no desplegada. Los tamaños son una propuesta del equipo para el piloto y se ajustan con el uso real. Todo va en una sola región de Azure (East US 2 o Brazil South).
 
-| Nodo | Servicio | Plan |
-|---|---|---|
-| API | Render Web Service, runtime Docker, nombre `encorely-api` | `starter` |
-| Base de datos | Render PostgreSQL 16, nombre `encorely-db` | `basic-256mb` |
-| Builds de la app | EAS Build (Expo) | Según cuenta de Expo |
+| Servidor | Recurso de Azure | Tamaño | vCPU | RAM | Disco del SO | Disco de datos |
+|---|---|---|---|---|---|---|
+| 1. Aplicaciones | VM `vm-encorely-api` | Standard_B2s | 2 | 4 GB | 30 GB SSD Premium | No aplica |
+| 2. Base de datos | VM `vm-encorely-db` | Standard_B2s | 2 | 4 GB | 30 GB SSD Premium | 32 GB SSD Premium, montado en `/var/lib/postgresql` |
+| Balanceador | Application Gateway `agw-encorely` | Standard_v2 | Gestionado | Gestionado | Gestionado | Gestionado |
+| Builds de la app | EAS Build (Expo) | Según cuenta de Expo | No aplica | No aplica | No aplica | No aplica |
+
+El disco de datos va aparte del disco del sistema operativo para ampliarlo, respaldarlo y restaurarlo sin tocar el sistema.
+
+Opciones al crear las dos VM en el portal de Azure:
+
+| Opción | Valor |
+|---|---|
+| Imagen | Ubuntu Server 24.04 LTS de Canonical, x64, Generación 2 |
+| Autenticación | Llave pública SSH, sin contraseña |
+| IP pública | Ninguna: solo IP privada en su subred (3.4.1) |
+| Identidad administrada | Activada en el servidor 1, con lectura sobre Container Registry y Key Vault |
+| Respaldo | Azure Backup diario de la VM; obligatorio en el servidor 2 |
+| Apagado automático | Solo en Staging |
+
+Alternativa para el servidor 2: Azure Database for PostgreSQL Flexible Server, nivel Burstable B1ms (1 vCPU, 2 GB RAM, 32 GB). Azure administra el sistema operativo, los parches y los respaldos, y agrega recuperación a un punto en el tiempo (9.5). Depende de que la cátedra acepte un servicio gestionado en lugar de un servidor.
 
 ### 3.3 Requisitos de software
 
@@ -221,6 +238,24 @@ Propuesta, no desplegada.
 | Maestro | Reciente | Pruebas E2E (`.maestro/`) | `maestro --version` |
 | Back local | `encorly_back` en la carpeta hermana `../encorly_back` | `pnpm gen:api` lee el contrato de ahí | `ls ../encorly_back/contracts` |
 
+#### 3.3.3 Software de los servidores de producción
+
+| Servidor | Software | Versión | Para qué |
+|---|---|---|---|
+| 1. Aplicaciones | Ubuntu Server | 24.04 LTS | Sistema operativo |
+| 1. Aplicaciones | Docker Engine con `docker compose` v2 | Última estable, del repositorio oficial de Docker | Corre el contenedor de la API |
+| 1. Aplicaciones | Imagen `encorely-api` | La del release, desde Azure Container Registry | API ASP.NET Core 10 construida con el `Dockerfile` |
+| 1. Aplicaciones | Azure CLI | Última estable | Login al Container Registry y lectura de Key Vault con la identidad administrada |
+| 2. Base de datos | Ubuntu Server | 24.04 LTS | Sistema operativo |
+| 2. Base de datos | PostgreSQL | 16 (`postgresql-16` de Ubuntu 24.04) | Base `encorely`, 25 tablas, sin extensiones |
+| 2. Base de datos | `pg_dump` y `pg_restore` | 16 | Respaldo y restauración (9.5) |
+
+En el servidor 1 no se instala el SDK ni el runtime de .NET: vienen dentro de la imagen.
+
+Servicios de Azure: Application Gateway (balanceador, TLS y WebSockets), Container Registry (imágenes de la API por versión), Key Vault `kv-encorely` (secretos y certificado TLS) y Azure Monitor (métricas y alertas de las VM).
+
+Se usa Ubuntu y no Windows Server porque .NET 10 es multiplataforma, la API se distribuye como contenedor Linux, la CI ya compila y prueba en `ubuntu-24.04`, y una VM Windows paga licencia y gasta más RAM en el sistema.
+
 ### 3.4 Requisitos de red
 
 | Origen | Destino | Protocolo y puerto | Uso | Ambiente |
@@ -231,7 +266,7 @@ Propuesta, no desplegada.
 | Teléfono físico | PC | `<IP-del-PC>:5000` en la misma red Wi-Fi | La API escucha en `0.0.0.0:5000` | Local |
 | App (dev build) | Metro | HTTP 8081 | Bundle de JavaScript en desarrollo | Local |
 | API | PostgreSQL | TCP 5432 (TLS en producción) | Npgsql | Todos |
-| Proxy de Render | Contenedor de la API | HTTP 8080 | `ASPNETCORE_HTTP_PORTS=8080` | Producción |
+| Application Gateway | Servidor 1, contenedor de la API | HTTP 5000 en la VM, publicado hacia el 8080 del contenedor (`ASPNETCORE_HTTP_PORTS=8080`) | Tráfico de la API y sonda `/health/ready` | Producción |
 | API | `exp.host` | HTTPS 443 | Envío de push y lectura de receipts | Con `PUSH_ENABLED=true` |
 | API | `accounts.spotify.com` | HTTPS 443 | Canje del code PKCE | Con `SPOTIFY_CLIENT_ID` |
 | API | `itunes.apple.com` | HTTPS 443 | Búsqueda de canciones desde el panel | Solo administración |
@@ -240,6 +275,40 @@ Propuesta, no desplegada.
 | FCM / APNs | Teléfono | Canal propio del sistema operativo | Entrega de notificaciones | Con push |
 
 Puertos que deben quedar libres en el PC de desarrollo: 5000 (API), 5432 (Postgres) y 8081 (Metro). Si están ocupados se usan los procedimientos de puertos alternos de 5.1.
+
+#### 3.4.1 Red de producción en Azure
+
+Una red virtual `vnet-encorely` (10.0.0.0/16) con tres subredes. Solo el Application Gateway tiene IP pública; las VM quedan con IP privada.
+
+| Subred | Rango | Qué contiene | Grupo de seguridad (NSG) |
+|---|---|---|---|
+| `snet-gateway` | 10.0.0.0/24 | Application Gateway | `nsg-gateway` |
+| `snet-app` | 10.0.1.0/24 | Servidor 1, aplicaciones | `nsg-app` |
+| `snet-data` | 10.0.2.0/24 | Servidor 2, base de datos (IP de ejemplo 10.0.2.4) | `nsg-data` |
+
+| Origen | Destino | Puerto | Protocolo | Para qué |
+|---|---|---|---|---|
+| Internet (app móvil) | Application Gateway | 443 | HTTPS y WSS | API `/api/v1` y chat `/hubs/chat` |
+| Application Gateway | Servidor 1 | 5000 | HTTP | Tráfico de la API y sonda `/health/ready` |
+| Servidor 1 | Servidor 2 | 5432 | TCP con TLS | API hacia PostgreSQL |
+| IP autorizada del equipo | Servidores 1 y 2 | 22 | SSH | Administración |
+| Servidor 1 | Internet | 443 | HTTPS | Expo Push, iTunes Search, Spotify y Container Registry |
+
+Todo lo que no está en la tabla queda denegado. El 5432 nunca se abre a internet.
+
+Dominio y certificado: el dominio de la API (por definir, por ejemplo `api.encorely.co`) apunta a la IP pública del Application Gateway, que termina TLS con un certificado guardado en Key Vault. El Application Gateway v2 soporta WebSockets sin configuración adicional; el tiempo de espera del backend debe quedar por encima del intervalo de ping de SignalR (15 s, el valor por defecto que usa la API).
+
+Ancho de banda mínimo propuesto para el piloto (estimación del equipo, no medición):
+
+| Tramo | Mínimo | Por qué |
+|---|---|---|
+| Teléfono de la persona | 4G o wifi | Muestras de audio de iTunes y chat en tiempo real |
+| Internet ↔ Application Gateway | 10 Mbps sostenidos | Tráfico de la API y del chat |
+| Application Gateway ↔ servidor 1 | 100 Mbps | Red interna de Azure, misma región |
+| Servidor 1 ↔ servidor 2 | 100 Mbps | Consultas SQL dentro de la misma red virtual |
+| Servidor 1 → internet | 10 Mbps | Push de Expo y consultas a iTunes y Spotify |
+
+Las portadas y las muestras de 30 s salen del CDN de Apple directo al teléfono, sin pasar por Azure, y así no suman al costo de salida de datos. Azure no publica un ancho de banda garantizado para la serie B; se valida con `iperf3 -s` en el servidor 2 e `iperf3 -c 10.0.2.4 -t 30` en el servidor 1, y en producción con las métricas Network In y Network Out de Azure Monitor.
 
 ## 4. Arquitectura y diagramas de componentes
 
@@ -267,9 +336,9 @@ Tecnología: EF Core 10 + Npgsql, Dapper (radar), `expo-sqlite`, `expo-secure-st
 
 #### 4.1.4 Infraestructura
 
-Componentes en Encorely: balanceador TLS de Render (termina HTTPS y WSS del dominio público y reenvía al contenedor por la red privada), contenedor Docker de la API, Postgres administrado, builds de EAS, GitHub Actions; en local, Docker Compose.
+Componentes en Encorely: Application Gateway de Azure (termina HTTPS y WSS del dominio público y reenvía a la API por la red privada), servidor de aplicaciones con el contenedor Docker de la API, servidor de base de datos con PostgreSQL 16, Container Registry, Key Vault, builds de EAS y GitHub Actions; en local, Docker Compose.
 
-Tecnología: Docker, Render (propuesto), EAS, GitHub Actions.
+Tecnología: Docker, Microsoft Azure (propuesto: VM Ubuntu Server 24.04 LTS, Application Gateway, Container Registry, Key Vault y Monitor), EAS, GitHub Actions.
 
 Detalle de nodos y servicios en 3.2.3 y en los diagramas de despliegue de 5.8.
 
@@ -283,7 +352,7 @@ Detalle en el capítulo 7.
 
 #### 4.1.6 Seguridad
 
-Componentes en Encorely: autenticación con JWT y refresh rotativo, autorización por pertenencia, límites de frecuencia, BCrypt, cifrado de extremo a extremo del chat, cabeceras de seguridad y validación de configuración al arrancar. Segmentación: solo el balanceador queda expuesto a internet; el contenedor y la base hablan por la red privada del proveedor y la base exige TLS. Auditoría: las acciones de moderación quedan registradas con el admin que las hizo (`reports.resolved_by_user_id`, `matches.closed_by_user_id` y el log del cambio de estado de una cuenta); no hay una tabla de auditoría para todas las acciones de administración.
+Componentes en Encorely: autenticación con JWT y refresh rotativo, autorización por pertenencia, límites de frecuencia, BCrypt, cifrado de extremo a extremo del chat, cabeceras de seguridad y validación de configuración al arrancar. Segmentación: solo el Application Gateway queda expuesto a internet; la API y la base están en subredes privadas de Azure, cada una habla solo con la siguiente y la base exige TLS. Auditoría: las acciones de moderación quedan registradas con el admin que las hizo (`reports.resolved_by_user_id`, `matches.closed_by_user_id` y el log del cambio de estado de una cuenta); no hay una tabla de auditoría para todas las acciones de administración.
 
 Tecnología: JwtBearer, BCrypt.Net-Next, `@noble/*`.
 
@@ -291,7 +360,7 @@ Detalle en el capítulo 8 (segmentación en 8.5 y auditoría en 8.6).
 
 #### 4.1.7 Operación
 
-Componentes en Encorely: health checks `/health/live` y `/health/ready`, logs JSON con `traceId`, limpieza horaria, CI. Respaldo y recuperación: volcado manual en local y, para producción, respaldo continuo del Postgres administrado con PITR más un volcado diario (9.5). Alta disponibilidad: no la hay. La demo corre una sola instancia y la propuesta de producción también es de una instancia de la API y una base en una región; la caída de cualquiera de las dos deja el servicio fuera. La alta disponibilidad queda como objetivo (9.2).
+Componentes en Encorely: health checks `/health/live` y `/health/ready`, logs JSON con `traceId`, limpieza horaria, CI. Respaldo y recuperación: volcado manual en local y, para producción, Azure Backup diario del servidor de base de datos más un volcado lógico diario (9.5). Alta disponibilidad: no la hay. La demo corre una sola instancia y la propuesta de producción también es de una instancia de la API y una base en una región; la caída de cualquiera de las dos deja el servicio fuera. La alta disponibilidad queda como objetivo (9.2).
 
 Tecnología: ASP.NET Health Checks, `AddJsonConsole`, GitHub Actions, `pg_dump`.
 
@@ -313,7 +382,7 @@ flowchart TB
   PostgreSQL 16 con 25 tablas
   SQLCipher y SecureStore en el teléfono`")]
   I["`CAPA DE INFRAESTRUCTURA
-  Balanceador TLS y contenedor Docker en Render · Postgres administrado
+  Application Gateway y 2 VM Ubuntu en Azure · Docker · PostgreSQL 16
   EAS Build y tiendas · GitHub Actions`"]
   INT["`INTEGRACIONES
   Expo Push hacia FCM y APNs
@@ -550,6 +619,29 @@ Cómo se carga: en `Development`, `DotEnv` lee el `.env` más cercano sin pisar 
 
 Valores fijos en `appsettings.json`: versión de consentimiento `Legal:ConsentVersion = 2026-10-14` y su fecha. Cambiarlos obliga a todas las personas a aceptar de nuevo (`POST /me/consents`).
 
+Valores en producción (Azure). Los secretos se guardan en Key Vault `kv-encorely` y nunca en archivos versionados (8.7):
+
+| Variable | Valor en Azure | Secreto |
+|---|---|---|
+| `ASPNETCORE_ENVIRONMENT` | `Production` | No |
+| `DB_HOST` | IP privada del servidor 2 (por ejemplo `10.0.2.4`) | No |
+| `DB_PORT` | `5432` | No |
+| `DB_NAME` | `encorely` | No |
+| `DB_USER` | `encorely_app` (usuario propio de la app, no `postgres`) | No |
+| `DB_PASSWORD` | Contraseña de `encorely_app` | Sí |
+| `DB_SSL_MODE` | `Require` | No |
+| `DB_MIGRATE_ON_STARTUP` | `true` mientras haya una sola réplica | No |
+| `SEED_CATALOG` | `true` (siembra géneros, canciones y eventos si faltan) | No |
+| `JWT_SIGNING_KEY` | Llave HS256 de 32 caracteres o más | Sí |
+| `BANNED_EMAIL_KEY` | Llave HMAC del veto de correos, distinta de la del JWT | Sí |
+| `FORWARDED_TRUSTED_NETWORKS` | `10.0.0.0/24`, la subred del Application Gateway | No |
+| `PUBLIC_BASE_URL` | `https://<dominio-de-la-API>` | No |
+| `PRIVACY_CONTACT_EMAIL` | Correo de datos personales del equipo | No |
+| `PUSH_ENABLED`, `EXPO_PUSH_ACCESS_TOKEN` | `true` y el token de Expo, si se usa | Solo el token |
+| `SPOTIFY_CLIENT_ID` | Client ID público de la app de Spotify | No |
+
+En producción no se definen `DEMO_USER_PASSWORD` ni `SEED_REVIEWER_ONLY`, salvo durante la revisión de tiendas (actividad 7 de 5.5.3).
+
 #### 5.3.2 Variables de entorno de la app
 
 | Variable | Obligatoria | Dónde se lee | Qué hace | Si falta |
@@ -578,7 +670,7 @@ Las variables `EXPO_PUBLIC_*` quedan dentro del bundle: nunca llevan secretos.
 
 #### 5.5.1 Estado actual del despliegue
 
-El sistema no está publicado (ver 2.2). Están listos el `Dockerfile`, el Blueprint `render.yaml`, los perfiles de `eas.json` y el checklist de tiendas; este plan describe cómo pasar a producción cuando se decida.
+El sistema no está publicado (ver 2.2). Están listos el `Dockerfile` (imagen sin secretos, usuario no root, puerto 8080), los perfiles de `eas.json` y el checklist de tiendas. La producción propuesta es Microsoft Azure (3.2.3 y 3.4.1); `render.yaml` sigue en el repositorio como alternativa y no forma parte de este plan. Este plan describe cómo pasar a producción cuando se decida.
 
 #### 5.5.2 Cronograma, responsables y ventana
 
@@ -588,7 +680,7 @@ El cronograma es relativo al día de salida (D). Cada actividad tiene una person
 |---|---|---|---|
 | D-28 a D-21 | Planificación: fecha de salida, ventana, criterios de aceptación, plan de rollback revisado | Camilo Rincón (Product Owner) | Plan de despliegue aprobado |
 | D-21 a D-7 | Prueba cerrada de Google Play (12 testers o más, 14 días seguidos, exigencia de cuentas personales nuevas) con build `preview` o `production` | Emmanuel Dávila (app) | Track de prueba cerrada activo |
-| D-21 a D-14 | Preparación del entorno: Render, dominio y TLS, Postgres con respaldo continuo, proyecto EAS, Firebase (FCM v1), APNs, Spotify Dashboard | Samuel Sierra (DevOps) | Entornos creados, secretos cargados |
+| D-21 a D-14 | Preparación del entorno: Azure (red, NSG, VM, Application Gateway, Container Registry y Key Vault), dominio y TLS, respaldo de la base, proyecto EAS, Firebase (FCM v1), APNs, Spotify Dashboard | Samuel Sierra (DevOps) | Entornos creados, secretos cargados |
 | D-14 a D-10 | Instalación y configuración en staging: API y app `preview` apuntando a `https://api-staging…` | Samuel Sierra (DevOps) | Staging funcionando |
 | D-10 | Migración de datos: aplicar las 11 migraciones sobre la base vacía y sembrar el catálogo | Samuel Sierra (administrador de base de datos) | Esquema y catálogo validados |
 | D-10 a D-3 | Pruebas de aceptación: suite completa, flujos Maestro sobre `preview`, smoke manual, revisión de seguridad | Juan Diego Calle (QA) | Informe de aceptación |
@@ -603,7 +695,7 @@ Ventana de despliegue propuesta: martes de 05:00 a 07:00 hora de Colombia, la fr
 | N.º | Actividad | Qué se hace en Encorely | Criterio de validación |
 |---|---|---|---|
 | 1 | Planificación | Fijar D, ventana, responsables de guardia y criterios de aceptación; revisar el plan de rollback de 5.6 | Plan revisado por todo el equipo |
-| 2 | Preparación del entorno | Crear el Blueprint de Render desde `render.yaml`; dominio con TLS; Postgres con respaldo continuo y sin acceso externo (`ipAllowList` vacío, ver 8.5); secretos (`JWT_SIGNING_KEY` y `BANNED_EMAIL_KEY` generados por Render, el resto con `sync: false`); EAS `init` y credenciales; FCM v1 y APNs; redirect de Spotify | Todas las variables obligatorias definidas (la API no arranca si falta alguna); `psql` desde fuera de Render no conecta a `encorely-db` |
+| 2 | Preparación del entorno | Crear en Azure la red `vnet-encorely` con sus subredes y NSG (3.4.1), las dos VM (3.2.3), Container Registry y Key Vault; instalar PostgreSQL en el servidor 2 (5.5.4, parte A); cargar los secretos en Key Vault; dominio y certificado en el Application Gateway; EAS `init` y credenciales; FCM v1 y APNs; redirect de Spotify | Todas las variables obligatorias definidas (la API no arranca si falta alguna); desde internet el puerto 5432 no responde |
 | 3 | Instalación y configuración | Desplegar la imagen; completar `FORWARDED_TRUSTED_NETWORKS`, `PUBLIC_BASE_URL` (https), `PRIVACY_CONTACT_EMAIL`, `EXPO_PUSH_ACCESS_TOKEN` y `SPOTIFY_CLIENT_ID` | `/health/live` y `/health/ready` en `Healthy` sobre el dominio público |
 | 4 | Migración de datos | No se migran datos del sistema anterior: eran ficticios y su esquema no tenía fuente de verdad. Se aplican las migraciones al arrancar (`DB_MIGRATE_ON_STARTUP=true`, una sola instancia) y se siembra el catálogo (`SEED_CATALOG=true`) | La última fila de `__EFMigrationsHistory` es `20261015155802_IndicesPurga`; `genres` tiene 15 filas y `songs` 120 |
 | 5 | Pruebas de aceptación | Smoke de la API, flujos Maestro 01 a 06 sobre un build apuntando a producción o staging, revisión de cabeceras y de páginas legales | Informe de aceptación firmado con cada caso en "pasa" |
@@ -613,42 +705,132 @@ Ventana de despliegue propuesta: martes de 05:00 a 07:00 hora de Colombia, la fr
 
 #### 5.5.4 Procedimiento de despliegue de la API
 
+Los servidores se levantan de atrás hacia adelante: red, base de datos, API y balanceador.
+
 **Prerrequisitos**
 
 - CI en verde sobre el commit a desplegar (jobs `build-test` y `docker`).
-- Cuenta de Render con acceso al repositorio y dominio propio con DNS administrable.
-- Valores de `FORWARDED_TRUSTED_NETWORKS` (rangos del proxy de Render, según su documentación), `PUBLIC_BASE_URL`, `PRIVACY_CONTACT_EMAIL` y, si aplica, `EXPO_PUSH_ACCESS_TOKEN` y `SPOTIFY_CLIENT_ID`.
-- Plan de Postgres con respaldo continuo confirmado (9.5).
+- Suscripción de Azure con permisos sobre el grupo de recursos de Encorely y acceso con dos factores (8.1).
+- Dominio propio con DNS administrable y su certificado TLS.
+- Valores de `PUBLIC_BASE_URL`, `PRIVACY_CONTACT_EMAIL` y, si aplica, `EXPO_PUSH_ACCESS_TOKEN` y `SPOTIFY_CLIENT_ID`.
+- Azure Backup configurado para el servidor 2 (9.5).
 
-**Pasos**
+**Parte A. Red y servidor de base de datos**
 
-1. Fusionar a `main` el commit aprobado y etiquetarlo (`api-v1.0.0`).
-2. En Render, crear el Blueprint desde `render.yaml`. Se crean `encorely-api` (Docker, `starter`) y `encorely-db` (Postgres 16).
-3. Completar las variables `sync: false`. No copiar secretos en chats ni documentos; se cargan directamente en el panel del proveedor.
-4. Lanzar el primer despliegue. La API migra la base al arrancar y siembra el catálogo.
-5. Asociar el dominio y esperar el certificado TLS.
-6. Crear el admin de producción: registrar la cuenta desde la app con una contraseña propia y promoverla con una sentencia revisada por dos personas del equipo, ejecutada una sola vez:
+1. Crear `vnet-encorely`, las subredes `snet-gateway`, `snet-app` y `snet-data`, y los NSG con las reglas de 3.4.1.
+2. Crear `vm-encorely-db` según 3.2.3. Formatear el disco de datos y montarlo en `/var/lib/postgresql` antes de instalar PostgreSQL.
+3. Instalar PostgreSQL 16 y limitar la red:
 
-   ```sql
-   UPDATE users SET role = 'Admin' WHERE email = '<correo-del-admin>';
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install -y postgresql-16
+   # /etc/postgresql/16/main/postgresql.conf
+   #   listen_addresses = '10.0.2.4'
+   # al final de /etc/postgresql/16/main/pg_hba.conf
+   #   hostssl encorely encorely_app 10.0.1.0/24 scram-sha-256
+   sudo systemctl restart postgresql
+   sudo -u postgres psql -c 'SHOW ssl;'    # on: Ubuntu lo activa con un certificado propio
    ```
 
-7. Ejecutar el smoke:
+4. Crear el usuario y la base de la app. La contraseña se genera, se guarda en Key Vault y se escribe cuando `psql` la pide, sin dejarla en el historial de la shell:
+
+   ```bash
+   sudo -u postgres psql -c "CREATE USER encorely_app;"
+   sudo -u postgres psql -c "\password encorely_app"
+   sudo -u postgres psql -c "CREATE DATABASE encorely OWNER encorely_app;"
+   ```
+
+   La base no usa extensiones y las tablas no se crean a mano: las crean las 11 migraciones al primer arranque de la API.
+
+**Parte B. Imagen, secretos y servidor de aplicaciones**
+
+5. Cargar en Key Vault los secretos `DB-PASSWORD`, `JWT-SIGNING-KEY` y `BANNED-EMAIL-KEY` (Key Vault no admite `_` en los nombres). Las dos llaves se generan con `openssl rand -base64 48`, una distinta para cada una.
+6. Fusionar a `main` el commit aprobado y etiquetarlo (`api-v1.0.0`). GitHub Actions construye la imagen con el `Dockerfile` y la sube a Container Registry con esa etiqueta.
+7. Crear `vm-encorely-api` según 3.2.3 e instalar Docker y Azure CLI:
+
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install -y ca-certificates curl
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+   sudo apt update
+   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   sudo usermod -aG docker "$USER"    # cerrar y abrir la sesión SSH para que aplique
+   curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+   ```
+
+8. Armar el archivo de variables desde Key Vault con la identidad administrada. Queda solo en la VM, legible por root:
+
+   ```bash
+   az login --identity
+   secreto() { az keyvault secret show --vault-name kv-encorely --name "$1" --query value -o tsv; }
+   sudo install -d -m 700 /etc/encorely
+   sudo install -m 600 /dev/null /etc/encorely/api.env
+   {
+     echo "ASPNETCORE_ENVIRONMENT=Production"
+     echo "DB_HOST=10.0.2.4"
+     echo "DB_PORT=5432"
+     echo "DB_NAME=encorely"
+     echo "DB_USER=encorely_app"
+     echo "DB_PASSWORD=$(secreto DB-PASSWORD)"
+     echo "DB_SSL_MODE=Require"
+     echo "DB_MIGRATE_ON_STARTUP=true"
+     echo "SEED_CATALOG=true"
+     echo "JWT_SIGNING_KEY=$(secreto JWT-SIGNING-KEY)"
+     echo "BANNED_EMAIL_KEY=$(secreto BANNED-EMAIL-KEY)"
+     echo "FORWARDED_TRUSTED_NETWORKS=10.0.0.0/24"
+     echo "PUBLIC_BASE_URL=https://<dominio-de-la-API>"
+     echo "PRIVACY_CONTACT_EMAIL=<correo>"
+   } | sudo tee /etc/encorely/api.env > /dev/null
+   ```
+
+9. Descargar la imagen y arrancar una sola réplica. El contenedor escucha en 8080 y la VM lo publica en el 5000 que espera el Application Gateway:
+
+   ```bash
+   az acr login --name <registro>
+   docker pull <registro>.azurecr.io/encorely-api:<version>
+   docker run -d --name encorely-api --restart unless-stopped \
+     --env-file /etc/encorely/api.env -p 5000:8080 \
+     <registro>.azurecr.io/encorely-api:<version>
+   curl -fsS http://localhost:5000/health/ready
+   ```
+
+   El primer arranque aplica las migraciones y siembra el catálogo. Va una sola réplica porque el bloqueo por intentos de login vive en memoria y el hub no tiene backplane; con más réplicas, las migraciones pasan a un paso previo (`efbundle`) y `DB_MIGRATE_ON_STARTUP=false`.
+
+**Parte C. Balanceador y verificación**
+
+10. Configurar `agw-encorely`: listener HTTPS 443 con el certificado de Key Vault, backend pool con la IP privada del servidor 1 en el puerto 5000 (HTTP), sonda de salud `GET /health/ready` y tiempo de espera del backend mayor que el ping del chat.
+11. Apuntar el dominio a la IP pública del Application Gateway.
+12. Crear el admin de producción: registrar la cuenta desde la app con una contraseña propia y promoverla desde el servidor 2 con una sentencia revisada por dos personas del equipo, ejecutada una sola vez:
+
+   ```bash
+   sudo -u postgres psql -d encorely -c "UPDATE users SET role = 'Admin' WHERE email = '<correo-del-admin>';"
+   ```
+
+13. Ejecutar el smoke desde fuera de Azure:
 
    ```bash
    curl -fsS https://<dominio>/health/live
    curl -fsS https://<dominio>/health/ready
    curl -sI https://<dominio>/api/v1/events | grep -i '^cache-control: no-store'
    curl -fsS https://<dominio>/api/v1/legal/current | jq .
+   curl -s -o /dev/null -w '%{http_code}\n' https://<dominio>/openapi/v1.json    # 404
+   nc -zv -w 5 <IP-pública-del-gateway> 5432                                      # debe fallar
    ```
 
 **Criterio de validación**
 
-- Los dos health checks responden `Healthy`.
+- Los dos health checks responden `Healthy` por el dominio público.
 - `/api/v1/events` sin token responde 401 con `Cache-Control: no-store`.
+- `/openapi/v1.json` responde 404: el contrato solo se publica en Development.
 - `/legal/current` devuelve la versión `2026-10-14` y URLs https bajo `PUBLIC_BASE_URL`.
+- El login desde la app responde `accessToken`, `refreshToken`, `expiresIn: 900` y `user`.
+- Un mensaje entre dos cuentas llega por `/hubs/chat` a través del Application Gateway.
+- El puerto 5432 no responde desde internet.
 - El admin entra a `https://<dominio>/admin` y ve la cola de reportes.
-- El log del servicio muestra líneas JSON con `traceId` y ninguna excepción de arranque.
+- `docker logs encorely-api` muestra líneas JSON con `traceId` y ninguna excepción de arranque.
 
 #### 5.5.5 Procedimiento de build y publicación de la app
 
@@ -691,9 +873,9 @@ El rollback acompaña toda la secuencia: cada paso de 5.5 tiene una forma de des
 
 | Qué falla | Cómo se revierte | Criterio para decidir | Validación | Responsable |
 |---|---|---|---|---|
-| Nueva versión de la API (error de código) | Render: "Rollback" al despliegue anterior desde el historial de deploys del servicio, o redeploy del tag anterior | Alerta de 5xx sostenida, health check en rojo o caso de aceptación fallido | `/health/ready` en `Healthy`, smoke de 5.5.4 en verde con la versión anterior | Samuel Sierra ejecuta; Camilo Rincón decide |
-| Variable de entorno mal definida | Restaurar el valor anterior en el panel del proveedor y reiniciar | La API no arranca (la validación lo detiene) o un caso falla | Arranque sin errores de configuración en el log | Samuel Sierra |
-| Migración de esquema | Regla preventiva: cada migración es compatible con la versión anterior de la API (agregar antes de quitar), así el rollback de la API no exige tocar el esquema. Si hay que deshacerla: `dotnet ef migrations script <Nueva> <Anterior>` genera el SQL de reversa, se revisa y se aplica en la ventana. Último recurso: restaurar con PITR al minuto anterior al despliegue (se pierden las escrituras posteriores) | Error de datos o de esquema que no se corrige con un hotfix | Última fila de `__EFMigrationsHistory` igual a la esperada; pruebas de humo en verde | Samuel Sierra (base) con Camilo Rincón (migración) |
+| Nueva versión de la API (error de código) | En el servidor 1, volver a arrancar el contenedor con la etiqueta anterior de Container Registry (las imágenes se guardan por versión) | Alerta de 5xx sostenida, health check en rojo o caso de aceptación fallido | `/health/ready` en `Healthy`, smoke de 5.5.4 en verde con la versión anterior | Samuel Sierra ejecuta; Camilo Rincón decide |
+| Variable de entorno mal definida | Restaurar el valor anterior en Key Vault, regenerar `/etc/encorely/api.env` (paso 8 de 5.5.4) y recrear el contenedor | La API no arranca (la validación lo detiene) o un caso falla | Arranque sin errores de configuración en el log | Samuel Sierra |
+| Migración de esquema | Regla preventiva: cada migración es compatible con la versión anterior de la API (agregar antes de quitar), así el rollback de la API no exige tocar el esquema. Si hay que deshacerla: `dotnet ef migrations script <Nueva> <Anterior>` genera el SQL de reversa, se revisa y se aplica en la ventana. Último recurso: restaurar el volcado tomado al iniciar la ventana de despliegue (9.5.2); se pierden las escrituras posteriores | Error de datos o de esquema que no se corrige con un hotfix | Última fila de `__EFMigrationsHistory` igual a la esperada; pruebas de humo en verde | Samuel Sierra (base) con Camilo Rincón (migración) |
 | Build de la app con error | Detener el lanzamiento escalonado en Play o pausar la publicación por fases en App Store; publicar un hotfix con número de build mayor. Una versión ya instalada no se puede retirar del teléfono | Fallos nuevos en la consola o reportes de usuarios | El hotfix llega al 100 % sin fallos nuevos | Emmanuel Dávila |
 | Cambio de contrato que rompe clientes viejos | Política: un cambio marcado **Rompe** en el CHANGELOG solo sale cuando la versión de la app que lo soporta ya está publicada; mientras tanto la API mantiene el comportamiento anterior | Clientes con errores 400 o 404 nuevos | Errores vuelven al nivel previo | Camilo Rincón |
 
@@ -702,15 +884,23 @@ El rollback acompaña toda la secuencia: cada paso de 5.5 tiene una forma de des
 Prerrequisitos
 
 - Decisión de rollback tomada por Camilo Rincón (escalamiento de incidentes) con la guardia, según la columna "Criterio para decidir", y registrada en el incidente. Ejecuta Samuel Sierra (DevOps).
-- Identificado el último despliegue sano (tag `api-v…` o deploy anterior en el historial de Render).
+- Identificada la última versión sana: etiqueta `api-v…` de la imagen en Container Registry.
 - Confirmado que la versión anterior es compatible con el esquema actual (regla de migraciones compatibles); si no lo es, seguir antes la fila "Migración de esquema".
 
 Pasos
 
 1. Anotar la hora de inicio y avisar al canal del equipo.
-2. En Render, abrir el servicio `encorely-api`, ir al historial de deploys y ejecutar "Rollback" sobre el último deploy sano (alternativa: redeploy manual del tag anterior).
-3. Si el problema venía de una variable, restaurar su valor anterior en el panel y reiniciar el servicio.
-4. Esperar a que el health check de Render marque el servicio como disponible.
+2. En el servidor 1, reemplazar el contenedor por la versión anterior:
+
+   ```bash
+   docker rm -f encorely-api
+   docker run -d --name encorely-api --restart unless-stopped \
+     --env-file /etc/encorely/api.env -p 5000:8080 \
+     <registro>.azurecr.io/encorely-api:<version-anterior>
+   ```
+
+3. Si el problema venía de una variable, restaurar su valor en Key Vault, regenerar `/etc/encorely/api.env` y repetir el paso 2 con la versión vigente.
+4. Esperar a que la sonda del Application Gateway marque el servidor 1 como sano (`/health/ready`).
 5. Ejecutar el smoke de 5.5.4 (paso 7).
 6. Registrar en el incidente la versión restaurada, la hora de fin y la causa.
 
@@ -718,9 +908,9 @@ Criterio de validación
 
 - `/health/live` y `/health/ready` responden `Healthy` sobre el dominio público.
 - El smoke de 5.5.4 pasa completo y la tasa de 5xx vuelve a su nivel previo durante 30 minutos.
-- El historial de Render muestra como activo el deploy elegido.
+- `docker ps` en el servidor 1 muestra la etiqueta elegida en el contenedor `encorely-api`.
 
-Antes de cada despliegue se confirma que existe un punto de restauración de la base (respaldo continuo activo) y se anota la hora exacta de inicio, que es el punto de PITR si hiciera falta.
+Antes de cada despliegue se toma un volcado de la base (9.5.2), se confirma que el último respaldo de Azure Backup del servidor 2 terminó bien y se anota la hora exacta de inicio.
 
 ### 5.7 Productos del despliegue
 
@@ -728,7 +918,7 @@ Antes de cada despliegue se confirma que existe un punto de restauración de la 
 |---|---|---|
 | Plan de despliegue | Este manual, 5.5 | Elaborado |
 | Manual de instalación | Este manual, 5.1 a 5.3, y los README de cada repositorio | Elaborado y verificado en local |
-| Software en producción | Render y tiendas | No aplica en esta entrega; preparado |
+| Software en producción | Microsoft Azure y tiendas | No aplica en esta entrega; preparado |
 | Documentación de usuario | `encorely-front/docs/MANUAL-USUARIO.md` | Elaborada |
 | Informe de aceptación | Plantilla en el Anexo B (10.8); se llena en la actividad 5 de 5.5.3 | Plantilla lista |
 | Plan de rollback | Este manual, 5.6 | Elaborado |
@@ -749,20 +939,24 @@ left to right direction
 node "Cliente" <<device>> as CLI {
   artifact "com.encorely.app" as A1
 }
-node "Balanceador\nde carga" <<execution environment>> as LB
-node "Contenedor API" <<execution environment>> as API {
-  artifact "encorely-api" as A2
+node "agw-encorely\nApplication Gateway" <<execution environment>> as LB
+node "vm-encorely-api\nUbuntu Server 24.04" <<device>> as VM1 {
+  node "Docker" <<execution environment>> as DK {
+    artifact "encorely-api" as A2
+  }
 }
-node "Base de datos\ngestionada" <<execution environment>> as DB {
-  artifact "esquema\nencorely" as A3
+node "vm-encorely-db\nUbuntu Server 24.04" <<device>> as VM2 {
+  node "PostgreSQL 16" <<execution environment>> as PG {
+    artifact "esquema\nencorely" as A3
+  }
 }
-CLI --> LB : HTTPS
-LB --> API : TCP
-API --> DB : TCP 5432
+CLI --> LB : HTTPS / WSS 443
+LB --> VM1 : HTTP 5000
+VM1 --> VM2 : TCP 5432 (TLS)
 @enduml
 ```
 
-Cliente: teléfono Android o iOS. Balanceador y contenedor: Render. Base de datos gestionada: PostgreSQL 16. Cada nodo aloja exactamente el artefacto que le corresponde. Hay una sola réplica del contenedor; el balanceador no reparte carga entre varias.
+Cliente: teléfono Android o iOS. Balanceador: Application Gateway de Azure en `snet-gateway`, la única pieza con IP pública. Servidor 1: VM `vm-encorely-api` en `snet-app`, con Docker y el contenedor de la API (8080 dentro del contenedor, 5000 en la VM). Servidor 2: VM `vm-encorely-db` en `snet-data`, con PostgreSQL 16 y el esquema `encorely`. Cada nodo aloja exactamente el artefacto que le corresponde. Hay una sola réplica del contenedor; el balanceador no reparte carga entre varias.
 
 #### 5.8.2 Despliegue actual de la demo local
 
@@ -795,8 +989,8 @@ Cliente: emulador o teléfono Android. Servidor de aplicaciones: .NET 10 en el P
 
 | Aspecto | Valor |
 |---|---|
-| Motor | PostgreSQL 16 (local: imagen `postgres:16-alpine`; producción propuesta: Render PostgreSQL 16) |
-| Base de datos | `encorely` (nombre por defecto de compose; en producción el que entregue el proveedor) |
+| Motor | PostgreSQL 16 (local: imagen `postgres:16-alpine`; producción propuesta: PostgreSQL 16 en la VM `vm-encorely-db` de Azure, o Azure Database for PostgreSQL Flexible Server como alternativa) |
+| Base de datos | `encorely` (en local, nombre por defecto de compose; en producción, creada con dueño `encorely_app`, 5.5.4) |
 | Acceso | EF Core 10 con Npgsql 10.0.3; Dapper solo para la consulta del radar (`Features/Events/RadarService.cs`) |
 | Cadena de conexión | Se arma con `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y `DB_SSL_MODE`; nunca se escribe en archivos versionados |
 | Nombres | `snake_case` generado por `UseSnakeCaseNamingConvention`; restricciones `pk_`, `fk_`, `ix_`, `ck_` |
@@ -1514,7 +1708,7 @@ El hub `/hubs/chat` (`Infrastructure/Realtime/ChatHub.cs`) exige JWT, se cierra 
 | Expo Push → FCM y APNs | Avisar de mensajes y matches nuevos con la app cerrada (`PUSH_ENABLED=true`) | API → `exp.host` por HTTPS; Expo → FCM (Android) y APNs (iOS) | `EXPO_PUSH_ACCESS_TOKEN` (opcional); credenciales FCM v1 y APNs en EAS | Token push y aviso sin contenido (`"Tienes mensajes nuevos"`, `"Tienes un match nuevo"`) | Sin avisos fuera de la app; el hub avisa con la app abierta y la app consulta al volver a primer plano |
 | iTunes Search | Portadas y muestras de 30 s del catálogo | Panel admin (`GET /admin/itunes/search`) y `scripts/curate_songs.py` → Apple por HTTPS; la app reproduce las muestras desde el CDN de Apple | Ninguna | Términos de búsqueda | Sin altas nuevas en el catálogo; el catálogo existente sigue funcionando |
 | Spotify Accounts y Web API | Entrar con Spotify, vincular la cuenta e importar los artistas más escuchados | App y API → Spotify por HTTPS (OAuth PKCE) | `SPOTIFY_CLIENT_ID` (público) | Code PKCE (la API lo canjea); el token del usuario solo vive en el teléfono | Sin login ni importación con Spotify; correo y contraseña siguen funcionando. Sin `SPOTIFY_CLIENT_ID` la API responde 502 `spotify_unavailable` |
-| Render (propuesto) | Hosting de la API y de la base | HTTPS; TCP 5432 con TLS | Cuenta del equipo | Todo el estado del servidor | Caída total del servicio (capítulos 9 y 10) |
+| Microsoft Azure (propuesto) | Hosting de la API y de la base | HTTPS 443 hacia el Application Gateway; TCP 5432 con TLS dentro de la red virtual | Suscripción del equipo e identidad administrada del servidor 1 | Todo el estado del servidor | Caída total del servicio (capítulos 9 y 10) |
 | EAS Build | Compilación y firma de la app | HTTPS | Cuenta de Expo y credenciales de firma | Código de la app | No se pueden publicar versiones nuevas; la app instalada sigue funcionando |
 
 Spotify se usa con PKCE S256, sin client secret en ningún lado y con una sola redirect, `encorely://spotify-callback`. En modo desarrollo Spotify solo admite las cuentas registradas a mano como usuarios de prueba (máximo 5); a las demás responde 403 y la app lo explica con un mensaje propio.
@@ -1546,7 +1740,7 @@ Matriz de permisos por módulo:
 | Eventos y canciones (gestión) | No | No | Sí |
 | Suspender y reactivar cuentas | No | No | Sí, salvo otras cuentas admin |
 
-Perfiles técnicos de operación (propuestos, con mínimo privilegio): acceso al panel de Render y a la base de producción solo para quien esté de guardia; acceso de lectura a la base para consultas de diagnóstico; cuentas de Expo, Apple y Google con dos factores.
+Perfiles técnicos de operación (propuestos, con mínimo privilegio): acceso al portal de Azure con roles mínimos y dos factores (lectura para diagnóstico; colaborador sobre el grupo de recursos de Encorely solo para quien esté de guardia); SSH a los servidores solo con llave y desde IP autorizadas; acceso de lectura a la base para consultas de diagnóstico; cuentas de Expo, Apple y Google con dos factores.
 
 ### 8.2 Autenticación y sesiones
 
@@ -1581,7 +1775,7 @@ Librerías: `@noble/curves`, `@noble/ciphers` y `@noble/hashes`. En el teléfono
 
 ### 8.5 Segmentación
 
-- Red: en producción solo el balanceador TLS de Render recibe tráfico de internet (HTTPS y WSS en el puerto 443). El contenedor escucha HTTP 8080 dentro de la red privada de Render y llega a la base por su nombre interno (`DB_HOST` sale de `fromDatabase` en `render.yaml`) con TLS obligatorio (`DB_SSL_MODE=Require`). `render.yaml` no define `ipAllowList` para `encorely-db`, y sin ese campo el proveedor acepta conexiones externas con credenciales válidas; por eso la actividad 2 de 5.5.3 lo deja vacío y solo se abre de forma temporal a la IP de quien hace un volcado manual (9.5.2).
+- Red: en producción solo el Application Gateway tiene IP pública y recibe tráfico de internet (HTTPS y WSS en el 443). El servidor 1 está en `snet-app` y solo acepta el 5000 desde `snet-gateway`; el servidor 2 está en `snet-data` y solo acepta el 5432 desde `snet-app`, con TLS obligatorio (`DB_SSL_MODE=Require` y `hostssl` en `pg_hba.conf`). SSH solo desde IP autorizadas. Los NSG niegan todo lo demás (3.4.1).
 - Ambientes: `Development`, `Testing` y `Production` no comparten base ni secretos. Fuera de `Development` el `.env` se ignora, `/openapi/v1.json` y `/swagger` no existen y la API no arranca con TLS débil hacia la base.
 - Datos: cada persona solo ve sus recursos (8.3) y la administración es un rol aparte. En el teléfono, la base SQLCipher y las llaves llevan el id de la persona en el nombre (`encorely_chat_<userId>.db`, `e2ee_v1_<userId>_…`), de modo que dos cuentas en el mismo teléfono no comparten historial ni llaves.
 
@@ -1601,7 +1795,7 @@ Lo que no queda: quién creó, editó o borró un evento o una canción desde el
 
 ### 8.7 Gestión de secretos
 
-Los secretos (`DB_PASSWORD`, `JWT_SIGNING_KEY`, `BANNED_EMAIL_KEY`, `DEMO_USER_PASSWORD`, `EXPO_PUSH_ACCESS_TOKEN`) viven en el `.env` local, ignorado por git, y en producción en el panel del proveedor; las credenciales de firma, FCM v1 y APNs viven en EAS. Render genera `JWT_SIGNING_KEY` y `BANNED_EMAIL_KEY` (`generateValue`) y el proveedor de la base entrega `DB_PASSWORD`. Rotar `BANNED_EMAIL_KEY` anula los vetos de correos guardados, así que solo se rota ante un compromiso confirmado; la rotación de `JWT_SIGNING_KEY` está en el runbook RB-07 (10.2).
+Los secretos (`DB_PASSWORD`, `JWT_SIGNING_KEY`, `BANNED_EMAIL_KEY`, `DEMO_USER_PASSWORD`, `EXPO_PUSH_ACCESS_TOKEN`) viven en el `.env` local, ignorado por git, y en producción en Azure Key Vault `kv-encorely`, con nombres con guiones (`DB-PASSWORD`, `JWT-SIGNING-KEY`, `BANNED-EMAIL-KEY`). El servidor 1 los lee con su identidad administrada y los deja en `/etc/encorely/api.env`, legible solo por root. Las credenciales de firma, FCM v1 y APNs viven en EAS. Rotar `BANNED_EMAIL_KEY` anula los vetos de correos guardados, así que solo se rota ante un compromiso confirmado; la rotación de `JWT_SIGNING_KEY` está en el runbook RB-07 (10.2).
 
 ### 8.8 Datos personales y Ley 1581
 
@@ -1618,11 +1812,11 @@ Encorely no está en producción. Este capítulo separa dos cosas:
 
 | Capacidad operativa | Existe hoy | Propuesto para producción |
 |---|---|---|
-| Health checks | Sí: `/health/live` (proceso) y `/health/ready` (proceso y base) | Render reinicia el contenedor con `/health/live`; monitor externo sobre `/health/ready` cada minuto |
+| Health checks | Sí: `/health/live` (proceso) y `/health/ready` (proceso y base) | La sonda del Application Gateway consulta `/health/ready` y saca al servidor del balanceo si falla; Docker reinicia el contenedor (`--restart unless-stopped`); monitor externo sobre `/health/ready` cada minuto |
 | Logs estructurados y log de acceso | Sí: JSON por línea con timestamp UTC y `traceId`; el log de acceso registra método, ruta sin query, status y duración | Envío a un almacén de logs con búsqueda y retención; fuente de las métricas de latencia y de 5xx |
-| Métricas de CPU, memoria y conexiones | No en el código | Panel de métricas del proveedor; exportador OpenTelemetry como mejora |
+| Métricas de CPU, memoria y conexiones | No en el código | Azure Monitor sobre las dos VM; exportador OpenTelemetry como mejora |
 | Alertas automáticas | No | 9.3 |
-| Respaldo de la base | Solo manual en local | Respaldo continuo del proveedor y volcado diario |
+| Respaldo de la base | Solo manual en local | Azure Backup diario del servidor 2 y volcado lógico diario |
 | Fallos de la app en los teléfonos | No hay SDK de reporte de fallos | Android vitals de Play Console y reportes de fallos de App Store Connect |
 
 ### 9.2 Disponibilidad y rendimiento
@@ -1641,7 +1835,7 @@ Objetivos propuestos para producción. No son mediciones.
 | Timeout del cliente | 15 s (valor real en `client.ts`) | Pasado ese tiempo la app muestra error y permite reintentar |
 | Capacidad inicial | 1 instancia `starter` y Postgres `basic-256mb` | Suficiente para piloto; revisar con los umbrales siguientes |
 
-Alta disponibilidad: hoy no existe. La demo corre en un solo PC y la propuesta de producción es de una instancia de la API y una base en una región, sin réplica; si cae cualquiera de las dos, el servicio queda fuera hasta que el proveedor la reinicie o se restaure (9.5). Por eso el SLA propuesto es 99,5 % y no 99,9 %. El objetivo para cuando el uso lo justifique es tener dos instancias de la API detrás del balanceador de Render y una base con réplica en espera; antes hay que cumplir las condiciones de la última fila de la tabla siguiente.
+Alta disponibilidad: hoy no existe. La demo corre en un solo PC y la propuesta de producción es de una instancia de la API y una base en una región, sin réplica; si cae cualquiera de las dos, el servicio queda fuera hasta que el proveedor la reinicie o se restaure (9.5). Por eso el SLA propuesto es 99,5 % y no 99,9 %. El objetivo para cuando el uso lo justifique es tener dos instancias de la API detrás del Application Gateway y una base con réplica en espera (o Flexible Server con alta disponibilidad); antes hay que cumplir las condiciones de la última fila de la tabla siguiente.
 
 Umbrales de degradación y plan de escalamiento:
 
@@ -1658,11 +1852,11 @@ Umbrales de degradación y plan de escalamiento:
 
 | Componente monitoreado | Qué se mide | Herramienta propuesta | Alerta y umbral propuestos |
 |---|---|---|---|
-| API (vida) | `/health/live` | Health check de Render | Render reinicia el contenedor; aviso al canal del equipo si hay más de 3 reinicios en 1 hora |
+| API (vida) | `/health/live` en el servidor 1 y estado de la sonda del Application Gateway | Docker (`--restart unless-stopped`) y Azure Monitor | Docker reinicia el contenedor; aviso al canal del equipo si hay más de 3 reinicios en 1 hora o si la sonda marca el backend como no sano |
 | API y base (preparación) | `/health/ready` desde fuera | Monitor de disponibilidad HTTP externo (por ejemplo UptimeRobot o Better Stack) cada 1 min | 2 fallos seguidos → alerta de severidad 1 |
-| Errores de la API | Respuestas 5xx y excepciones en el log JSON | Log streams de Render hacia un almacén de logs (por ejemplo Better Stack o Grafana Loki) | Más de 1 % de 5xx en 5 min → severidad 2 |
+| Errores de la API | Respuestas 5xx y excepciones en el log JSON | Log del contenedor enviado con el agente de Azure Monitor a Log Analytics | Más de 1 % de 5xx en 5 min → severidad 2 |
 | Latencia | Duración del log de acceso, p95 por ruta | Mismo almacén de logs, consulta agregada | p95 de lecturas mayor a 1 s por 15 min → severidad 3 |
-| Base de datos | CPU, memoria, almacenamiento, conexiones | Métricas del Postgres administrado | Almacenamiento mayor a 80 % → severidad 3 |
+| Base de datos | CPU, memoria, almacenamiento, conexiones | Azure Monitor sobre `vm-encorely-db` y `pg_stat_activity` | Almacenamiento mayor a 80 % → severidad 3 |
 | Push | Errores de envío y receipts `DeviceNotRegistered` en el log | Almacén de logs | Más de 20 % de errores de envío en 1 hora → severidad 3 |
 | Seguridad | 429 por IP, fallos de login, `invalid_refresh_token` por reuso | Almacén de logs | Pico de 429 o de reusos de refresh → severidad 2 y revisión |
 | App | Fallos y ANR | Android vitals (Play Console) y App Store Connect | Tasa de fallos mayor a la del release anterior → severidad 2 |
@@ -1677,8 +1871,8 @@ Tablero propuesto ("Encorely · Producción"):
 | Disponibilidad de `/health/ready` en 24 h y 30 días | Monitor externo |
 | Peticiones por minuto y tasa de 4xx y 5xx | Log de acceso |
 | p50 y p95 de latencia por grupo de rutas (`/auth`, `/events`, `/matches`, `/admin`) | Log de acceso |
-| CPU, memoria y reinicios de la instancia | Métricas de Render |
-| Conexiones, CPU y almacenamiento de Postgres | Métricas del Postgres administrado |
+| CPU, memoria y red de las dos VM y reinicios del contenedor | Azure Monitor |
+| Conexiones, CPU y uso del disco de datos de Postgres | Azure Monitor y `pg_stat_activity` |
 | Envíos de push y errores de receipts | Log de la API |
 | Cola de moderación: reportes abiertos | Consulta de solo lectura a `reports` |
 
@@ -1710,14 +1904,14 @@ Reglas de retención que aplica `MaintenanceService`:
 | Aspecto | Propuesta para producción |
 |---|---|
 | RTO (tiempo máximo para restaurar el servicio) | 2 horas |
-| RPO (pérdida máxima de datos tolerable) | 15 minutos |
-| Tipo de respaldo 1 | Continuo (WAL) con recuperación a un punto en el tiempo, provisto por el Postgres administrado. El plan elegido debe incluirlo; verificar su retención antes del go-live |
-| Tipo de respaldo 2 | Completo lógico diario con `pg_dump -Fc`, cifrado y guardado fuera del proveedor |
-| Frecuencia | Continua (tipo 1) y diaria (tipo 2) |
-| Retención | 7 días de PITR como mínimo; 30 volcados diarios |
+| RPO (pérdida máxima de datos tolerable) | 24 horas con PostgreSQL en la VM; 15 minutos con la alternativa Flexible Server |
+| Tipo de respaldo 1 | Azure Backup diario de `vm-encorely-db`, con el disco de datos incluido. Con Flexible Server, el respaldo continuo con recuperación a un punto en el tiempo (PITR) que da Azure |
+| Tipo de respaldo 2 | Completo lógico diario con `pg_dump -Fc`, cifrado y guardado fuera de la VM, en una cuenta de almacenamiento aparte |
+| Frecuencia | Diaria (tipos 1 y 2) |
+| Retención | 7 puntos de Azure Backup como mínimo; 30 volcados diarios |
 | Prueba de restauración | Mensual, en una base temporal |
 | Qué no se respalda en el servidor | Los mensajes ya confirmados (solo existen cifrados en los teléfonos) y la base SQLCipher de cada teléfono; la persona los protege con el respaldo cifrado de la app |
-| Secretos | `JWT_SIGNING_KEY` y `BANNED_EMAIL_KEY` en el gestor de secretos del equipo, aparte de la base |
+| Secretos | `JWT_SIGNING_KEY` y `BANNED_EMAIL_KEY` en Key Vault, aparte de la base |
 | Local y demo | Volcado manual antes de cualquier operación destructiva |
 
 Riesgo conocido: restaurar a un punto anterior puede devolver cuentas que pidieron su borrado después de ese punto. Mientras no exista un registro de borrados (pendiente en 10.6), tras una restauración el equipo revisa las solicitudes recibidas por `PRIVACY_CONTACT_EMAIL` y repite los borrados.
@@ -1727,7 +1921,7 @@ Riesgo conocido: restaurar a un punto anterior puede devolver cuentas que pidier
 **Prerrequisitos**
 
 - Cliente `pg_dump` versión 16 instalado (o el contenedor `encorely-postgres` en local).
-- En producción: host, puerto, base y usuario del Postgres administrado, con la IP de quien hace el volcado agregada de forma temporal a `ipAllowList` (8.5) y retirada al terminar; la contraseña se lee de `~/.pgpass` (permisos 600) o se escribe cuando el cliente la pide, nunca en el comando.
+- En producción: el volcado se ejecuta en el propio servidor 2 (SSH desde una IP autorizada), así la base no se abre a otra red; la contraseña se lee de `~/.pgpass` (permisos 600) o se escribe cuando el cliente la pide, nunca en el comando.
 - Destino de almacenamiento con espacio suficiente y cifrado.
 
 **Pasos (producción)**
@@ -1757,13 +1951,13 @@ docker exec encorely-postgres pg_dump -U encorely -Fc encorely > encorely-local-
 
 **Prerrequisitos**
 
-- Volcado validado según 9.5.2, o un punto de PITR elegido (hora exacta anterior a la falla).
+- Volcado validado según 9.5.2, un punto de Azure Backup del servidor 2 o, con Flexible Server, un punto de PITR (hora exacta anterior a la falla).
 - Una base vacía nueva de PostgreSQL 16. Nunca se restaura encima de la base de producción en uso.
 - API detenida o en mantenimiento, para que no escriba durante la restauración.
 
 **Pasos**
 
-1. Si se usa PITR: en el panel del proveedor, crear una base nueva restaurada a la hora elegida y continuar en el paso 4.
+1. Si se usa Azure Backup: restaurar el disco de datos del punto elegido en una VM nueva (nunca sobre la VM en uso), arrancar PostgreSQL ahí y continuar en el paso 4. Con Flexible Server, crear desde el portal un servidor nuevo restaurado a la hora elegida.
 2. Si se usa un volcado: crear la base vacía y restaurar:
 
    ```bash
@@ -1771,7 +1965,7 @@ docker exec encorely-postgres pg_dump -U encorely -Fc encorely > encorely-local-
    ```
 
 3. Comparar conteos con los del volcado (`users`, `matches`, `reports`).
-4. Apuntar la API a la base restaurada (`DB_HOST`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` en el panel del proveedor) y reiniciar.
+4. Apuntar la API a la base restaurada (`DB_HOST` y, si cambiaron, `DB_NAME`, `DB_USER` y `DB-PASSWORD` en Key Vault), regenerar `/etc/encorely/api.env` y recrear el contenedor.
 5. Repetir los borrados de cuenta pendientes (riesgo de 9.5.1).
 6. Registrar la restauración en el informe del incidente.
 
@@ -1779,7 +1973,7 @@ docker exec encorely-postgres pg_dump -U encorely -Fc encorely > encorely-local-
 
 - `/health/ready` responde `Healthy`.
 - La consulta `SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY 1 DESC LIMIT 1;` devuelve `20261015155802_IndicesPurga` (o la última migración vigente).
-- Los conteos coinciden con los del volcado o con lo esperado para la hora de PITR.
+- Los conteos coinciden con los del volcado o con lo esperado para el punto restaurado.
 - Una cuenta de prueba entra, lista eventos y abre su lista de matches.
 - El tiempo total desde la declaración del incidente quedó dentro del RTO de 2 horas; si no, se anota como lección aprendida.
 
@@ -1787,10 +1981,10 @@ docker exec encorely-postgres pg_dump -U encorely -Fc encorely > encorely-local-
 
 | Aspecto | Descripción | Objetivo / métrica | Herramienta | Dueño |
 |---|---|---|---|---|
-| Disponibilidad | API REST, hub de chat y base de datos activos 24×7 | 99,5 % mensual de `/health/ready` (objetivo propuesto) | Health check de Render + monitor HTTP externo | Samuel Sierra |
+| Disponibilidad | API REST, hub de chat y base de datos activos 24×7 | 99,5 % mensual de `/health/ready` (objetivo propuesto) | Sonda del Application Gateway + monitor HTTP externo | Samuel Sierra |
 | Rendimiento | Respuesta de la API a la app | p95 de lecturas menor a 500 ms y de escrituras menor a 1 s (objetivo); timeout del cliente 15 s (real) | Log de acceso con duración + almacén de logs | Camilo Rincón |
-| Monitoreo | Supervisión de API, base, push y fallos de la app | Alerta en menos de 2 min tras 2 fallos seguidos de `/health/ready` (objetivo) | Monitor externo, log streams, métricas del proveedor, Play Console y App Store Connect | Juan Diego Calle |
-| Respaldo | Copia de la base `encorely` | RPO 15 min / RTO 2 h (objetivo) | PITR del Postgres administrado + `pg_dump -Fc` diario | Samuel Sierra |
+| Monitoreo | Supervisión de API, base, push y fallos de la app | Alerta en menos de 2 min tras 2 fallos seguidos de `/health/ready` (objetivo) | Monitor externo, Azure Monitor y Log Analytics, Play Console y App Store Connect | Juan Diego Calle |
+| Respaldo | Copia de la base `encorely` | RPO 24 h, o 15 min con Flexible Server / RTO 2 h (objetivo) | Azure Backup diario + `pg_dump -Fc` diario | Samuel Sierra |
 | Limpieza de datos | Purga de tokens, buzones, mensajes y evidencia vencidos | Ejecución cada hora (real) | `MaintenanceService` | Samuel Sierra |
 | Mantenimiento del back | Actualización de paquetes NuGet, parches y migraciones | Ventana semanal de martes 05:00 a 07:00 (objetivo); CI en verde antes de cada cambio | CI de GitHub Actions + Dependabot + `contracts/CHANGELOG.md` | Camilo Rincón |
 | Mantenimiento de la app | Parches del SDK de Expo y dependencias de la app | Revisión semanal de `pnpm audit` y de los parches del SDK (objetivo) | `pnpm audit`, `pnpm check:expo`, EAS Build | Emmanuel Dávila |
@@ -1802,8 +1996,8 @@ docker exec encorely-postgres pg_dump -U encorely -Fc encorely > encorely-local-
 ```mermaid
 flowchart TB
   M["`Paso 1 · Monitoreo
-  monitor externo, health check de Render,
-  log de acceso, métricas del proveedor`"]
+  monitor externo, sonda del Application Gateway,
+  log de acceso, Azure Monitor`"]
   A["`Paso 2 · Alerta
   aviso automático al canal del equipo
   y a la persona de guardia`"]
@@ -1850,7 +2044,7 @@ Escalamiento y responsables por nivel (los tiempos son objetivos propuestos):
 |---|---|---|---|
 | N1 · Guardia | Juan Diego Calle (dueño de monitoreo y observabilidad) | Recibe la alerta, clasifica, ejecuta el runbook, comunica | El runbook no resuelve en 30 min (SEV1) o 2 h (SEV2) |
 | N2 · Responsable del componente | API y lógica de la base: Camilo Rincón. App: Emmanuel Dávila. Infraestructura, disponibilidad y respaldo: Samuel Sierra | Diagnóstico de código o datos, hotfix, rollback | Requiere decisión de producto, restauración de datos o soporte del proveedor |
-| N3 · Escalamiento | Camilo Rincón (Product Owner y dueño del escalamiento), con el equipo completo y el soporte de Render, Expo, Apple o Google | Decide restauración con PITR, rotación de secretos y comunicación pública | No aplica |
+| N3 · Escalamiento | Camilo Rincón (Product Owner y dueño del escalamiento), con el equipo completo y el soporte de Microsoft Azure, Expo, Apple o Google | Decide restauración desde respaldo, rotación de secretos y comunicación pública | No aplica |
 
 Comunicación: mantenimiento programado anunciado con 48 horas de anticipación por los canales del proyecto.
 
@@ -1860,13 +2054,13 @@ Lecciones aprendidas: cada incidente SEV1 o SEV2 cierra con un registro (plantil
 
 | ID | Síntoma | Diagnóstico | Acción | Validación |
 |---|---|---|---|---|
-| RB-01 | `/health/live` no responde | Log del servicio en Render: excepción de arranque o falta de memoria | Si es configuración, corregir la variable (el log nombra la que falta); si es código, rollback (5.6); si es memoria, reiniciar y subir de plan | `/health/live` en `Healthy` |
-| RB-02 | `/health/live` bien y `/health/ready` mal | La base no responde: estado del Postgres en el proveedor, conexiones y almacenamiento | Esperar o reiniciar la base según el proveedor; si se agotó el pool, reiniciar la API; si hay corrupción o pérdida, 9.5.3 | `/health/ready` en `Healthy` y login de prueba |
+| RB-01 | `/health/live` no responde | `docker logs encorely-api` en el servidor 1: excepción de arranque o falta de memoria | Si es configuración, corregir la variable (el log nombra la que falta); si es código, rollback (5.6); si es memoria, reiniciar y subir el tamaño de la VM | `/health/live` en `Healthy` |
+| RB-02 | `/health/live` bien y `/health/ready` mal | La base no responde: estado de PostgreSQL en el servidor 2 (`systemctl status postgresql`), conexiones y disco de datos | Reiniciar PostgreSQL; si se agotó el pool, reiniciar la API; si hay corrupción o pérdida, 9.5.3 | `/health/ready` en `Healthy` y login de prueba |
 | RB-03 | Tasa de 5xx mayor a 1 % | Buscar en el log las excepciones por `traceId` y la ruta afectada | Hotfix o rollback de la última versión | Tasa de 5xx de vuelta a su nivel normal durante 30 min |
 | RB-04 | Los mensajes llegan solo al reabrir el chat | Conexiones al hub en el log; ¿el token vence y el hub se cierra? | Verificar que la app renueva el token; reiniciar la API si el hub no acepta conexiones | `MessageAvailable` llega con la app abierta |
 | RB-05 | No llegan notificaciones push | `PUSH_ENABLED`, errores de envío a `exp.host`, receipts; estado de Expo, FCM y APNs | Corregir `EXPO_PUSH_ACCESS_TOKEN` o credenciales FCM/APNs en EAS; si el proveedor está caído, esperar (la app sigue funcionando) | Push de prueba recibido en un teléfono real |
-| RB-06 | Pico de 429 o de fallos de login | Log de acceso por IP; ¿ataque o falta de `FORWARDED_TRUSTED_NETWORKS`? | Si todas las IP son la del proxy, corregir la variable; si es ataque, bloquear la IP en el proveedor | 429 solo para la IP atacante |
-| RB-07 | Sospecha de compromiso de `JWT_SIGNING_KEY` | Origen de la sospecha | Generar una nueva (`openssl rand -base64 48`), cargarla en el proveedor y reiniciar; los access tokens vigentes dejan de servir. Si también se comprometieron refresh tokens, revocar las sesiones afectadas | Los tokens anteriores reciben 401; los clientes renuevan y siguen |
+| RB-06 | Pico de 429 o de fallos de login | Log de acceso por IP; ¿ataque o falta de `FORWARDED_TRUSTED_NETWORKS`? | Si todas las IP son la del proxy, corregir la variable; si es ataque, bloquear la IP en `nsg-gateway` | 429 solo para la IP atacante |
+| RB-07 | Sospecha de compromiso de `JWT_SIGNING_KEY` | Origen de la sospecha | Generar una nueva (`openssl rand -base64 48`), cargarla en Key Vault, regenerar `/etc/encorely/api.env` y recrear el contenedor; los access tokens vigentes dejan de servir. Si también se comprometieron refresh tokens, revocar las sesiones afectadas | Los tokens anteriores reciben 401; los clientes renuevan y siguen |
 | RB-08 | `POST /auth/spotify` responde 502 `spotify_unavailable` o 403 | `SPOTIFY_CLIENT_ID` vacío; cuenta fuera de la lista de prueba de Spotify; redirect distinta | Definir la variable; agregar la cuenta en el Dashboard (máximo 5 en modo desarrollo); registrar exactamente `encorely://spotify-callback` | Login con Spotify de una cuenta de prueba |
 | RB-09 | Reporte de contenido abusivo | Cola en `/admin`; evidencia con `Verified = true` | Resolver con descarte o suspensión; la suspensión cierra matches, revoca sesiones y veta el correo | Reporte en `Resolved` y cuenta en `Banned` si correspondía |
 | RB-10 | La app muestra "Falta configurar el servidor" | `EXPO_PUBLIC_API_URL` ausente en el perfil del build | Corregir `eas.json` o `.env` y recompilar; en local, reiniciar Metro | La app llega a la pantalla de bienvenida |
