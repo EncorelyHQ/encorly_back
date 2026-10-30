@@ -1,7 +1,12 @@
 <Project>
   <PropertyGroup>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).artifacts/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
-    <BaseOutputPath>$(MSBuildThisFileDirectory).artifacts/bin/$(MSBuildProjectName)/</BaseOutputPath>
-    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**;obj_old/**;bin_old/**</DefaultItemExcludes>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- CS1591/CS1573: XML docs solo donde aportan al OpenAPI. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 </Project>

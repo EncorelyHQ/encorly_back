@@ -1,0 +1,7011 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Encorely API",
+    "description": "Contrato v1 del back de Encorely (.NET 10). Base: /api/v1. JSON camelCase; enums como string camelCase;\nfechas ISO-8601 UTC; binarios en base64 est\u00E1ndar.\n\nErrores: application/problem\u002Bjson con \u0060title\u0060/\u0060detail\u0060 en espa\u00F1ol, \u0060errors\u0060 {campo: [mensajes]} en validaci\u00F3n\ny la extensi\u00F3n \u0060code\u0060 (string estable para ramificar en el cliente) \u002B \u0060traceId\u0060.\n\nIdentidad: SIEMPRE el \u0060sub\u0060 del JWT (Authorization: Bearer). Ning\u00FAn endpoint acepta userId del cliente para\ndecidir qui\u00E9n eres. Recursos ajenos responden 404.\n\nTiempo real: SignalR en /hubs/chat?access_token=\u003Cjwt\u003E. Eventos servidor\u2192cliente: MessageAvailable {matchId,id,seq},\nPeerKeyChanged {matchId,userId}, MatchClosed {matchId}, MatchCreated {matchId}. El hub no tiene m\u00E9todos invocables.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Crea una cuenta con email y contrase\u00F1a e inicia sesi\u00F3n",
+        "operationId": "Register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Inicia sesi\u00F3n",
+        "operationId": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/spotify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Entra con Spotify (canjea el code PKCE). Crea la cuenta si el Spotify no est\u00E1 vinculado",
+        "operationId": "SpotifyLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotifyLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyAuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Rota el refresh token y emite un access token nuevo",
+        "operationId": "Refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Revoca el refresh token (y su familia)",
+        "operationId": "Logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/current": {
+      "get": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Versi\u00F3n vigente de t\u00E9rminos/pol\u00EDtica y URLs p\u00FAblicas",
+        "operationId": "GetLegal",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account-deletion": {
+      "post": {
+        "tags": [
+          "Legal"
+        ],
+        "summary": "Borra la cuenta con email y contrase\u00F1a (p\u00E1gina web de borrado, sin la app)",
+        "operationId": "DeleteAccountWeb",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountDeletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Mi perfil",
+        "operationId": "GetMe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Edita mi perfil (campos null no cambian)",
+        "operationId": "UpdateMe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Borra mi cuenta (pide la contrase\u00F1a o reconfirmar con Spotify): datos personales, swipes, likes, matches y mensajes. Irreversible",
+        "operationId": "DeleteMe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteMeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/spotify/link": {
+      "post": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Vincula mi cuenta de Spotify para poder entrar con ella",
+        "operationId": "LinkSpotify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotifyGrant"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Desvincula Spotify (no si es mi \u00FAnica forma de entrar)",
+        "operationId": "UnlinkSpotify",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/consents": {
+      "post": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Acepta una nueva versi\u00F3n de t\u00E9rminos y pol\u00EDtica",
+        "operationId": "AcceptConsent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/export": {
+      "get": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Descarga mis datos personales (Ley 1581)",
+        "operationId": "ExportMyData",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataExportResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}/profile": {
+      "get": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Perfil de otra persona; 404 si no existe, est\u00E1 suspendida o hay bloqueo en cualquier sentido",
+        "operationId": "GetUserProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{id}/reactions": {
+      "put": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Reacciona a un artista o g\u00E9nero de su perfil (reemplaza la reacci\u00F3n anterior a ese objetivo)",
+        "operationId": "SetProfileReaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReactionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Quita mi reacci\u00F3n a ese objetivo (204 aunque no hubiera)",
+        "operationId": "RemoveProfileReaction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "targetKind",
+            "in": "query",
+            "description": "artist o genre",
+            "required": true,
+            "schema": {
+              "enum": [
+                "artist",
+                "genre"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetKey",
+            "in": "query",
+            "description": "Slug del g\u00E9nero o key del artista",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/reactions/received": {
+      "get": {
+        "tags": [
+          "Perfil social"
+        ],
+        "summary": "Qui\u00E9n reaccion\u00F3 a mi perfil, de la m\u00E1s reciente a la m\u00E1s vieja. ?before=nextCursor pagina",
+        "operationId": "ListReceivedReactions",
+        "parameters": [
+          {
+            "name": "before",
+            "in": "query",
+            "description": "nextCursor de la p\u00E1gina anterior",
+            "schema": {
+              "maxLength": 400,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u201350, por defecto 20",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivedReactionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/genres": {
+      "get": {
+        "tags": [
+          "M\u00FAsica"
+        ],
+        "summary": "Cat\u00E1logo de g\u00E9neros",
+        "operationId": "GetGenres",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenreDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/songs/feed": {
+      "get": {
+        "tags": [
+          "M\u00FAsica"
+        ],
+        "summary": "Canciones a\u00FAn no calificadas por m\u00ED, mezclando mis g\u00E9neros y exploraci\u00F3n",
+        "operationId": "GetSongFeed",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u201350, por defecto 20",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SongDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/swipes": {
+      "post": {
+        "tags": [
+          "M\u00FAsica"
+        ],
+        "summary": "Califica una canci\u00F3n (like/dislike). Repetir la misma canci\u00F3n no suma",
+        "operationId": "Swipe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwipeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwipeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/dna": {
+      "get": {
+        "tags": [
+          "M\u00FAsica"
+        ],
+        "summary": "Mi ADN musical (vector de g\u00E9neros) y estado del radar",
+        "operationId": "GetMyDna",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DnaResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/spotify/import": {
+      "post": {
+        "tags": [
+          "M\u00FAsica"
+        ],
+        "summary": "Importa top artistas de Spotify (le\u00EDdos en el dispositivo) para enriquecer el ADN; avisa los g\u00E9neros que no mapean",
+        "operationId": "ImportSpotify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotifyImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyImportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Eventos futuros publicados, por fecha",
+        "operationId": "ListEvents",
+        "parameters": [
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Filtra por ciudad (p. ej. Bogot\u00E1, Medell\u00EDn)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013100, por defecto 50",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Detalle de un evento",
+        "operationId": "GetEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/{id}/attendance": {
+      "put": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Marco que voy al evento (idempotente)",
+        "operationId": "AttendEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Ya no voy al evento (idempotente)",
+        "operationId": "UnattendEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/events": {
+      "get": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Eventos futuros a los que voy",
+        "operationId": "GetMyEvents",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/{id}/radar": {
+      "get": {
+        "tags": [
+          "Eventos"
+        ],
+        "summary": "Asistentes del evento ordenados por afinidad real. Requiere ir al evento y haber desbloqueado el radar",
+        "description": "Devuelve hasta 200 asistentes; si hab\u00EDa m\u00E1s, responde con la cabecera \u0060X-Radar-Truncated: true\u0060.",
+        "operationId": "GetEventRadar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RadarEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/likes": {
+      "post": {
+        "tags": [
+          "Match"
+        ],
+        "summary": "Like a una persona con la que comparto un evento. Hay match solo si el like es rec\u00EDproco (idempotente)",
+        "operationId": "LikeUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LikeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches": {
+      "get": {
+        "tags": [
+          "Match"
+        ],
+        "summary": "Mis matches activos, el m\u00E1s reciente primero; paginable con limit, beforeAt y beforeId",
+        "operationId": "ListMatches",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013100. Sin \u00E9l responde todos (hasta 500), como antes",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "beforeAt",
+            "in": "query",
+            "description": "lastMessageAt ?? createdAt del \u00FAltimo match recibido (con beforeId)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "beforeId",
+            "in": "query",
+            "description": "id del \u00FAltimo match recibido (con beforeAt)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MatchDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}": {
+      "get": {
+        "tags": [
+          "Match"
+        ],
+        "summary": "Un match m\u00EDo",
+        "operationId": "GetMatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Match"
+        ],
+        "summary": "Deshace el match y cierra el chat",
+        "operationId": "Unmatch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/keys/me": {
+      "put": {
+        "tags": [
+          "Llaves E2EE"
+        ],
+        "summary": "Publica o rota mis llaves p\u00FAblicas. Si cambia la identidad, se avisa a mis matches (PeerKeyChanged)",
+        "operationId": "PutMyKeys",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadKeysRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyBundleDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Llaves E2EE"
+        ],
+        "summary": "Mis llaves p\u00FAblicas vigentes (para saber el \u00FAltimo boxKeyId)",
+        "operationId": "GetMyKeys",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyBundleDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/peer-keys": {
+      "get": {
+        "tags": [
+          "Llaves E2EE"
+        ],
+        "summary": "Llaves p\u00FAblicas vigentes de la otra persona del match",
+        "operationId": "GetPeerKeys",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyBundleDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/peer-keys/box/{boxKeyId}": {
+      "get": {
+        "tags": [
+          "Llaves E2EE"
+        ],
+        "summary": "Una llave de caja hist\u00F3rica de la otra persona (para descifrar mensajes viejos)",
+        "operationId": "GetPeerBoxKey",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "boxKeyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoxKeyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/messages": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Env\u00EDa un mensaje cifrado. 201 al crearlo; 200 si el mismo id ya exist\u00EDa con el mismo contenido",
+        "operationId": "SendMessage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageAcceptedDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageAcceptedDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Mensajes cifrados del match. ?before=seq pagina hacia atr\u00E1s (desc); ?after=seq trae los nuevos (asc)",
+        "operationId": "ListMessages",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Trae mensajes con seq menor (desc). Excluyente con after",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Trae mensajes con seq mayor (asc). Excluyente con before",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013100, por defecto 50",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/matches/{id}/messages/ack": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Confirma que guard\u00E9 localmente los mensajes recibidos hasta upToSeq; el servidor los borra",
+        "operationId": "AckMessages",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/blocks": {
+      "post": {
+        "tags": [
+          "Moderaci\u00F3n"
+        ],
+        "summary": "Bloquea a un usuario: cierra el match, desaparece del radar y no puede escribirme (idempotente)",
+        "operationId": "BlockUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Moderaci\u00F3n"
+        ],
+        "summary": "Usuarios que bloque\u00E9",
+        "operationId": "ListBlocks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BlockedUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/blocks/{userId}": {
+      "delete": {
+        "tags": [
+          "Moderaci\u00F3n"
+        ],
+        "summary": "Desbloquea (no reabre el match)",
+        "operationId": "UnblockUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "post": {
+        "tags": [
+          "Moderaci\u00F3n"
+        ],
+        "summary": "Reporta a un usuario para revisi\u00F3n; si ya tengo uno abierto contra esa persona, le suma la evidencia (mismo id)",
+        "operationId": "ReportUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportCreatedDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/push-token": {
+      "put": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Registra el token push de este dispositivo",
+        "operationId": "RegisterPushToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Push"
+        ],
+        "summary": "Quita el token push (al cerrar sesi\u00F3n)",
+        "operationId": "UnregisterPushToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletePushTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/backup": {
+      "put": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Sube (reemplaza) mi respaldo cifrado en el dispositivo",
+        "operationId": "PutBackup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutBackupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Descarga mi respaldo cifrado",
+        "operationId": "GetBackup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Borra mi respaldo",
+        "operationId": "DeleteBackup",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/backup/info": {
+      "get": {
+        "tags": [
+          "Respaldo cifrado"
+        ],
+        "summary": "Tama\u00F1o y fecha de mi respaldo, sin descargarlo",
+        "operationId": "GetBackupInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/keys/link-requests": {
+      "post": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Dispositivo NUEVO: abre un buz\u00F3n de vinculaci\u00F3n (vence en 10 min)",
+        "operationId": "CreateLinkRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkRequestDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/keys/link-requests/{id}": {
+      "get": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Consulta el buz\u00F3n (el nuevo lo sondea hasta que est\u00E9 ready)",
+        "operationId": "GetLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "Dispositivo VIEJO: deja el material de llaves cifrado hacia la llave ef\u00EDmera del nuevo (una sola vez)",
+        "operationId": "FulfillLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FulfillLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Vincular dispositivo"
+        ],
+        "summary": "El nuevo ya recogi\u00F3 el material: se destruye el buz\u00F3n",
+        "operationId": "DeleteLinkRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/sessions": {
+      "get": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Mis sesiones abiertas (dispositivos con sesi\u00F3n)",
+        "operationId": "ListSessions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Cierra todas mis sesiones, incluida esta",
+        "operationId": "RevokeAllSessions",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me/sessions/{id}": {
+      "delete": {
+        "tags": [
+          "Sesiones"
+        ],
+        "summary": "Cierra una sesi\u00F3n (p. ej. un tel\u00E9fono perdido)",
+        "operationId": "RevokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/events": {
+      "get": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Eventos (incluye no publicados y, opcionalmente, pasados)",
+        "operationId": "AdminListEvents",
+        "parameters": [
+          {
+            "name": "includePast",
+            "in": "query",
+            "description": "Incluye eventos pasados",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013200, por defecto 100",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Eventos a saltar (paginaci\u00F3n; orden por fecha)",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminEventDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Crea un evento",
+        "operationId": "AdminCreateEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminEventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/events/{id}": {
+      "put": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Edita un evento",
+        "operationId": "AdminUpdateEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminEventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Borra un evento y sus asistencias",
+        "operationId": "AdminDeleteEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/songs": {
+      "get": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Cat\u00E1logo de canciones con conteo de likes/dislikes",
+        "operationId": "AdminListSongs",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Busca en t\u00EDtulo o artista",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "genre",
+            "in": "query",
+            "description": "Slug de g\u00E9nero",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013200, por defecto 100",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Canciones a saltar (paginaci\u00F3n; orden por artista y t\u00EDtulo)",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminSongDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Agrega una canci\u00F3n al cat\u00E1logo",
+        "operationId": "AdminCreateSong",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminSongRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSongDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/songs/{id}": {
+      "put": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Edita una canci\u00F3n (isActive=false la saca del feed)",
+        "operationId": "AdminUpdateSong",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminSongRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSongDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/itunes/search": {
+      "get": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Busca en iTunes Search para dar de alta canciones con preview",
+        "operationId": "AdminSearchITunes",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Artista y/o t\u00EDtulo",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ITunesTrackDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports": {
+      "get": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Reportes, los m\u00E1s antiguos primero",
+        "operationId": "AdminListReports",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtra por estado; por defecto open",
+            "schema": {
+              "enum": [
+                "open",
+                "resolved",
+                "dismissed"
+              ],
+              "type": "string",
+              "default": "open"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "1\u2013200, por defecto 50",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "afterAt",
+            "in": "query",
+            "description": "createdAt del \u00FAltimo reporte recibido (p\u00E1gina siguiente; va con afterId)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "afterId",
+            "in": "query",
+            "description": "id del \u00FAltimo reporte recibido (va con afterAt)",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminReportDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/{id}/resolve": {
+      "post": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Resuelve un reporte; ban suspende al reportado, cierra sus matches y revoca sus sesiones",
+        "operationId": "AdminResolveReport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReportDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}/status": {
+      "put": {
+        "tags": [
+          "Administraci\u00F3n"
+        ],
+        "summary": "Suspende o reactiva una cuenta",
+        "operationId": "AdminSetUserStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountDeletionRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "description": "Borrado de cuenta desde la web (requisito de Google Play), sin la app."
+      },
+      "AckRequest": {
+        "required": [
+          "upToSeq"
+        ],
+        "type": "object",
+        "properties": {
+          "upToSeq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "description": "Confirma recepci\u00F3n: el servidor borra los mensajes recibidos hasta ese seq (historial local en el dispositivo)."
+      },
+      "AdminEventDto": {
+        "required": [
+          "id",
+          "name",
+          "artistLineup",
+          "venue",
+          "city",
+          "startsAt",
+          "imageUrl",
+          "description",
+          "isPublished",
+          "attendeeCount",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "artistLineup": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "venue": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "attendeeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminEventRequest": {
+        "required": [
+          "name",
+          "artistLineup",
+          "venue",
+          "city",
+          "startsAt"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "artistLineup": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "venue": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "ISO-8601 con zona (Colombia es UTC-5).",
+            "format": "date-time"
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "AdminEvidenceDto": {
+        "required": [
+          "messageId",
+          "plaintext",
+          "verified"
+        ],
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plaintext": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdminReportDto": {
+        "required": [
+          "id",
+          "reporter",
+          "reported",
+          "matchId",
+          "reason",
+          "detail",
+          "evidence",
+          "status",
+          "resolutionNote",
+          "createdAt",
+          "resolvedAt",
+          "priorReportsAgainstUser",
+          "evidencePurgedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reporter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdminUserRef"
+              }
+            ]
+          },
+          "reported": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AdminUserRef"
+              }
+            ]
+          },
+          "matchId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminEvidenceDto"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReportStatus"
+          },
+          "resolutionNote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "priorReportsAgainstUser": {
+            "type": "integer",
+            "description": "Otras personas (no reportes) que reportaron a la misma cuenta, en cualquier estado.",
+            "format": "int32"
+          },
+          "evidencePurgedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Si tiene valor, ya se borraron el detalle y el texto de la evidencia (retenci\u00F3n).",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminSongDto": {
+        "required": [
+          "id",
+          "title",
+          "artist",
+          "genre",
+          "coverUrl",
+          "previewUrl",
+          "iTunesTrackId",
+          "isActive",
+          "likes",
+          "dislikes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "previewUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "iTunesTrackId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "likes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dislikes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AdminSongRequest": {
+        "required": [
+          "title",
+          "artist",
+          "genre",
+          "coverUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string",
+            "description": "Slug del g\u00E9nero."
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "previewUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "iTunesTrackId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "AdminUserRef": {
+        "required": [
+          "id",
+          "displayName",
+          "email",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          }
+        }
+      },
+      "AuthResponse": {
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn",
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Opaco, de un solo uso: cada refresh devuelve uno nuevo."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Vida del access token en segundos.",
+            "format": "int32"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          }
+        }
+      },
+      "AuthUserDto": {
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "onboardingCompleted",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "onboardingCompleted": {
+            "type": "boolean"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        }
+      },
+      "BackupDto": {
+        "required": [
+          "version",
+          "ciphertext",
+          "nonce",
+          "salt",
+          "kdf",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ciphertext": {
+            "type": "string",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "byte"
+          },
+          "salt": {
+            "type": "string",
+            "format": "byte"
+          },
+          "kdf": {
+            "$ref": "#/components/schemas/KdfParams"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BackupInfoDto": {
+        "required": [
+          "version",
+          "sizeBytes",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BlockRequest": {
+        "required": [
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "BlockedUserDto": {
+        "required": [
+          "userId",
+          "displayName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BoxKeyDto": {
+        "required": [
+          "userId",
+          "boxKeyId",
+          "identityKey",
+          "boxKey",
+          "boxKeySig",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "boxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "identityKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "boxKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "boxKeySig": {
+            "type": "string",
+            "format": "byte"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ConsentRequest": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateLinkRequest": {
+        "required": [
+          "ephemeralKey"
+        ],
+        "type": "object",
+        "properties": {
+          "ephemeralKey": {
+            "type": "string",
+            "description": "X25519 p\u00FAblica ef\u00EDmera del dispositivo NUEVO (32 B). Va tambi\u00E9n en el QR para que el dispositivo viejo la verifique.",
+            "format": "byte"
+          }
+        }
+      },
+      "DataExportResponse": {
+        "required": [
+          "profile",
+          "swipes",
+          "events",
+          "matches",
+          "blocks",
+          "consents",
+          "reactions",
+          "pushDevices",
+          "generatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/MeResponse"
+          },
+          "swipes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportSwipe"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportEvent"
+            }
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportMatch"
+            }
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportBlock"
+            }
+          },
+          "consents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportConsent"
+            }
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportReaction"
+            }
+          },
+          "pushDevices": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Copia de los datos personales (derecho de acceso, Ley 1581). Nunca incluye mensajes: el servidor no los puede leer."
+      },
+      "DeleteMeRequest": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "spotify": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SpotifyGrant"
+              }
+            ]
+          }
+        },
+        "description": "Borrar la cuenta reconfirma la identidad: un access token robado no basta para una operaci\u00F3n irreversible.\nVa exactamente uno de los dos: la contrase\u00F1a, o un grant nuevo de la cuenta de Spotify vinculada."
+      },
+      "DeletePushTokenRequest": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "DevicePlatform": {
+        "enum": [
+          "android",
+          "ios"
+        ]
+      },
+      "DnaGenreDto": {
+        "required": [
+          "genre",
+          "name",
+          "weight"
+        ],
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "description": "Peso normalizado 0\u20131; los pesos suman 1 (vac\u00EDo si a\u00FAn no hay se\u00F1al).",
+            "format": "double"
+          }
+        }
+      },
+      "DnaResponse": {
+        "required": [
+          "genres",
+          "swipeCount",
+          "radarThreshold",
+          "radarUnlocked"
+        ],
+        "type": "object",
+        "properties": {
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnaGenreDto"
+            }
+          },
+          "swipeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarThreshold": {
+            "type": "integer",
+            "description": "Swipes m\u00EDnimos para usar el radar (configurable en el servidor).",
+            "format": "int32"
+          },
+          "radarUnlocked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EventDto": {
+        "required": [
+          "id",
+          "name",
+          "artistLineup",
+          "venue",
+          "city",
+          "startsAt",
+          "imageUrl",
+          "description",
+          "attendeeCount",
+          "iAmGoing"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "artistLineup": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "venue": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attendeeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "iAmGoing": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ExportBlock": {
+        "required": [
+          "displayName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExportConsent": {
+        "required": [
+          "version",
+          "acceptedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExportEvent": {
+        "required": [
+          "name",
+          "startsAt"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExportMatch": {
+        "required": [
+          "peerDisplayName",
+          "status",
+          "createdAt",
+          "messagesSent"
+        ],
+        "type": "object",
+        "properties": {
+          "peerDisplayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "messagesSent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ExportReaction": {
+        "required": [
+          "peerDisplayName",
+          "targetKind",
+          "targetKey",
+          "reaction",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "peerDisplayName": {
+            "type": "string"
+          },
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Reacci\u00F3n que dej\u00E9 en el perfil de otra persona."
+      },
+      "ExportSwipe": {
+        "required": [
+          "songTitle",
+          "artist",
+          "direction",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "songTitle": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FulfillLinkRequest": {
+        "required": [
+          "senderEphemeralKey",
+          "nonce",
+          "ciphertext"
+        ],
+        "type": "object",
+        "properties": {
+          "senderEphemeralKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "Material de llaves cifrado hacia la llave ef\u00EDmera del nuevo. M\u00E1x. 64 KiB.",
+            "format": "byte"
+          }
+        }
+      },
+      "GenreDto": {
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ITunesTrackDto": {
+        "required": [
+          "iTunesTrackId",
+          "title",
+          "artist",
+          "coverUrl",
+          "previewUrl",
+          "primaryGenre"
+        ],
+        "type": "object",
+        "properties": {
+          "iTunesTrackId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "previewUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "primaryGenre": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Resultado de iTunes Search para dar de alta canciones con su preview."
+      },
+      "KdfParams": {
+        "required": [
+          "algorithm",
+          "opsLimit",
+          "memLimit"
+        ],
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "description": "argon2id (recomendado) | scrypt | pbkdf2-sha256."
+          },
+          "opsLimit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "memLimit": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "KeyBundleDto": {
+        "required": [
+          "userId",
+          "identityKey",
+          "boxKey",
+          "boxKeyId",
+          "boxKeySig",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "identityKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "boxKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "boxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "boxKeySig": {
+            "type": "string",
+            "format": "byte"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LegalResponse": {
+        "required": [
+          "consentVersion",
+          "effectiveDate",
+          "termsUrl",
+          "privacyUrl",
+          "accountDeletionUrl",
+          "privacyContactEmail"
+        ],
+        "type": "object",
+        "properties": {
+          "consentVersion": {
+            "type": "string"
+          },
+          "effectiveDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "termsUrl": {
+            "type": "string"
+          },
+          "privacyUrl": {
+            "type": "string"
+          },
+          "accountDeletionUrl": {
+            "type": "string"
+          },
+          "privacyContactEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LikeRequest": {
+        "required": [
+          "targetUserId"
+        ],
+        "type": "object",
+        "properties": {
+          "targetUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Evento donde se vieron (opcional, contexto del match).",
+            "format": "uuid"
+          }
+        }
+      },
+      "LikeResponse": {
+        "required": [
+          "matched",
+          "matchId"
+        ],
+        "type": "object",
+        "properties": {
+          "matched": {
+            "type": "boolean"
+          },
+          "matchId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "LinkRequestDto": {
+        "required": [
+          "id",
+          "status",
+          "newDeviceEphemeralKey",
+          "senderEphemeralKey",
+          "nonce",
+          "ciphertext",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LinkRequestStatus"
+          },
+          "newDeviceEphemeralKey": {
+            "type": "string",
+            "format": "byte"
+          },
+          "senderEphemeralKey": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "nonce": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LinkRequestStatus": {
+        "enum": [
+          "pending",
+          "ready"
+        ]
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LogoutRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "MatchDto": {
+        "required": [
+          "id",
+          "peer",
+          "eventName",
+          "sharedGenres",
+          "status",
+          "createdAt",
+          "lastMessageAt",
+          "lastSeq"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "peer": {
+            "$ref": "#/components/schemas/PeerDto"
+          },
+          "eventName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sharedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/MatchStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastMessageAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastSeq": {
+            "type": "integer",
+            "description": "Secuencia del \u00FAltimo mensaje (0 si no hay).",
+            "format": "int64"
+          }
+        }
+      },
+      "MatchStatus": {
+        "enum": [
+          "active",
+          "closed"
+        ]
+      },
+      "MeResponse": {
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "birthDate",
+          "age",
+          "city",
+          "bio",
+          "genres",
+          "onboardingCompleted",
+          "role",
+          "createdAt",
+          "acceptedConsentVersion",
+          "consentUpToDate",
+          "spotifyLinked",
+          "hasPassword",
+          "artists",
+          "stats",
+          "reactionsReceived",
+          "showProfileToOthers",
+          "profileVisible"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "age": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Slugs de los g\u00E9neros declarados."
+          },
+          "onboardingCompleted": {
+            "type": "boolean",
+            "description": "true cuando hay fecha de nacimiento, ciudad y al menos un g\u00E9nero."
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acceptedConsentVersion": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Versi\u00F3n m\u00E1s reciente aceptada por la persona; null si no consta ninguna."
+          },
+          "consentUpToDate": {
+            "type": "boolean",
+            "description": "true si \u0060AcceptedConsentVersion\u0060 es la vigente (\u0060GET /legal/current\u0060); false: pedir aceptar de nuevo."
+          },
+          "spotifyLinked": {
+            "type": "boolean",
+            "description": "true si hay una cuenta de Spotify vinculada (sirve para entrar)."
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "description": "false en cuentas creadas con Spotify: no pueden entrar por correo ni desvincular Spotify."
+          },
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileArtistDto"
+            },
+            "description": "Mi top de artistas importado de Spotify (m\u00E1x. 12), como lo ven los dem\u00E1s."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/ProfileStatsDto"
+          },
+          "reactionsReceived": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedReactionDto"
+            },
+            "description": "Resumen de reacciones a mi perfil, agregado por objetivo y tipo. Qui\u00E9n reaccion\u00F3: \u0060GET /me/reactions/received\u0060."
+          },
+          "showProfileToOthers": {
+            "type": "boolean",
+            "description": "Interruptor del perfil p\u00FAblico (PATCH /me lo cambia)."
+          },
+          "profileVisible": {
+            "type": "boolean",
+            "description": "true si otros ven mi perfil ahora: interruptor encendido y la versi\u00F3n de consentimiento con esa finalidad aceptada."
+          }
+        }
+      },
+      "MessageAcceptedDto": {
+        "required": [
+          "id",
+          "seq",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MessageDto": {
+        "required": [
+          "id",
+          "seq",
+          "senderId",
+          "version",
+          "senderBoxKeyId",
+          "recipientBoxKeyId",
+          "nonce",
+          "ciphertext",
+          "frankingTag",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "senderBoxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recipientBoxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonce": {
+            "type": "string",
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": "string",
+            "format": "byte"
+          },
+          "frankingTag": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "byte"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MessagePage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Con ?before: seq a pasar como siguiente before. Con ?after: seq a pasar como siguiente after. null si no hay m\u00E1s.",
+            "format": "int64"
+          }
+        }
+      },
+      "MyReactionDto": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "reaction"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          }
+        }
+      },
+      "PeerDto": {
+        "required": [
+          "id",
+          "displayName",
+          "age",
+          "city"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "age": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "C\u00F3digo estable del error (p. ej. radar_locked, stale_recipient_key)."
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Solo en validaci\u00F3n: campo \u2192 mensajes en espa\u00F1ol."
+          }
+        }
+      },
+      "ProfileArtistDto": {
+        "required": [
+          "key",
+          "name",
+          "imageUrl",
+          "shared"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Nombre normalizado (\u0022bad-bunny\u0022): identifica al artista al reaccionar y al cruzar perfiles."
+          },
+          "name": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Imagen de Spotify (https://i.scdn.co/\u2026); null si no vino."
+          },
+          "shared": {
+            "type": "boolean",
+            "description": "true si el artista tambi\u00E9n est\u00E1 en el perfil de quien mira (en \u0060/me\u0060 siempre false)."
+          }
+        }
+      },
+      "ProfileCommonDto": {
+        "required": [
+          "affinity",
+          "sharedGenres",
+          "sharedArtists"
+        ],
+        "type": "object",
+        "properties": {
+          "affinity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "0\u2013100, o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify).",
+            "format": "int32"
+          },
+          "sharedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Slugs de g\u00E9neros con peso en ambos (m\u00E1x. 3)."
+          },
+          "sharedArtists": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keys de artistas que est\u00E1n en ambos perfiles."
+          }
+        }
+      },
+      "ProfileGenreDto": {
+        "required": [
+          "slug",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ProfileStatsDto": {
+        "required": [
+          "swipeCount",
+          "genresExplored",
+          "eventsMarked"
+        ],
+        "type": "object",
+        "properties": {
+          "swipeCount": {
+            "type": "integer",
+            "description": "Canciones calificadas.",
+            "format": "int32"
+          },
+          "genresExplored": {
+            "type": "integer",
+            "description": "G\u00E9neros distintos entre las canciones calificadas.",
+            "format": "int32"
+          },
+          "eventsMarked": {
+            "type": "integer",
+            "description": "Eventos con asistencia marcada (no implica que haya ido).",
+            "format": "int32"
+          }
+        }
+      },
+      "PublicProfileDto": {
+        "required": [
+          "id",
+          "displayName",
+          "age",
+          "city",
+          "bio",
+          "genres",
+          "artists",
+          "stats",
+          "common",
+          "myReactions",
+          "likedByMe",
+          "matched",
+          "canLike"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "age": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileGenreDto"
+            },
+            "description": "G\u00E9neros con m\u00E1s peso en su ADN (m\u00E1x. 8)."
+          },
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileArtistDto"
+            },
+            "description": "Su top de artistas (m\u00E1x. 12)."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/ProfileStatsDto"
+          },
+          "common": {
+            "$ref": "#/components/schemas/ProfileCommonDto"
+          },
+          "myReactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyReactionDto"
+            },
+            "description": "Las reacciones que quien llama dej\u00F3 en este perfil."
+          },
+          "likedByMe": {
+            "type": "boolean",
+            "description": "Quien llama ya le dio like (en cualquier evento), haya o no match. Igual que en el radar. False en el perfil propio."
+          },
+          "matched": {
+            "type": "boolean",
+            "description": "Hay un match activo entre los dos: manda sobre LikedByMe. False en el perfil propio."
+          },
+          "canLike": {
+            "type": "boolean",
+            "description": "POST /likes hacia esta persona responder\u00EDa 200 ahora: van a un mismo evento vigente. False si hay match o en el perfil propio."
+          }
+        },
+        "description": "Perfil de otra persona visto por quien llama."
+      },
+      "PushTokenRequest": {
+        "required": [
+          "token",
+          "platform"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "ExponentPushToken[...] o ExpoPushToken[...]."
+          },
+          "platform": {
+            "$ref": "#/components/schemas/DevicePlatform"
+          }
+        }
+      },
+      "PutBackupRequest": {
+        "required": [
+          "version",
+          "ciphertext",
+          "nonce",
+          "salt",
+          "kdf"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "M\u00E1x. 10 MiB. Cifrado en el dispositivo con una llave derivada de la passphrase.",
+            "format": "byte"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "24 B.",
+            "format": "byte"
+          },
+          "salt": {
+            "type": "string",
+            "description": "16 a 64 B.",
+            "format": "byte"
+          },
+          "kdf": {
+            "$ref": "#/components/schemas/KdfParams"
+          }
+        }
+      },
+      "RadarEntryDto": {
+        "required": [
+          "userId",
+          "displayName",
+          "age",
+          "city",
+          "affinity",
+          "sharedGenres",
+          "likedByMe",
+          "matched"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "age": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "affinity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Afinidad 0\u2013100 (coseno entre vectores de g\u00E9neros), o null si alguno de los dos a\u00FAn no tiene se\u00F1al suficiente (pocos swipes y sin Spotify) o ning\u00FAn g\u00E9nero con peso positivo.",
+            "format": "int32"
+          },
+          "sharedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Slugs de g\u00E9neros con peso en ambos ADN (m\u00E1x. 3, de mayor a menor)."
+          },
+          "likedByMe": {
+            "type": "boolean"
+          },
+          "matched": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReactionFromDto": {
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "ReactionRequest": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "reaction"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string",
+            "description": "Slug del g\u00E9nero o key del artista; debe estar en el perfil de esa persona."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          }
+        }
+      },
+      "ReactionTargetKind": {
+        "enum": [
+          "artist",
+          "genre"
+        ]
+      },
+      "ReactionType": {
+        "enum": [
+          "meToo",
+          "letsGo",
+          "sendOne"
+        ],
+        "description": "\u0022Yo tambi\u00E9n\u0022, \u0022Vamos a verlo\u0022, \u0022P\u00E1same una\u0022."
+      },
+      "ReceivedReactionDto": {
+        "required": [
+          "targetKind",
+          "targetKey",
+          "targetName",
+          "reaction",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "targetName": {
+            "type": "string",
+            "description": "Nombre del artista o del g\u00E9nero, para mostrarlo sin otra consulta."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Resumen de reacciones recibidas, agregado por objetivo y tipo. El detalle con qui\u00E9n est\u00E1 en \u0060/me/reactions/received\u0060."
+      },
+      "ReceivedReactionItemDto": {
+        "required": [
+          "from",
+          "targetKind",
+          "targetKey",
+          "targetName",
+          "reaction",
+          "reactedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/ReactionFromDto"
+          },
+          "targetKind": {
+            "$ref": "#/components/schemas/ReactionTargetKind"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "targetName": {
+            "type": "string",
+            "description": "Nombre del artista o g\u00E9nero cuando se reaccion\u00F3 (puede ya no estar en mi perfil)."
+          },
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionType"
+          },
+          "reactedAt": {
+            "type": "string",
+            "description": "Cu\u00E1ndo se puso o se cambi\u00F3 por \u00FAltima vez.",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReceivedReactionPage": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceivedReactionItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Pasarlo como \u0060?before\u0060 para la p\u00E1gina siguiente; null si no hay m\u00E1s."
+          }
+        }
+      },
+      "RefreshRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "password",
+          "displayName",
+          "acceptTerms",
+          "consentVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Se normaliza (trim \u002B min\u00FAsculas)."
+          },
+          "password": {
+            "type": "string",
+            "description": "12 a 72 bytes UTF-8."
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "acceptTerms": {
+            "type": "boolean",
+            "description": "Debe ser true: acepta t\u00E9rminos y pol\u00EDtica de tratamiento de datos."
+          },
+          "consentVersion": {
+            "type": "string",
+            "description": "Versi\u00F3n aceptada; debe coincidir con GET /api/v1/legal/current."
+          }
+        }
+      },
+      "ReportAction": {
+        "enum": [
+          "dismiss",
+          "resolve",
+          "ban"
+        ]
+      },
+      "ReportCreatedDto": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ReportEvidenceRequest": {
+        "required": [
+          "messageId",
+          "plaintext",
+          "frankingKey"
+        ],
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plaintext": {
+            "type": "string"
+          },
+          "frankingKey": {
+            "type": "string",
+            "description": "32 B, la llave que ven\u00EDa dentro del mensaje descifrado.",
+            "format": "byte"
+          }
+        }
+      },
+      "ReportReason": {
+        "enum": [
+          "spam",
+          "harassment",
+          "inappropriate",
+          "fakeProfile",
+          "underage",
+          "other"
+        ]
+      },
+      "ReportRequest": {
+        "required": [
+          "userId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "matchId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidence": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ReportEvidenceRequest"
+            },
+            "description": "Mensajes que quien reporta decide revelar (m\u00E1x. 20). Se verifican con franking si el mensaje lo trae."
+          }
+        }
+      },
+      "ReportStatus": {
+        "enum": [
+          "open",
+          "resolved",
+          "dismissed"
+        ]
+      },
+      "ResolveReportRequest": {
+        "required": [
+          "action"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "description": "dismiss: sin m\u00E9rito \u00B7 resolve: atendido sin sanci\u00F3n \u00B7 ban: suspende al reportado.",
+            "$ref": "#/components/schemas/ReportAction"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SendMessageRequest": {
+        "required": [
+          "id",
+          "version",
+          "senderBoxKeyId",
+          "recipientBoxKeyId",
+          "nonce",
+          "ciphertext"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "UUID generado por el cliente: idempotencia y parte del AAD.",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Versi\u00F3n del formato de cifrado (1).",
+            "format": "int32"
+          },
+          "senderBoxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recipientBoxKeyId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonce": {
+            "type": "string",
+            "description": "24 B (XChaCha20-Poly1305).",
+            "format": "byte"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "Incluye el tag de 16 B. M\u00E1x. 64 KiB.",
+            "format": "byte"
+          },
+          "frankingTag": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Opcional, 32 B: HMAC-SHA256(frankingKey, \u0022ENCORELY-FRANK-v1\u0022 \u2016 id (16 B) \u2016 texto UTF-8). La frankingKey viaja dentro del ciphertext.",
+            "format": "byte"
+          }
+        }
+      },
+      "SessionDto": {
+        "required": [
+          "id",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt",
+          "current"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "current": {
+            "type": "boolean"
+          }
+        },
+        "description": "Una sesi\u00F3n = una familia de refresh tokens (un dispositivo con sesi\u00F3n iniciada)."
+      },
+      "SongDto": {
+        "required": [
+          "id",
+          "title",
+          "artist",
+          "genre",
+          "genreName",
+          "coverUrl",
+          "previewUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string",
+            "description": "Slug del g\u00E9nero."
+          },
+          "genreName": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string"
+          },
+          "previewUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Preview de 30 s (iTunes). null si no hay."
+          }
+        }
+      },
+      "SpotifyArtist": {
+        "required": [
+          "name",
+          "genres"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Opcional: \u0060images[0].url\u0060 de Spotify. Solo se guarda si es https de i.scdn.co; si no, se ignora."
+          }
+        }
+      },
+      "SpotifyAuthResponse": {
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn",
+          "user",
+          "isNewUser"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "isNewUser": {
+            "type": "boolean",
+            "description": "true si este login cre\u00F3 la cuenta (sin contrase\u00F1a, onboarding pendiente)."
+          }
+        }
+      },
+      "SpotifyGrant": {
+        "required": [
+          "code",
+          "codeVerifier",
+          "redirectUri"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Authorization code recibido en la redirect URI. De un solo uso."
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "El verifier PKCE con el que se gener\u00F3 el challenge (43 a 128 caracteres)."
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "La misma de la autorizaci\u00F3n; debe estar en la lista permitida del servidor."
+          }
+        },
+        "description": "Resultado del flujo PKCE de Spotify en el dispositivo. El back canjea el code: el cliente no lo hace."
+      },
+      "SpotifyImportRequest": {
+        "required": [
+          "topArtists"
+        ],
+        "type": "object",
+        "properties": {
+          "topArtists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpotifyArtist"
+            }
+          }
+        },
+        "description": "Gustos importados de Spotify por el cliente (PKCE en el dispositivo; el token nunca llega al servidor)."
+      },
+      "SpotifyImportResponse": {
+        "required": [
+          "genres",
+          "swipeCount",
+          "radarThreshold",
+          "radarUnlocked",
+          "unmappedGenres"
+        ],
+        "type": "object",
+        "properties": {
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DnaGenreDto"
+            }
+          },
+          "swipeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarThreshold": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "radarUnlocked": {
+            "type": "boolean"
+          },
+          "unmappedGenres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "G\u00E9neros recibidos que no aportaron al ADN (sin repetidos, en el orden en que llegaron, m\u00E1x. 50). Si todos\n    quedan aqu\u00ED, la importaci\u00F3n no cambi\u00F3 el ADN y conviene avisarlo."
+          }
+        },
+        "description": "El ADN tras importar, m\u00E1s los g\u00E9neros de Spotify que no se pudieron llevar a ning\u00FAn g\u00E9nero del cat\u00E1logo."
+      },
+      "SpotifyLoginRequest": {
+        "required": [
+          "code",
+          "codeVerifier",
+          "redirectUri",
+          "acceptTerms"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Authorization code recibido en la redirect URI. De un solo uso."
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "El verifier PKCE con el que se gener\u00F3 el challenge (43 a 128 caracteres)."
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "La misma de la autorizaci\u00F3n; debe estar en la lista permitida del servidor."
+          },
+          "acceptTerms": {
+            "type": "boolean",
+            "description": "Solo se exige si se crea una cuenta nueva; en el login de una cuenta existente se ignora."
+          },
+          "consentVersion": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Versi\u00F3n aceptada; debe coincidir con GET /api/v1/legal/current si se crea la cuenta."
+          }
+        },
+        "description": "Entrar con Spotify: el grant PKCE m\u00E1s el consentimiento, que solo cuenta si se crea la cuenta."
+      },
+      "SwipeDirection": {
+        "enum": [
+          "like",
+          "dislike"
+        ]
+      },
+      "SwipeRequest": {
+        "required": [
+          "songId",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "songId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SwipeDirection"
+          }
+        }
+      },
+      "SwipeResponse": {
+        "required": [
+          "counted",
+          "swipeCount"
+        ],
+        "type": "object",
+        "properties": {
+          "counted": {
+            "type": "boolean",
+            "description": "false si esa canci\u00F3n ya estaba calificada (repetir no suma)."
+          },
+          "swipeCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateMeRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "birthDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "yyyy-MM-dd; 18 a\u00F1os o m\u00E1s.",
+            "format": "date"
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "genres": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Reemplaza la lista completa de g\u00E9neros declarados (slugs, 1 a 10)."
+          },
+          "showProfileToOthers": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "description": "Apagado: nadie m\u00E1s ve mi perfil ni puede reaccionarle, y mis reacciones dejan de mostrarse."
+          }
+        },
+        "description": "PATCH: los campos null no cambian. Bio vac\u00EDa (\u0022\u0022) la borra."
+      },
+      "UploadKeysRequest": {
+        "required": [
+          "identityKey",
+          "boxKey",
+          "boxKeyId",
+          "boxKeySig"
+        ],
+        "type": "object",
+        "properties": {
+          "identityKey": {
+            "type": "string",
+            "description": "Ed25519 p\u00FAblica, 32 B.",
+            "format": "byte"
+          },
+          "boxKey": {
+            "type": "string",
+            "description": "X25519 p\u00FAblica, 32 B.",
+            "format": "byte"
+          },
+          "boxKeyId": {
+            "type": "integer",
+            "description": "Debe ser mayor que el \u00FAltimo publicado por el usuario (tambi\u00E9n tras reinstalar).",
+            "format": "int32"
+          },
+          "boxKeySig": {
+            "type": "string",
+            "description": "Firma Ed25519 (64 B) de \u0022ENCORELY-BOXKEY-v1\u0022 \u2016 boxKeyId (u32 big-endian) \u2016 boxKey. La verifica el cliente.",
+            "format": "byte"
+          }
+        },
+        "description": "Publica (o rota) las llaves P\u00DABLICAS del usuario. El servidor nunca recibe privadas."
+      },
+      "UserRole": {
+        "enum": [
+          "user",
+          "admin"
+        ]
+      },
+      "UserStatus": {
+        "enum": [
+          "active",
+          "banned"
+        ]
+      },
+      "UserStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Access token de /auth/login, /auth/register o /auth/refresh.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Legal"
+    },
+    {
+      "name": "Perfil"
+    },
+    {
+      "name": "Perfil social"
+    },
+    {
+      "name": "M\u00FAsica"
+    },
+    {
+      "name": "Eventos"
+    },
+    {
+      "name": "Match"
+    },
+    {
+      "name": "Llaves E2EE"
+    },
+    {
+      "name": "Chat"
+    },
+    {
+      "name": "Moderaci\u00F3n"
+    },
+    {
+      "name": "Push"
+    },
+    {
+      "name": "Respaldo cifrado"
+    },
+    {
+      "name": "Vincular dispositivo"
+    },
+    {
+      "name": "Sesiones"
+    },
+    {
+      "name": "Administraci\u00F3n"
+    }
+  ]
+}

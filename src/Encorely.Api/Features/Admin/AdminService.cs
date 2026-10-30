@@ -1,0 +1,307 @@
+using Encorely.Api.Features.Auth;
+using Encorely.Api.Features.Events;
+using Encorely.Api.Features.Matching;
+using Encorely.Api.Features.Moderation;
+using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Users;
+using Encorely.Api.Infrastructure.Auth;
+using Encorely.Api.Infrastructure.Database;
+using Encorely.Api.Infrastructure.Http;
+using Encorely.Api.Infrastructure.Realtime;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace Encorely.Api.Features.Admin;
+
+public sealed class AdminService(
+    AppDbContext db, Notifier notifier, SessionRevoker sessions, BannedEmailHasher bannedEmails, TimeProvider clock, ILogger<AdminService> logger)
+{
+    public async Task<IReadOnlyList<AdminEventDto>> ListEventsAsync(bool includePast, int limit, int offset, CancellationToken ct)
+    {
+        if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (offset is < 0 or > 100_000) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El offset debe estar entre 0 y 100000.");
+        var now = clock.GetUtcNow();
+        // Id desempata: dos eventos a la misma hora no deben repetirse ni saltarse entre páginas.
+        return await db.Events
+            .Where(e => includePast || e.StartsAt > now)
+            .OrderBy(e => e.StartsAt).ThenBy(e => e.Id)
+            .Skip(offset).Take(limit)
+            .Select(e => new AdminEventDto(e.Id, e.Name, e.ArtistLineup, e.Venue, e.City, e.StartsAt, e.ImageUrl, e.Description,
+                e.IsPublished, db.EventAttendances.Count(a => a.EventId == e.Id), e.CreatedAt))
+            .ToListAsync(ct);
+    }
+
+    public async Task<AdminEventDto> CreateEventAsync(AdminEventRequest request, CancellationToken ct)
+    {
+        var e = new Event { Name = "", Venue = "", City = "" };
+        Apply(e, request);
+        db.Events.Add(e);
+        await db.SaveChangesAsync(ct);
+        return await GetEventAsync(e.Id, ct);
+    }
+
+    public async Task<AdminEventDto> UpdateEventAsync(Guid id, AdminEventRequest request, CancellationToken ct)
+    {
+        var e = await db.Events.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw EventNotFound();
+        Apply(e, request);
+        await db.SaveChangesAsync(ct);
+        return await GetEventAsync(id, ct);
+    }
+
+    public async Task DeleteEventAsync(Guid id, CancellationToken ct)
+    {
+        if (await db.Events.Where(e => e.Id == id).ExecuteDeleteAsync(ct) == 0) throw EventNotFound();
+    }
+
+    public async Task<IReadOnlyList<AdminSongDto>> ListSongsAsync(string? query, string? genre, int limit, int offset, CancellationToken ct)
+    {
+        if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (offset is < 0 or > 100_000) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El offset debe estar entre 0 y 100000.");
+        var songs = db.Songs.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var pattern = $"%{query.Trim()}%";
+            songs = songs.Where(s => EF.Functions.ILike(s.Title, pattern) || EF.Functions.ILike(s.Artist, pattern));
+        }
+        if (!string.IsNullOrWhiteSpace(genre)) songs = songs.Where(s => s.Genre!.Slug == genre);
+
+        // Id desempata: sin un orden total, dos páginas con offset podrían repetir o saltarse canciones.
+        return await songs.OrderBy(s => s.Artist).ThenBy(s => s.Title).ThenBy(s => s.Id).Skip(offset).Take(limit)
+            .Select(s => new AdminSongDto(s.Id, s.Title, s.Artist, s.Genre!.Slug, s.CoverUrl, s.PreviewUrl, s.ITunesTrackId, s.IsActive,
+                db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Like),
+                db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Dislike)))
+            .ToListAsync(ct);
+    }
+
+    public async Task<AdminSongDto> CreateSongAsync(AdminSongRequest request, CancellationToken ct)
+    {
+        var song = new Song { Title = "", Artist = "", CoverUrl = "" };
+        await ApplyAsync(song, request, ct);
+        db.Songs.Add(song);
+        await SaveSongAsync(ct);
+        return await GetSongAsync(song.Id, ct);
+    }
+
+    /// <summary>No hay borrado: los swipes ya sumaron al ADN. isActive=false la saca del feed.</summary>
+    public async Task<AdminSongDto> UpdateSongAsync(Guid id, AdminSongRequest request, CancellationToken ct)
+    {
+        var song = await db.Songs.FirstOrDefaultAsync(s => s.Id == id, ct)
+            ?? throw ApiException.NotFound(ErrorCodes.SongNotFound, "No encontramos esa canción.");
+        var genreChanged = (await GenreIdAsync(request.Genre, ct)) != song.GenreId;
+        if (genreChanged && await db.Swipes.AnyAsync(w => w.SongId == id, ct))
+            throw ApiException.Conflict("song_has_swipes", "No se puede cambiar el género de una canción ya calificada.",
+                "Cambiarlo dejaría inconsistente el ADN de quienes la calificaron. Desactívala y crea otra.");
+        await ApplyAsync(song, request, ct);
+        await SaveSongAsync(ct);
+        return await GetSongAsync(id, ct);
+    }
+
+    /// <summary>
+    /// De los más antiguos a los más nuevos por (createdAt, id). Cursor y no offset: la cola se vacía mientras se modera y un
+    /// offset se saltaría reportes. Para la página siguiente se pasan createdAt e id del último recibido como afterAt y afterId.
+    /// </summary>
+    public async Task<IReadOnlyList<AdminReportDto>> ListReportsAsync(ReportStatus status, int limit, DateTimeOffset? afterAt, Guid? afterId, CancellationToken ct)
+    {
+        if (limit is < 1 or > 200) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "El límite debe estar entre 1 y 200.");
+        if (afterAt.HasValue != afterId.HasValue)
+            throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "afterAt y afterId van juntos.");
+        var query = db.Reports.Where(r => r.Status == status);
+        if (afterAt is { } at && afterId is { } id)
+        {
+            var cursorAt = at.ToUniversalTime();
+            query = query.Where(r => r.CreatedAt > cursorAt || (r.CreatedAt == cursorAt && r.Id.CompareTo(id) > 0));
+        }
+        var reports = await query.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).Take(limit).ToListAsync(ct);
+        return await ToDtosAsync(reports, ct);
+    }
+
+    public async Task<AdminReportDto> ResolveReportAsync(Guid adminId, Guid reportId, ResolveReportRequest request, CancellationToken ct)
+    {
+        // Una sola transacción: dos admins a la vez no aplican dos acciones al mismo reporte, y el ban no queda
+        // confirmado si la resolución falla después.
+        Report report;
+        StatusChange? change = null;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            await AdvisoryLock.AcquireAsync(db, "report", reportId, ct);
+            report = await db.Reports.FirstOrDefaultAsync(r => r.Id == reportId, ct)
+                ?? throw ApiException.NotFound("report_not_found", "No encontramos ese reporte.");
+            if (report.Status != ReportStatus.Open)
+                throw ApiException.Conflict("report_already_resolved", "Ese reporte ya fue resuelto.");
+
+            if (request.Action == ReportAction.Ban)
+            {
+                if (report.ReportedUserId is not { } reported)
+                    throw ApiException.BadRequest("reported_user_deleted", "La cuenta reportada ya no existe.");
+                change = await ApplyStatusAsync(adminId, reported, UserStatus.Banned, ct);
+            }
+
+            report.Status = request.Action == ReportAction.Dismiss ? ReportStatus.Dismissed : ReportStatus.Resolved;
+            report.ResolutionNote = Text.Clean(request.Note);
+            report.ResolvedByUserId = adminId;
+            report.ResolvedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+
+        if (change is not null) await AfterCommitAsync(adminId, change);
+        return (await ToDtosAsync([report], ct))[0];
+    }
+
+    /// <summary>Suspender: cierra todos sus matches activos, revoca sus sesiones y el JWT vigente deja de servir (UseActiveUserCheck).</summary>
+    public async Task SetUserStatusAsync(Guid adminId, Guid userId, UserStatus status, CancellationToken ct)
+    {
+        StatusChange? change;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            change = await ApplyStatusAsync(adminId, userId, status, ct);
+            if (change is null) return;
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+        await AfterCommitAsync(adminId, change);
+    }
+
+    private sealed record StatusChange(Guid UserId, UserStatus Status, List<Match> Closed);
+
+    /// <summary>Exige una transacción abierta y no confirma: quien llama decide el commit. Null si no hubo cambio.</summary>
+    private async Task<StatusChange?> ApplyStatusAsync(Guid adminId, Guid userId, UserStatus status, CancellationToken ct)
+    {
+        if (userId == adminId) throw ApiException.BadRequest("cannot_change_own_status", "No puedes cambiar el estado de tu propia cuenta.");
+        var now = clock.GetUtcNow();
+        // Exclusivo: un like en vuelo (que toma este mismo lock compartido) termina antes de suspender o ve la cuenta ya suspendida.
+        await AdvisoryLock.AcquireAsync(db, MatchingService.AccountStateScope, userId, ct);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct)
+            ?? throw ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos esa cuenta.");
+        // Un admin comprometido no debe poder sacar a los demás; eso se hace en la base, no desde el panel.
+        if (user.Role == UserRole.Admin)
+            throw ApiException.Forbidden("cannot_change_admin_status", "No puedes cambiar el estado de otro administrador.");
+        if (user.Status == status) return null;
+
+        user.Status = status;
+        user.UpdatedAt = now;
+        List<Match> closed = [];
+        if (status == UserStatus.Active)
+        {
+            // Reactivar levanta también el veto de re-registro.
+            var hash = bannedEmails.Hash(user.Email);
+            var legacy = BannedEmailHasher.LegacyHash(user.Email);
+            await db.BannedEmails.Where(b => b.EmailHash == hash || b.EmailHash == legacy).ExecuteDeleteAsync(ct);
+        }
+        if (status == UserStatus.Banned)
+        {
+            var emailHash = bannedEmails.Hash(user.Email);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"INSERT INTO banned_emails (email_hash, created_at) VALUES ({emailHash}, {now}) ON CONFLICT (email_hash) DO NOTHING", ct);
+            closed = await db.Matches.Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId)).ToListAsync(ct);
+            foreach (var m in closed)
+            {
+                m.Status = MatchStatus.Closed;
+                m.CloseReason = MatchCloseReason.Banned;
+                m.ClosedAt = now;
+                m.ClosedByUserId = adminId;
+            }
+            // Como en unmatch y bloqueo: si se reactiva, volver a hacer match exige dos likes nuevos (un like viejo de
+            // quien lo reportó no debe bastar para rehacer el contacto).
+            await db.UserLikes.Where(l => l.FromUserId == userId || l.ToUserId == userId).ExecuteDeleteAsync(ct);
+            await db.ProfileReactions.Where(r => r.FromUserId == userId || r.ToUserId == userId).ExecuteDeleteAsync(ct);
+            // Sesiones y avisos push del suspendido terminan con su acceso. El corte del hub de RevokeAllAsync puede
+            // adelantarse al commit (y reconectar con la cuenta aún activa): por eso se repite el Disconnect tras el commit.
+            await sessions.RevokeAllAsync(userId, ct);
+        }
+        return new StatusChange(userId, status, closed);
+    }
+
+    private async Task AfterCommitAsync(Guid adminId, StatusChange change)
+    {
+        logger.LogInformation("Cuenta {UserId} pasó a {Status} por el admin {AdminId}", change.UserId, change.Status, adminId);
+        if (change.Status == UserStatus.Banned) notifier.Disconnect(change.UserId);
+        foreach (var m in change.Closed) await notifier.MatchClosedAsync(m.Id, m.UserAId, m.UserBId);
+    }
+
+    private async Task<List<AdminReportDto>> ToDtosAsync(List<Report> reports, CancellationToken ct)
+    {
+        var userIds = reports.SelectMany(r => new[] { r.ReporterId, r.ReportedUserId }).OfType<Guid>().Distinct().ToList();
+        var users = await db.Users.Where(u => userIds.Contains(u.Id))
+            .Select(u => new AdminUserRef(u.Id, u.DisplayName, u.Email, u.Status)).ToDictionaryAsync(u => u.Id, ct);
+        var reportedIds = reports.Select(r => r.ReportedUserId).OfType<Guid>().Distinct().ToList();
+        // Se cuentan personas, no reportes: insistir no infla el historial. Un reporte de una cuenta ya borrada cuenta solo.
+        var reporters = (await db.Reports.Where(r => r.ReportedUserId != null && reportedIds.Contains(r.ReportedUserId.Value))
+                .Select(r => new { Reported = r.ReportedUserId!.Value, r.ReporterId, r.Id }).ToListAsync(ct))
+            .ToLookup(x => x.Reported, x => x.ReporterId?.ToString() ?? x.Id.ToString());
+        int OthersReporting(Report r) => r.ReportedUserId is { } reported
+            ? reporters[reported].Where(k => k != (r.ReporterId?.ToString() ?? r.Id.ToString())).Distinct().Count()
+            : 0;
+
+        return reports.Select(r => new AdminReportDto(
+            r.Id,
+            r.ReporterId is { } a ? users.GetValueOrDefault(a) : null,
+            r.ReportedUserId is { } b ? users.GetValueOrDefault(b) : null,
+            r.MatchId,
+            r.Reason,
+            r.Detail,
+            r.Evidence.Select(e => new AdminEvidenceDto(e.MessageId, e.Plaintext, e.Verified)).ToList(),
+            r.Status,
+            r.ResolutionNote,
+            r.CreatedAt,
+            r.ResolvedAt,
+            OthersReporting(r),
+            r.EvidencePurgedAt)).ToList();
+    }
+
+    private static void Apply(Event e, AdminEventRequest r)
+    {
+        e.Name = r.Name.Trim();
+        e.ArtistLineup = r.ArtistLineup.Select(a => a.Trim()).Where(a => a.Length > 0).Distinct().ToList();
+        e.Venue = r.Venue.Trim();
+        e.City = r.City.Trim();
+        e.StartsAt = r.StartsAt.ToUniversalTime();
+        e.ImageUrl = Text.Clean(r.ImageUrl);
+        e.Description = Text.Clean(r.Description);
+        e.IsPublished = r.IsPublished;
+        if (e.ArtistLineup.Count == 0) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "Agrega al menos un artista.");
+    }
+
+    private async Task ApplyAsync(Song s, AdminSongRequest r, CancellationToken ct)
+    {
+        s.Title = r.Title.Trim();
+        s.Artist = r.Artist.Trim();
+        s.GenreId = await GenreIdAsync(r.Genre, ct);
+        s.CoverUrl = r.CoverUrl.Trim();
+        s.PreviewUrl = Text.Clean(r.PreviewUrl);
+        s.ITunesTrackId = r.ITunesTrackId;
+        s.IsActive = r.IsActive;
+    }
+
+    private async Task<int> GenreIdAsync(string slug, CancellationToken ct)
+        => await db.Genres.Where(g => g.Slug == slug).Select(g => (int?)g.Id).FirstOrDefaultAsync(ct)
+           ?? throw ApiException.BadRequest(ErrorCodes.UnknownGenre, "Ese género no existe.");
+
+    private async Task SaveSongAsync(CancellationToken ct)
+    {
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            throw ApiException.Conflict("song_duplicate", "Esa canción de iTunes ya está en el catálogo.");
+        }
+    }
+
+    private Task<AdminEventDto> GetEventAsync(Guid id, CancellationToken ct) => db.Events.Where(e => e.Id == id)
+        .Select(e => new AdminEventDto(e.Id, e.Name, e.ArtistLineup, e.Venue, e.City, e.StartsAt, e.ImageUrl, e.Description,
+            e.IsPublished, db.EventAttendances.Count(a => a.EventId == e.Id), e.CreatedAt))
+        .FirstAsync(ct);
+
+    private async Task<AdminSongDto> GetSongAsync(Guid id, CancellationToken ct)
+        => (await ListSongsByIdAsync(id, ct)) ?? throw ApiException.NotFound(ErrorCodes.SongNotFound, "No encontramos esa canción.");
+
+    private Task<AdminSongDto?> ListSongsByIdAsync(Guid id, CancellationToken ct) => db.Songs.Where(s => s.Id == id)
+        .Select(s => new AdminSongDto(s.Id, s.Title, s.Artist, s.Genre!.Slug, s.CoverUrl, s.PreviewUrl, s.ITunesTrackId, s.IsActive,
+            db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Like),
+            db.Swipes.Count(w => w.SongId == s.Id && w.Direction == SwipeDirection.Dislike)))
+        .FirstOrDefaultAsync(ct);
+
+    private static ApiException EventNotFound() => ApiException.NotFound(ErrorCodes.EventNotFound, "No encontramos ese evento.");
+}

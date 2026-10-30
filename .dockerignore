@@ -1,23 +1,12 @@
-# Build outputs
 **/bin/
 **/obj/
-**/bin_old/
-**/obj_old/
 .artifacts/
-
-# Git / IDE / OS
 .git/
 .github/
-.vs/
-.vscode/
-*.user
-*.suo
-
-# Local environment & secrets
+.claude/
 .env
-*.env
-
-# Docs & infra not needed inside the image
+.env.*
+db/
+tests/
+contracts/
 *.md
-docker-compose.yml
-infrastructure/

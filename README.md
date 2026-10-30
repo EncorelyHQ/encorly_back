@@ -1,92 +1,117 @@
-# 🎸 Encorely - Event-Driven Backend
+# Encorely · API
 
-[![.NET 9](https://img.shields.io/badge/.NET-9.0-512bd4?logo=dotnet)](https://dotnet.microsoft.com/download)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20EDA-blue)](#-arquitectura)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+Back de Encorely: conecta a personas que van al mismo concierto según su gusto musical real.
+.NET 10 · ASP.NET Core Minimal APIs · EF Core 10 + PostgreSQL 16 · SignalR · chat cifrado de extremo a extremo.
 
-**Encorely** es el motor backend de alto rendimiento diseñado para conectar a fans de música en vivo. Utiliza un enfoque basado en eventos (**Event-Driven Architecture**) y **Clean Architecture** para procesar el ADN musical de los usuarios y generar conexiones (matches) basadas en afinidad real.
+- Contrato: [`contracts/openapi.v1.json`](contracts/openapi.v1.json) (generado desde el código, con [CHANGELOG](contracts/CHANGELOG.md)).
+- Arquitectura, modelo de datos y modelo de amenazas del chat: [`ARCHITECTURE.md`](ARCHITECTURE.md).
+- App móvil: repo `encorely-front`, rama `rebuild/v1`.
 
----
+## Levantarlo en local (menos de 15 min)
 
-## 🏗️ Arquitectura y Diseño
+Requisitos: Docker con `docker compose` v2 y el SDK de .NET 10. Con [mise](https://mise.jdx.dev) basta `mise install`
+en la raíz (lee `mise.toml`). Sin SDK también funciona: ver la opción B.
 
-El sistema está construido bajo los principios de **Clean Architecture**, asegurando que el núcleo de negocio sea independiente de las tecnologías externas:
+```bash
+# 1. Configuración
+cp .env.example .env
+#    Completa en .env:
+#      DB_PASSWORD         la que quieras (crea la BD local con ella)
+#      JWT_SIGNING_KEY     openssl rand -base64 48
+#      BANNED_EMAIL_KEY    openssl rand -base64 48 (otra distinta)
+#      DEMO_USER_PASSWORD  (opcional) contraseña de las 16 cuentas demo @encorely.demo
 
-### Capas del Proyecto
-- 📂 **EncorelyDomain**: El corazón del sistema. Contiene entidades (`User`, `Swipe`, `MusicalProfile`), eventos de dominio y enums.
-- 📂 **EncorelyApplication**: Orquestación de la lógica de negocio. Define interfaces, servicios (`CompatibilityService`, `MatchService`) y DTOs.
-- 📂 **EncorelyInfrastructure**: Implementaciones técnicas. Manejo de **PostgreSQL** vía **EF Core**, integración con **Apache Kafka** y clientes externos.
-- 📂 **EncorelyApi**: Capa de presentación. Controladores RESTful, Hubs de **SignalR** para notificaciones en tiempo real y configuración de Inyección de Dependencias.
-- 📂 **EncorelyWorker**: Servicio en segundo plano que consume eventos de **Kafka**, procesando el ADN musical de forma asíncrona.
+# 2. Postgres
+docker compose up -d
 
----
+# 3. API en http://localhost:5000 (migraciones + seed automáticos en Development)
+dotnet run --project src/Encorely.Api
+```
 
-## 🚀 Stack Tecnológico
+Opción B, todo en contenedores (sin SDK): `docker compose --profile full up -d --build` → API en `http://localhost:5000`.
+La API del contenedor corre en `Development`, igual que con `dotnet run`: usa el mismo `.env` local.
 
-| Componente | Tecnología |
-| :--- | :--- |
-| **Framework** | .NET 9.0 (ASP.NET Core) |
-| **Ingesta de Eventos** | Apache Kafka (KRaft) |
-| **Persistencia** | PostgreSQL 16 |
-| **Comunicación Dual** | REST API + SignalR (Real-time) |
-| **Contenedores** | Docker & Docker Compose |
-| **ORM** | Entity Framework Core |
+Comprobar:
 
----
+```bash
+curl http://localhost:5000/health/ready      # Healthy
+open http://localhost:5000/swagger           # Swagger UI (solo Development)
+```
 
-## 🎸 Core Engine: Musical DNA & Affinity
+Desde el emulador de Android la API es `http://10.0.2.2:5000`; desde un teléfono en la misma red, `http://<IP-del-PC>:5000`
+(la API escucha en `0.0.0.0:5000`).
 
-### 1. Sound-Swipe & Processing
-Cada interacción del usuario emite un evento asíncrono a **Kafka**. El `EncorelyWorker` analiza estos eventos para refinar el `MusicalProfile` (Energy, Danceability, Valence).
+### Datos de demostración
 
-### 2. El Umbral de los 25 Swipes
-Para garantizar conexiones de calidad, el sistema impone un **Threshold** de **25 swipes** antes de habilitar funciones sociales como el Radar o el Chat. Esto asegura que el ADN musical sea estadísticamente relevante.
+Al arrancar en Development se siembra, de forma idempotente:
 
-### 3. Motor de Afinidad (Euclidean Algorithm)
-Utilizamos un algoritmo de **Distancia Euclidiana** en un espacio tridimensional de atributos musicales. Solo los usuarios con una compatibilidad **superior al 70%** son visibles en el Radar.
+| Qué | Cuánto |
+|---|---|
+| Géneros | 15 (reguetón, vallenato, salsa, champeta, cumbia, rock en español, indie…) |
+| Canciones | ≥ 70 de la escena colombiana y latina, con portada y preview de 30 s de iTunes Search |
+| Eventos | ≥ 20 en Bogotá y Medellín, con fechas relativas al día del seed (siempre futuras) |
+| Usuarios demo | 16 cuentas `@encorely.demo` con gustos distintos y asistencias cruzadas, si `DEMO_USER_PASSWORD` tiene valor |
 
----
+Cuentas especiales: `admin@encorely.demo` (rol admin, para `/api/v1/admin/*`) y `revisor@encorely.demo` (cuenta para
+revisores de tiendas). La contraseña de todas es la de `DEMO_USER_PASSWORD`: no está en el repo.
 
-## 📡 Referencia de API Principal
+Fuera de `Development` la API no arranca con `DEMO_USER_PASSWORD` salvo que `SEED_REVIEWER_ONLY=true`, que siembra solo
+`revisor@` y su par (nunca el admin): la clave del revisor se entrega a terceros. El admin de producción se crea a mano, con
+una contraseña propia.
 
-| Método | Endpoint | Descripción |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/register` | Registro de usuario (Email/Pass/Google/Spotify). |
-| `GET` | `/api/v1/user/me` | Información del perfil y contador de swipes. |
-| `POST` | `/api/v1/swipes/interactions/swipe` | Registro de swipe (Desencadena evento Kafka). |
-| `GET` | `/api/v1/events/{id}/matches` | Radar de compatibilidad (Requiere 25 swipes). |
-| `POST` | `/api/v1/matches/{id}/accept` | Confirmar match y abrir sala de chat. |
+Para volver a empezar desde cero: `docker compose down -v` (borra el volumen de la BD local) y arrancar de nuevo.
 
----
+## Tests
 
-## ⚙️ Configuración del Entorno Local
+```bash
+dotnet test tests/Encorely.Tests
+```
 
-### Requisitos
-- Docker Desktop
-- .NET 9 SDK
+Usan un Postgres real en Docker (Testcontainers) y la API en memoria. Cubren, entre otros: que un usuario no lee ni escribe
+nada de otro en cada endpoint con recursos, que un like unilateral no crea match (y que likes cruzados concurrentes crean
+exactamente uno), que la BD y los logs no contienen el texto plano del chat (test canario), la rotación de refresh tokens con
+detección de reuso, y que ningún input inválido da 500.
 
-### Paso a Paso
-1. **Infraestructura**: Levanta la DB y Kafka:
-   ```bash
-   docker-compose up -d
-   ```
-2. **Variables**: Crea un archivo `.env` basado en `.env.example`.
-3. **Persistencia**: Aplica las migraciones:
-   ```bash
-   dotnet ef database update --project EncorelyApi
-   ```
-4. **Ejecución**: Lanza el API y el Worker:
-   ```bash
-   dotnet run --project EncorelyApi
-   ```
+`OpenApiContractTests` falla si el contrato versionado no coincide con el código. Tras cambiar endpoints o DTOs:
 
----
+```bash
+scripts/update-contract.sh     # regenera contracts/openapi.v1.json
+```
 
-## 📑 Estándares y Mejores Prácticas
-- **Identidad**: Autenticación Multi-Provider integrada.
-- **Seguridad**: Protección de secretos vía variables de entorno.
-- **Escalabilidad**: Desacoplamiento total entre la ingesta de swipes y el cálculo de afinidad.
-- **Logs**: Trazabilidad de hitos críticos (`[UMBRAL]`, `[DNA_COMPLETED]`).
+y anota el cambio en `contracts/CHANGELOG.md`.
 
----
-*Desarrollado con ❤️ por el equipo de Senior Solutions Architects.*
+## Migraciones
+
+```bash
+dotnet tool restore
+dotnet ef migrations add <Nombre> -p src/Encorely.Api -o Data/Migrations
+```
+
+En Development se aplican al arrancar (`DB_MIGRATE_ON_STARTUP=true`). En producción también, mientras haya una sola instancia.
+
+## Configuración
+
+Todas las variables están documentadas en [`.env.example`](.env.example). Ningún secreto tiene valor por defecto en el
+código: si falta `JWT_SIGNING_KEY`, `BANNED_EMAIL_KEY` o un dato de la BD, la API no arranca. `DB_SSL_MODE` acepta
+`Disable | Allow | Prefer | Require | VerifyCA | VerifyFull` (local: `Prefer`; producción: `Require` o superior).
+Fuera de Development la API tampoco arranca sin `FORWARDED_TRUSTED_NETWORKS` (redes del proxy) ni sin `PUBLIC_BASE_URL`
+(https). En el `.env`, un `#` precedido de espacio abre un comentario, como en docker compose.
+
+## Despliegue
+
+No se publica en esta entrega (D15), pero está preparado: `Dockerfile` (imagen sin secretos, usuario no root) y
+`render.yaml` (Blueprint de Render con Postgres y los secretos marcados para completar). CI en GitHub Actions: build con
+warnings como errores, tests con Postgres real y build de la imagen.
+
+## Estructura
+
+```
+src/Encorely.Api
+  Features/<Feature>/        Endpoints (rutas), Contracts (DTOs), Service (lógica), entidades
+    Auth Users Legal Music Events Matching Chat Moderation Devices Sync Sessions Admin
+  Infrastructure/            Auth (JWT), Http (ProblemDetails, validación), Database, Realtime (ChatHub), Push
+  Data/Migrations, Data/Seed (JSON curado embebido)
+tests/Encorely.Tests         xUnit v3 + WebApplicationFactory + Testcontainers
+contracts/                   openapi.v1.json + CHANGELOG.md
+scripts/                     update-contract.sh, curate_songs.py
+```

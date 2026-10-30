@@ -1,0 +1,193 @@
+using Encorely.Api.Features.Events;
+using Encorely.Api.Features.Music;
+using Encorely.Api.Features.Users;
+using Encorely.Api.Infrastructure.Database;
+using Encorely.Api.Infrastructure.Http;
+using Encorely.Api.Infrastructure.Realtime;
+using Microsoft.EntityFrameworkCore;
+
+namespace Encorely.Api.Features.Matching;
+
+public sealed class MatchingService(AppDbContext db, Notifier notifier, TimeProvider clock)
+{
+    /// <summary>Ámbito del advisory lock del estado de cuenta: compartido en likes, exclusivo al suspender o reactivar.</summary>
+    public const string AccountStateScope = "account-state";
+
+    public async Task<LikeResponse> LikeAsync(Guid userId, LikeRequest request, CancellationToken ct)
+    {
+        var targetId = request.TargetUserId;
+        if (targetId == userId)
+            throw ApiException.BadRequest(ErrorCodes.CannotLikeSelf, "No puedes dar like a tu propio perfil.");
+
+        var targetActive = await db.Users.AnyAsync(u => u.Id == targetId && u.Status == UserStatus.Active, ct);
+        // El bloqueo se responde igual que "no existe" para no revelarlo.
+        if (!targetActive || await IsBlockedAsync(userId, targetId, ct))
+            throw UserNotFound();
+
+        var now = clock.GetUtcNow();
+        var sharedEvents = await SharedEventIds(db, userId, targetId, now).ToListAsync(ct);
+        if (sharedEvents.Count == 0 || (request.EventId is { } eventId && !sharedEvents.Contains(eventId)))
+            throw ApiException.Forbidden(ErrorCodes.NoSharedEvent, "Solo puedes dar like a alguien que va a un evento contigo.");
+
+        var (a, b) = Match.OrderPair(userId, targetId);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Compartidos y antes del PairLock: conviven entre likes y solo esperan a un ban en curso (que los toma exclusivos).
+        await AdvisoryLock.AcquireSharedAsync(db, AccountStateScope, userId, ct);
+        await AdvisoryLock.AcquireSharedAsync(db, AccountStateScope, targetId, ct);
+        await PairLock.AcquireAsync(db, userId, targetId, ct);
+
+        // Bajo los locks la suspensión o el bloqueo pudieron aparecer entre la validación y aquí: sin esto un like
+        // concurrente con el ban dejaba un match activo con el suspendido.
+        var activeCount = await db.Users.CountAsync(u => (u.Id == userId || u.Id == targetId) && u.Status == UserStatus.Active, ct);
+        if (activeCount != 2) throw UserNotFound();
+        if (await IsBlockedAsync(userId, targetId, ct)) throw UserNotFound();
+
+        var like = await db.UserLikes.FirstOrDefaultAsync(l => l.FromUserId == userId && l.ToUserId == targetId, ct);
+        if (like is null)
+        {
+            like = new UserLike { FromUserId = userId, ToUserId = targetId, EventId = request.EventId, CreatedAt = now };
+            db.UserLikes.Add(like);
+            await db.SaveChangesAsync(ct);
+        }
+
+        var existing = await db.Matches.FirstOrDefaultAsync(m => m.UserAId == a && m.UserBId == b && m.Status == MatchStatus.Active, ct);
+        if (existing is not null)
+        {
+            await tx.CommitAsync(ct);
+            return new LikeResponse(true, existing.Id);
+        }
+
+        var reciprocal = await db.UserLikes.FirstOrDefaultAsync(l => l.FromUserId == targetId && l.ToUserId == userId, ct);
+        if (reciprocal is null)
+        {
+            await tx.CommitAsync(ct);
+            return new LikeResponse(false, null);
+        }
+
+        var match = new Match { UserAId = a, UserBId = b, EventId = like.EventId ?? reciprocal.EventId, CreatedAt = now };
+        db.Matches.Add(match);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        await notifier.MatchCreatedAsync(match.Id, a, b);
+        return new LikeResponse(true, match.Id);
+    }
+
+    /// <summary>
+    /// Eventos publicados y aún vigentes (mismo corte que el radar) a los que van los dos. El like lo exige; el perfil lo usa
+    /// para canLike, así que los dos leen esta misma regla.
+    /// </summary>
+    public static IQueryable<Guid> SharedEventIds(AppDbContext db, Guid userId, Guid targetId, DateTimeOffset now)
+    {
+        var cutoff = EventWindow.Cutoff(now);
+        return from mine in db.EventAttendances
+               join theirs in db.EventAttendances on mine.EventId equals theirs.EventId
+               join e in db.Events on mine.EventId equals e.Id
+               where mine.UserId == userId && theirs.UserId == targetId && e.IsPublished && e.StartsAt > cutoff
+               select e.Id;
+    }
+
+    /// <summary>Sin limit responde como antes de paginar, con este tope: el cliente que no pagina no nota el cambio.</summary>
+    public const int MaxMatchesWithoutLimit = 500;
+
+    /// <summary>
+    /// Del más reciente al más viejo por (lastMessageAt ?? createdAt, id). Para la página siguiente se pasan esos dos valores
+    /// del último match recibido como beforeAt y beforeId.
+    /// </summary>
+    public async Task<IReadOnlyList<MatchDto>> ListAsync(Guid userId, int? limit, DateTimeOffset? beforeAt, Guid? beforeId, CancellationToken ct)
+    {
+        if (limit is < 1 or > 100) throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "limit debe estar entre 1 y 100.");
+        if (beforeAt.HasValue != beforeId.HasValue)
+            throw ApiException.BadRequest(ErrorCodes.ValidationFailed, "beforeAt y beforeId van juntos.");
+
+        var query = db.Matches.AsNoTracking()
+            .Where(m => m.Status == MatchStatus.Active && (m.UserAId == userId || m.UserBId == userId));
+        if (beforeAt is { } at && beforeId is { } id)
+        {
+            var cursorAt = at.ToUniversalTime();
+            query = query.Where(m => (m.LastMessageAt ?? m.CreatedAt) < cursorAt
+                || ((m.LastMessageAt ?? m.CreatedAt) == cursorAt && m.Id.CompareTo(id) < 0));
+        }
+        var matches = await query
+            .OrderByDescending(m => m.LastMessageAt ?? m.CreatedAt).ThenByDescending(m => m.Id)
+            .Take(limit ?? MaxMatchesWithoutLimit)
+            .ToListAsync(ct);
+        return await ToDtosAsync(userId, matches, ct);
+    }
+
+    public async Task<MatchDto> GetAsync(Guid userId, Guid matchId, CancellationToken ct)
+    {
+        var match = await db.Matches.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == matchId && (m.UserAId == userId || m.UserBId == userId), ct)
+            ?? throw MatchNotFound();
+        return (await ToDtosAsync(userId, [match], ct))[0];
+    }
+
+    public async Task UnmatchAsync(Guid userId, Guid matchId, CancellationToken ct)
+    {
+        var probe = await db.Matches.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == matchId && (m.UserAId == userId || m.UserBId == userId) && m.Status == MatchStatus.Active, ct)
+            ?? throw MatchNotFound();
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await PairLock.AcquireAsync(db, probe.UserAId, probe.UserBId, ct);
+
+        var match = await db.Matches.FirstOrDefaultAsync(m => m.Id == matchId && m.Status == MatchStatus.Active, ct)
+            ?? throw MatchNotFound();
+        match.Status = MatchStatus.Closed;
+        match.CloseReason = MatchCloseReason.Unmatched;
+        match.ClosedAt = clock.GetUtcNow();
+        match.ClosedByUserId = userId;
+        await db.SaveChangesAsync(ct);
+
+        var (a, b) = (match.UserAId, match.UserBId);
+        // Sin likes previos, volver a hacer match exige que ambos den like otra vez.
+        await db.UserLikes.Where(l => (l.FromUserId == a && l.ToUserId == b) || (l.FromUserId == b && l.ToUserId == a)).ExecuteDeleteAsync(ct);
+        await tx.CommitAsync(ct);
+
+        await notifier.MatchClosedAsync(match.Id, a, b);
+    }
+
+    private Task<bool> IsBlockedAsync(Guid x, Guid y, CancellationToken ct)
+        => db.Blocks.AnyAsync(b => (b.BlockerId == x && b.BlockedId == y) || (b.BlockerId == y && b.BlockedId == x), ct);
+
+    private static ApiException UserNotFound() => ApiException.NotFound(ErrorCodes.UserNotFound, "No encontramos a esa persona.");
+
+    private static ApiException MatchNotFound() => ApiException.NotFound(ErrorCodes.MatchNotFound, "No encontramos ese match.");
+
+    private async Task<IReadOnlyList<MatchDto>> ToDtosAsync(Guid userId, List<Match> matches, CancellationToken ct)
+    {
+        if (matches.Count == 0) return [];
+
+        var peerIds = matches.Select(m => m.PeerOf(userId)).Distinct().ToList();
+        var allIds = peerIds.Append(userId).ToList();
+        var eventIds = matches.Where(m => m.EventId != null).Select(m => m.EventId!.Value).Distinct().ToList();
+
+        var peers = await db.Users.AsNoTracking().Where(u => peerIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.DisplayName, u.BirthDate, u.City }).ToDictionaryAsync(u => u.Id, ct);
+        var scores = (await db.UserGenreScores.AsNoTracking().Where(s => allIds.Contains(s.UserId)).ToListAsync(ct))
+            .ToLookup(s => s.UserId);
+        var declared = (await db.UserGenres.AsNoTracking().Where(g => allIds.Contains(g.UserId))
+                .Select(g => new { g.UserId, g.GenreId }).ToListAsync(ct))
+            .ToLookup(g => g.UserId, g => g.GenreId);
+        var slugs = await db.Genres.AsNoTracking().ToDictionaryAsync(g => g.Id, g => g.Slug, ct);
+        var eventNames = await db.Events.AsNoTracking().Where(e => eventIds.Contains(e.Id)).ToDictionaryAsync(e => e.Id, e => e.Name, ct);
+
+        // "Hoy" en Colombia (UTC-5, sin horario de verano).
+        var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime.AddHours(-5));
+        var mine = Dna.Vector(scores[userId], declared[userId]);
+
+        return matches.Select(m =>
+        {
+            var peerId = m.PeerOf(userId);
+            peers.TryGetValue(peerId, out var peer);
+            var theirs = Dna.Vector(scores[peerId], declared[peerId]);
+            var shared = Dna.Shared(mine, theirs).Where(slugs.ContainsKey).Select(id => slugs[id]).ToList();
+            return new MatchDto(
+                m.Id,
+                new PeerDto(peerId, peer?.DisplayName ?? "", peer?.BirthDate is { } bd ? User.AgeOn(bd, today) : null, peer?.City),
+                m.EventId is { } e && eventNames.TryGetValue(e, out var name) ? name : null,
+                shared, m.Status, m.CreatedAt, m.LastMessageAt, m.LastSeq);
+        }).ToList();
+    }
+}

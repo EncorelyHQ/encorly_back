@@ -1,24 +1,28 @@
-# .gitignore for .NET
+# .NET
 [Bb]in/
 [Oo]bj/
-[Tt]mp/
+.artifacts/
 .vs/
 .vscode/
+.idea/
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
+TestResults/
 
-# Secrets
+# Secretos y config local
 .env
-appsettings.json
-!appsettings.Development.json
+.env.*
+!.env.example
+appsettings.Local.json
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Generación de documentación PDF (venv y cachés locales)
-.venv-doc/
-docs/.matplotlib-cache/
-docs/pdf_build/
+# Claude
+.claude/napkin.md
+.claude/worktrees/
+
+# Certificados locales
+db/certs/
+.playwright-mcp/

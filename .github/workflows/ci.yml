@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev, rebuild/v1]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restaurar
+        run: dotnet restore Encorely.slnx
+
+      # Las migraciones son generadas: su formato es el de EF, no el nuestro.
+      - name: Formato
+        run: dotnet format Encorely.slnx --no-restore --verify-no-changes --exclude src/Encorely.Api/Data/Migrations
+
+      - name: Paquetes vulnerables
+        run: |
+          dotnet list Encorely.slnx package --vulnerable --include-transitive --format json > vulnerable.json
+          if ! jq -e '[.projects[].frameworks[]? | (.topLevelPackages // []) + (.transitivePackages // []) | .[]] | length == 0' vulnerable.json > /dev/null; then
+            dotnet list Encorely.slnx package --vulnerable --include-transitive
+            exit 1
+          fi
+
+      - name: Compilar (warnings = errores)
+        run: dotnet build Encorely.slnx --no-restore -c Release
+
+      # Postgres real con Testcontainers (Docker viene en el runner). Incluye el test que exige
+      # que contracts/openapi.v1.json esté al día con el código.
+      - name: Tests
+        run: dotnet test tests/Encorely.Tests --no-build -c Release
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Construir imagen
+        run: docker build -t encorely-api:ci .
+
+      # Arranca la imagen como en Render (Production, sin root) pero sin BD: valida la configuración obligatoria y que
+      # el proceso levante. La BD no hace falta para /health/live.
+      - name: Smoke de la imagen
+        run: |
+          docker run -d --rm --name encorely-smoke -p 8080:8080 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e DB_HOST=127.0.0.1 -e DB_NAME=encorely -e DB_USER=encorely -e DB_PASSWORD=smoke -e DB_SSL_MODE=Require \
+            -e DB_MIGRATE_ON_STARTUP=false -e SEED_CATALOG=false -e PUSH_ENABLED=false \
+            -e JWT_SIGNING_KEY="$(openssl rand -base64 48)" -e BANNED_EMAIL_KEY="$(openssl rand -base64 48)" \
+            -e FORWARDED_TRUSTED_NETWORKS=10.0.0.0/8 -e PUBLIC_BASE_URL=https://api.encorely.example \
+            encorely-api:ci
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8080/health/live > /dev/null 2>&1 && break
+            sleep 1
+          done
+          if ! curl -fsS http://127.0.0.1:8080/health/live; then
+            docker logs encorely-smoke
+            exit 1
+          fi
+          curl -sI http://127.0.0.1:8080/api/v1/events | grep -i '^cache-control: no-store'
+          docker stop encorely-smoke

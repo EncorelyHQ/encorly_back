@@ -1,0 +1,338 @@
+[
+  {
+    "name": "Reguetón Capital Bogotá",
+    "artistLineup": [
+      "Feid",
+      "Ryan Castro",
+      "Blessd"
+    ],
+    "venue": "Movistar Arena",
+    "city": "Bogotá",
+    "daysFromNow": 14,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Noche de Salsa en el Royal",
+    "artistLineup": [
+      "Grupo Niche",
+      "Joe Arroyo Tribute",
+      "Orquesta Guayacán"
+    ],
+    "venue": "Teatro Royal Center",
+    "city": "Bogotá",
+    "daysFromNow": 9,
+    "localTime": "20:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Vallenato Legendario",
+    "artistLineup": [
+      "Silvestre Dangond",
+      "Jorge Celedón",
+      "Peter Manjarrés"
+    ],
+    "venue": "Teatro Colsubsidio",
+    "city": "Bogotá",
+    "daysFromNow": 21,
+    "localTime": "19:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Champeta Fest",
+    "artistLineup": [
+      "Kevin Flórez",
+      "Systema Solar",
+      "Anne Swing"
+    ],
+    "venue": "Plaza Mayor",
+    "city": "Medellín",
+    "daysFromNow": 33,
+    "localTime": "19:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Rock en Español Bajo la Lluvia",
+    "artistLineup": [
+      "Aterciopelados",
+      "Doctor Krápula",
+      "Superlitio"
+    ],
+    "venue": "Parque Simón Bolívar",
+    "city": "Bogotá",
+    "daysFromNow": 45,
+    "localTime": "15:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Indie en el Chamorro",
+    "artistLineup": [
+      "Monsieur Periné",
+      "Bomba Estéreo",
+      "Sidestepper"
+    ],
+    "venue": "Chamorro City Hall",
+    "city": "Bogotá",
+    "daysFromNow": 6,
+    "localTime": "21:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Electrónica Bajo las Estrellas",
+    "artistLineup": [
+      "Bomba Estéreo DJ Set",
+      "Mad Pixel",
+      "Kill Dave"
+    ],
+    "venue": "Parque Norte",
+    "city": "Medellín",
+    "daysFromNow": 60,
+    "localTime": "18:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Gran Concierto Urbano Medellín",
+    "artistLineup": [
+      "Karol G",
+      "Maluma",
+      "J Balvin"
+    ],
+    "venue": "Estadio Atanasio Girardot",
+    "city": "Medellín",
+    "daysFromNow": 90,
+    "localTime": "19:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Trap Latino Night",
+    "artistLineup": [
+      "Ñengo Flow",
+      "Yandel",
+      "Zion & Lennox"
+    ],
+    "venue": "Ace of Spades",
+    "city": "Bogotá",
+    "daysFromNow": 12,
+    "localTime": "22:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Salsa Paisa",
+    "artistLineup": [
+      "Fruko y sus Tesos",
+      "Los Hermanos Lebrón",
+      "Son de Cali"
+    ],
+    "venue": "Teatro Pablo Tobón Uribe",
+    "city": "Medellín",
+    "daysFromNow": 27,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Cumbia Sin Fronteras",
+    "artistLineup": [
+      "Los Ángeles Azules",
+      "Chelito de Castro",
+      "La 33"
+    ],
+    "venue": "Teatro Jorge Eliécer Gaitán",
+    "city": "Bogotá",
+    "daysFromNow": 38,
+    "localTime": "19:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Pop Latino en El Campín",
+    "artistLineup": [
+      "Camilo",
+      "Sebastián Yatra",
+      "Greeicy"
+    ],
+    "venue": "Estadio El Campín",
+    "city": "Bogotá",
+    "daysFromNow": 120,
+    "localTime": "19:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Encuentro de Música del Pacífico",
+    "artistLineup": [
+      "Chocquibtown",
+      "Herencia de Timbiquí",
+      "Grupo Bahía"
+    ],
+    "venue": "Teatro Metropolitano",
+    "city": "Medellín",
+    "daysFromNow": 52,
+    "localTime": "18:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Corrida de Reguetón La Macarena",
+    "artistLineup": [
+      "Ryan Castro",
+      "Blessd",
+      "Kapo"
+    ],
+    "venue": "Plaza de Toros La Macarena",
+    "city": "Medellín",
+    "daysFromNow": 18,
+    "localTime": "21:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Hip Hop Tributo",
+    "artistLineup": [
+      "Alcolirykoz",
+      "Crew Peligrosos",
+      "Nach"
+    ],
+    "venue": "Ace of Spades",
+    "city": "Bogotá",
+    "daysFromNow": 25,
+    "localTime": "21:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Bachata y Boleros",
+    "artistLineup": [
+      "Prince Royce",
+      "Juan Luis Guerra",
+      "Marc Anthony"
+    ],
+    "venue": "Teatro Royal Center",
+    "city": "Bogotá",
+    "daysFromNow": 75,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Rock en Español Clásico",
+    "artistLineup": [
+      "Los Prisioneros",
+      "Soda Stereo Tribute",
+      "Andrés Cepeda"
+    ],
+    "venue": "Coliseo MedPlus",
+    "city": "Bogotá",
+    "daysFromNow": 66,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Noche Popular Colombiana",
+    "artistLineup": [
+      "Yeison Jiménez",
+      "Darío Gómez Tribute",
+      "Giovanny Ayala"
+    ],
+    "venue": "Movistar Arena",
+    "city": "Bogotá",
+    "daysFromNow": 100,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Vallenato Paisa",
+    "artistLineup": [
+      "Diomedes Díaz Tribute",
+      "Binomio de Oro",
+      "Iván Villazón"
+    ],
+    "venue": "Teatro Metropolitano",
+    "city": "Medellín",
+    "daysFromNow": 40,
+    "localTime": "19:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Electro Warehouse",
+    "artistLineup": [
+      "Tiësto Tribute",
+      "Kill Dave",
+      "Mad Pixel"
+    ],
+    "venue": "Ace of Spades",
+    "city": "Bogotá",
+    "daysFromNow": 3,
+    "localTime": "23:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Indie Medellín Open Air",
+    "artistLineup": [
+      "Ali Aka Mind",
+      "Las Áñez",
+      "Esteman"
+    ],
+    "venue": "Parque Norte",
+    "city": "Medellín",
+    "daysFromNow": 150,
+    "localTime": "16:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Estéreo Demo Festival",
+    "artistLineup": [
+      "Bomba Estéreo",
+      "Monsieur Periné",
+      "Rawayana"
+    ],
+    "venue": "Parque Simón Bolívar",
+    "city": "Bogotá",
+    "daysFromNow": 180,
+    "localTime": "12:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Regional Mexicano en Vivo",
+    "artistLineup": [
+      "Carin León",
+      "Christian Nodal",
+      "Los Ángeles Azules"
+    ],
+    "venue": "Movistar Arena",
+    "city": "Bogotá",
+    "daysFromNow": 85,
+    "localTime": "20:00:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  },
+  {
+    "name": "Reguetón Old School",
+    "artistLineup": [
+      "Tego Calderón",
+      "Wisin",
+      "Don Omar"
+    ],
+    "venue": "Plaza de Toros La Macarena",
+    "city": "Medellín",
+    "daysFromNow": 2,
+    "localTime": "20:30:00",
+    "imageUrl": null,
+    "description": "Evento de demostración de Encorely: los datos son ficticios y no corresponden a un concierto real."
+  }
+]
