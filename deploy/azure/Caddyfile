@@ -1,0 +1,5 @@
+{$API_DOMAIN} {
+	encode zstd gzip
+	# SignalR (/hubs/chat) usa WebSocket; Caddy lo pasa sin configuración extra.
+	reverse_proxy api:8080
+}
