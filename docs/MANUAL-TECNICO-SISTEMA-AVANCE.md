@@ -12,7 +12,7 @@
 </div>
 <aside class="portada-talon">
 <p class="talon-etq">Documento</p><p class="talon-val">ENC-MT-001</p>
-<p class="talon-etq">Versión</p><p class="talon-val">1.5</p>
+<p class="talon-etq">Versión</p><p class="talon-val">1.6</p>
 <p class="talon-etq">Contrato API</p><p class="talon-val">v1.0.0-draft.17</p>
 <p class="talon-etq">Clasificación</p><p class="talon-val">Uso interno</p>
 </aside>
@@ -29,7 +29,7 @@
 | Código del documento | ENC-MT-001 |
 | Sistema | Encorely: app móvil `encorely-front` (Expo, Android e iOS) y API `encorly_back` (.NET 10 + PostgreSQL 16) |
 | Tipo de documento | Manual técnico unificado · avance de entrega |
-| Versión vigente | 1.5 |
+| Versión vigente | 1.6 |
 | Fecha de emisión | 2026-10-29 |
 | Elaborado por | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle |
 | Aprobado por | Aprobado por: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ (docente) · Fecha: \_\_\_\_\_\_\_\_\_\_\_\_ |
@@ -47,6 +47,7 @@
 | 1.3 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Paridad estricta con las diapositivas: se quitan secciones no pedidas, se agregan segmentación, auditoría, alta disponibilidad, capacitación, dueños por aspecto operativo y diagramas de despliegue en UML con PlantUML | Pendiente |
 | 1.4 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Depuración por bloque: se retira el texto que no explican las diapositivas (detalles de implementación, justificaciones, notas y columnas no pedidas); 7.2 queda solo con el título; diagramas de componentes y de despliegue rehechos en UML con el orden de los ejemplos de las diapositivas | Pendiente |
 | 1.5 | 2026-10-29 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | La producción propuesta pasa de Render a Microsoft Azure según el documento "Requisitos de despliegue en Azure" (Juan Diego Calle): dos servidores Ubuntu Server 24.04 LTS detrás de un Application Gateway. Se llenan 3.2.3, 3.3.3 y 3.4.1 y se actualizan 3.1, 4.1, 5.3.1, 5.5, 5.6, 5.8.1, 6.1, 7, 8.1, 8.5, 8.7, 9 y 10. Ajustes frente al código: el contenedor escucha en 8080, producción exige `FORWARDED_TRUSTED_NETWORKS` y `PUBLIC_BASE_URL`, las migraciones corren al arrancar y `/openapi/v1.json` no existe en producción | Pendiente |
+| 1.6 | 2026-10-29 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Se llenan 4.1.4 a 4.1.7 (infraestructura, integraciones, seguridad y operación), el diagrama de arquitectura lógica de 4.2 en UML con PlantUML, las variables de entorno de la app en 5.3.2 y la apertura de 6.2: una sola base de datos de 25 tablas para todos los manuales, separada en cinco vistas | Pendiente |
 
 ### 1.3 Propósito y público del documento
 
@@ -259,10 +260,89 @@ Componentes en Encorely: PostgreSQL 16 con 25 tablas; en el teléfono, SQLCipher
 Tecnología: EF Core 10 + Npgsql, Dapper (radar), `expo-sqlite`, `expo-secure-store`.
 
 #### 4.1.4 Infraestructura
+
+Componentes en Encorely: Application Gateway `agw-encorely`; red virtual `vnet-encorely` con tres subredes y sus NSG; VM `vm-encorely-api` con Docker y el contenedor `encorely-api`; VM `vm-encorely-db` con PostgreSQL 16; Container Registry para las imágenes de la API; EAS Build para los binarios de la app.
+
+Tecnología: Microsoft Azure, Ubuntu Server 24.04 LTS, Docker Engine con `docker compose` v2, GitHub Actions.
+
 #### 4.1.5 Integraciones
+
+Componentes en Encorely: Expo Push hacia FCM y APNs (`ExpoPushSender`); Spotify con PKCE (`SpotifyClient` en la API, `src/features/spotify` en la app); iTunes Search para el panel (`ITunesClient`); CDN de Apple y de Spotify para portadas, muestras de 30 s e imágenes de artistas.
+
+Tecnología: HTTPS con `HttpClient`, `expo-notifications`, `expo-auth-session`.
+
 #### 4.1.6 Seguridad
+
+Componentes en Encorely: E2EE del chat en el teléfono (`src/features/chat/crypto`); access token JWT de 15 min y refresh token rotado (`TokenService`); contraseñas con BCrypt (`PasswordHasher`); rate limiting por IP y por usuario; CORS (`CORS_ORIGINS`), HSTS y cabeceras de seguridad (`SecurityHeaders`); forwarded headers solo desde `FORWARDED_TRUSTED_NETWORKS`; secretos en Key Vault `kv-encorely`; TLS en el Application Gateway y hacia PostgreSQL.
+
+Tecnología: ASP.NET Core (JWT Bearer, Rate Limiting), BCrypt.Net, `@noble/curves` y `@noble/ciphers` (X25519, Ed25519, XChaCha20-Poly1305), Azure Key Vault.
+
 #### 4.1.7 Operación
+
+Componentes en Encorely: workers `PushDispatcher`, `PushReceiptChecker` y `MaintenanceService`; migraciones y siembra al arrancar (`DB_MIGRATE_ON_STARTUP`, `SEED_CATALOG`); health checks `/health/live` y `/health/ready`; logs JSON con `traceId` (`docker logs encorely-api`); respaldos con Azure Backup diario y `pg_dump`; métricas y alertas en Azure Monitor.
+
+Tecnología: `BackgroundService` de .NET, EF Core Migrations, ASP.NET Core Health Checks, Azure Backup, Azure Monitor.
+
 ### 4.2 Diagrama de arquitectura lógica
+
+```plantuml
+@startuml
+skinparam monochrome true
+skinparam defaultFontName Archivo
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam ranksep 25
+skinparam nodesep 10
+skinparam rectangle<<capas>> {
+  BorderColor transparent
+  BackgroundColor transparent
+}
+hide stereotype
+top to bottom direction
+package "Seguridad" {
+  rectangle "E2EE del chat" as S1
+  rectangle "JWT y refresh token\nBCrypt · rate limiting\nCORS · HSTS\nforwarded headers" as S2
+  rectangle "Key Vault · TLS" as S3
+}
+rectangle " " <<capas>> {
+  rectangle "**Presentación**\n----\nApp móvil · panel /admin\npáginas legales" as PRE
+  rectangle "**Aplicación**\n----\nAPI REST /api/v1 · ChatHub\nservicios de dominio\ntareas en segundo plano" as APL
+  rectangle "**Datos**\n----\nPostgreSQL 16\nSQLCipher · SecureStore" as DAT
+}
+package "Integraciones" {
+  rectangle "Spotify\nCDN de Apple y Spotify" as I1
+  rectangle "Expo Push\niTunes Search" as I2
+}
+package "Operación" {
+  rectangle "Workers · migraciones\nhealth checks · logs JSON" as O1
+  rectangle "Respaldos\nAzure Monitor" as O2
+}
+package "Infraestructura" {
+  rectangle "agw-encorely\nvnet-encorely" as F1
+  rectangle "vm-encorely-api\ncon Docker" as F2
+  rectangle "vm-encorely-db" as F3
+  rectangle "Container Registry\nEAS Build" as F4
+}
+PRE --> APL
+APL --> DAT
+S1 -[hidden]down- S2
+S2 -[hidden]down- S3
+S1 -[hidden]right- PRE
+S2 -[hidden]right- APL
+S3 -[hidden]right- DAT
+PRE .right.> I1
+APL .right.> I2
+I1 -[hidden]down- I2
+I2 -[hidden]down- O1
+O1 -[hidden]down- O2
+DAT -[hidden]down- F2
+F1 -[hidden]right- F2
+F2 -[hidden]right- F3
+F3 -[hidden]right- F4
+@enduml
+```
+
 ### 4.3 Diagrama de componentes
 
 #### 4.3.1 Componentes de la app
@@ -503,6 +583,21 @@ Valores en producción (Azure). Los secretos se guardan en Key Vault `kv-encorel
 En producción no se definen `DEMO_USER_PASSWORD` ni `SEED_REVIEWER_ONLY`, salvo durante la revisión de tiendas (actividad 7 de 5.5.3).
 
 #### 5.3.2 Variables de entorno de la app
+
+Cómo se carga: Expo incrusta las variables `EXPO_PUBLIC_*` en el bundle de JavaScript en tiempo de build; en local salen de `.env` y en los builds de EAS, del perfil de `eas.json`. Cualquiera que tenga el APK puede leerlas, así que no son secretos.
+
+| Variable | Qué controla | Defecto | Obligatoria |
+|---|---|---|---|
+| `EXPO_PUBLIC_API_URL` | URL base de la API, sin `/api/v1` ni barra final; de ella salen `/api/v1` y `/hubs/chat` | Sin defecto: la app muestra "Falta configurar el servidor" | Sí |
+| `EXPO_PUBLIC_EAS_PROJECT_ID` | ID del proyecto EAS para pedir el token de Expo Push; se usa si `app.json` no trae `extra.eas.projectId` | Vacío: el push queda desactivado | No |
+
+Valores en producción (perfil `production` de EAS):
+
+| Variable | Valor en producción | Secreto |
+|---|---|---|
+| `EXPO_PUBLIC_API_URL` | `https://<dominio-de-la-API>`, el dominio que apunta al Application Gateway (3.4.1); hoy `eas.json` trae el marcador `https://api.encorely.example` | No |
+| `EXPO_PUBLIC_EAS_PROJECT_ID` | ID del proyecto EAS de Encorely, si se usa push | No |
+
 #### 5.3.3 Configuración estática de la app
 ### 5.4 Integración continua
 ### 5.5 Plan de despliegue a producción
@@ -721,7 +816,7 @@ Cliente: emulador o teléfono Android. Servidor de aplicaciones: .NET 10 en el P
 
 ### 6.2 Diagrama entidad-relación
 
-El modelo se presenta en cinco vistas; `users` y `matches` se repiten como ancla entre vistas. El detalle de cada campo está en las fichas de 6.3.
+Encorely se documenta en varios manuales (este manual técnico del sistema, el manual de usuario y el *Análisis del software*), pero todos describen una sola base de datos PostgreSQL de 25 tablas. Para leerla, el diagrama entidad-relación se separa en cinco vistas por funcionalidad; `users` y `matches` se repiten como ancla entre vistas. El detalle de cada campo está en las fichas de 6.3.
 
 #### 6.2.1 Vista de cuenta, sesiones y moderación
 
