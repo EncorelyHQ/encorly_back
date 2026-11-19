@@ -29,8 +29,8 @@
 | Código del documento | ENC-MT-001 |
 | Sistema | Encorely: app móvil `encorely-front` (Expo, Android e iOS) y API `encorly_back` (.NET 10 + PostgreSQL 16) |
 | Tipo de documento | Manual técnico unificado · avance de entrega |
-| Versión vigente | 1.6 |
-| Fecha de emisión | 2026-10-29 |
+| Versión vigente | 1.7 |
+| Fecha de emisión | 2026-11-19 |
 | Elaborado por | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle |
 | Aprobado por | Aprobado por: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ (docente) · Fecha: \_\_\_\_\_\_\_\_\_\_\_\_ |
 | Responsable de mantenerlo | Camilo Rincón (Product Owner) coordina las versiones; cada capítulo tiene su responsable en 1.4 |
@@ -48,6 +48,7 @@
 | 1.4 | 2026-10-22 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Depuración por bloque: se retira el texto que no explican las diapositivas (detalles de implementación, justificaciones, notas y columnas no pedidas); 7.2 queda solo con el título; diagramas de componentes y de despliegue rehechos en UML con el orden de los ejemplos de las diapositivas | Pendiente |
 | 1.5 | 2026-10-29 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | La producción propuesta pasa de Render a Microsoft Azure según el documento "Requisitos de despliegue en Azure" (Juan Diego Calle): dos servidores Ubuntu Server 24.04 LTS detrás de un Application Gateway. Se llenan 3.2.3, 3.3.3 y 3.4.1 y se actualizan 3.1, 4.1, 5.3.1, 5.5, 5.6, 5.8.1, 6.1, 7, 8.1, 8.5, 8.7, 9 y 10. Ajustes frente al código: el contenedor escucha en 8080, producción exige `FORWARDED_TRUSTED_NETWORKS` y `PUBLIC_BASE_URL`, las migraciones corren al arrancar y `/openapi/v1.json` no existe en producción | Pendiente |
 | 1.6 | 2026-10-29 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Se llenan 4.1.4 a 4.1.7 (infraestructura, integraciones, seguridad y operación), el diagrama de arquitectura lógica de 4.2 en UML con PlantUML, las variables de entorno de la app en 5.3.2 y la apertura de 6.2: una sola base de datos de 25 tablas para todos los manuales, separada en cinco vistas | Pendiente |
+| 1.7 | 2026-11-19 | Camilo Rincón, Emmanuel Dávila, Samuel Sierra, Juan Diego Calle | Primer despliegue real en Azure for Students (`northcentralus`). Por el crédito de la suscripción se cambia el Application Gateway por Caddy dentro del servidor 1 (TLS de Let's Encrypt sobre la etiqueta DNS de Azure), se omiten Key Vault, Container Registry y Azure Backup (respaldo con `pg_dump` diario) y los tamaños pasan a B2als_v2 y B2ats_v2, porque B1ms y B2s no tenían capacidad en la región. Se actualizan 3.1, 3.2.3, 3.3.3, 3.4.1, 5.3.1, 5.5.1, 5.5.4 y 5.8.1, y se versionan los archivos en `deploy/azure/` | Pendiente |
 
 ### 1.3 Propósito y público del documento
 
@@ -105,7 +106,7 @@ Fuera del alcance:
 | Pruebas automatizadas (`Testing`) | Testcontainers en el PC o en el runner de GitHub Actions | En uso y verificado |
 | Integración continua | GitHub Actions (`ubuntu-24.04` y `ubuntu-latest`) | En uso |
 | Staging | Propuesto: Microsoft Azure con la misma topología de producción y apagado automático fuera de uso + perfil EAS `preview` (`https://api-staging.encorely.example`, marcador) | Preparado, no creado |
-| Producción (`Production`) | Propuesto: Microsoft Azure (Application Gateway, servidor de aplicaciones y servidor de base de datos, 3.2.3) + tiendas | Preparado, no desplegado |
+| Producción (`Production`) | Microsoft Azure for Students, región `northcentralus`: servidor de aplicaciones con Caddy y servidor de base de datos (3.2.3), en `https://encorely-api.northcentralus.cloudapp.azure.com` · tiendas pendientes | API desplegada y verificada (2026-11-19) |
 
 ### 3.2 Requisitos de hardware
 
@@ -113,29 +114,38 @@ Fuera del alcance:
 #### 3.2.2 Dispositivos móviles
 #### 3.2.3 Servidores de producción
 
-Propuesta, no desplegada. Los tamaños son una propuesta del equipo para el piloto y se ajustan con el uso real. Todo va en una sola región de Azure (East US 2 o Brazil South).
+Desplegado el 2026-11-19 en la suscripción Azure for Students, grupo de recursos `rg-encorely`, región `northcentralus`. La política de la suscripción solo permite `belgiumcentral`, `switzerlandnorth`, `chilecentral`, `northcentralus` y `francecentral`; `northcentralus` es la de menor latencia desde Colombia. Los tamaños se ajustan con el uso real.
 
 | Servidor | Recurso de Azure | Tamaño | vCPU | RAM | Disco del SO | Disco de datos |
 |---|---|---|---|---|---|---|
-| 1. Aplicaciones | VM `vm-encorely-api` | Standard_B2s | 2 | 4 GB | 30 GB SSD Premium | No aplica |
-| 2. Base de datos | VM `vm-encorely-db` | Standard_B2s | 2 | 4 GB | 30 GB SSD Premium | 32 GB SSD Premium, montado en `/var/lib/postgresql` |
-| Balanceador | Application Gateway `agw-encorely` | Standard_v2 | Gestionado | Gestionado | Gestionado | Gestionado |
+| 1. Aplicaciones | VM `vm-encorely-api` | Standard_B2als_v2 | 2 | 4 GB | 30 GB SSD Standard | No aplica |
+| 2. Base de datos | VM `vm-encorely-db` | Standard_B2ats_v2 | 2 | 1 GB + 1 GB de swap | 30 GB SSD Standard | 32 GB SSD Standard, montado en `/var/lib/postgresql` |
+| Proxy inverso y TLS | Contenedor Caddy 2.10 dentro de `vm-encorely-api` | Comparte el servidor 1 | No aplica | No aplica | No aplica | No aplica |
 | Builds de la app | EAS Build (Expo) | Según cuenta de Expo | No aplica | No aplica | No aplica | No aplica |
 
 El disco de datos va aparte del disco del sistema operativo para ampliarlo, respaldarlo y restaurarlo sin tocar el sistema.
 
-Opciones al crear las dos VM en el portal de Azure:
+Opciones con que se crearon las dos VM:
 
 | Opción | Valor |
 |---|---|
-| Imagen | Ubuntu Server 24.04 LTS de Canonical, x64, Generación 2 |
-| Autenticación | Llave pública SSH, sin contraseña |
-| IP pública | Ninguna: solo IP privada en su subred (3.4.1) |
-| Identidad administrada | Activada en el servidor 1, con lectura sobre Container Registry y Key Vault |
-| Respaldo | Azure Backup diario de la VM; obligatorio en el servidor 2 |
-| Apagado automático | Solo en Staging |
+| Imagen | Ubuntu Server 24.04 LTS de Canonical (`Canonical:ubuntu-24_04-lts:server:latest`), x64, Generación 2 |
+| Autenticación | Llave pública SSH, sin contraseña; usuario `encorely` |
+| IP pública | Solo el servidor 1 (`pip-encorely-api`, SKU Standard, etiqueta DNS `encorely-api`); el servidor 2 queda con IP privada |
+| Respaldo | `pg_dump` diario en el servidor 2 con 7 días de retención (9.5) |
+| Apagado automático | No |
 
-Alternativa para el servidor 2: Azure Database for PostgreSQL Flexible Server, nivel Burstable B1ms (1 vCPU, 2 GB RAM, 32 GB). Azure administra el sistema operativo, los parches y los respaldos, y agrega recuperación a un punto en el tiempo (9.5). Depende de que la cátedra acepte un servicio gestionado en lugar de un servidor.
+Diferencias con la propuesta de la versión 1.5, todas por el crédito de Azure for Students (unos US$100):
+
+| Propuesta 1.5 | Desplegado | Por qué |
+|---|---|---|
+| Application Gateway Standard_v2 | Caddy en el servidor 1, con certificado de Let's Encrypt | El gateway cuesta unos US$180 al mes y agotaría el crédito en dos semanas |
+| Standard_B2s en los dos servidores | B2als_v2 (servidor 1) y B2ats_v2 (servidor 2) | B1ms y B2s sin capacidad en `northcentralus` |
+| Key Vault `kv-encorely` | Archivo `/etc/encorely/api.env` con permisos 600, solo en el servidor 1 | Menos piezas para una sola VM de aplicaciones |
+| Container Registry | La imagen se copia con `docker save` por SSH | Evita el costo del registro |
+| Azure Backup | `pg_dump` diario | Evita el costo del almacén de respaldo |
+
+Cuando haya presupuesto se vuelve a la topología de la versión 1.5: el Application Gateway reemplaza a Caddy sin tocar la API (solo cambia `FORWARDED_TRUSTED_NETWORKS`).
 
 ### 3.3 Requisitos de software
 
@@ -169,15 +179,16 @@ Alternativa para el servidor 2: Azure Database for PostgreSQL Flexible Server, n
 |---|---|---|---|
 | 1. Aplicaciones | Ubuntu Server | 24.04 LTS | Sistema operativo |
 | 1. Aplicaciones | Docker Engine con `docker compose` v2 | Última estable, del repositorio oficial de Docker | Corre el contenedor de la API |
-| 1. Aplicaciones | Imagen `encorely-api` | La del release, desde Azure Container Registry | API ASP.NET Core 10 construida con el `Dockerfile` |
-| 1. Aplicaciones | Azure CLI | Última estable | Login al Container Registry y lectura de Key Vault con la identidad administrada |
+| 1. Aplicaciones | Imagen `encorely-api` | La del release, etiquetada con el commit (hoy `353c779`) | API ASP.NET Core 10 construida con el `Dockerfile` |
+| 1. Aplicaciones | Caddy (`caddy:2.10-alpine`) | 2.10 | Proxy inverso, TLS con Let's Encrypt y renovación automática; redirige HTTP a HTTPS |
+| 1. Aplicaciones | Cliente `psql` | 16 | Diagnóstico de la conexión con el servidor 2 |
 | 2. Base de datos | Ubuntu Server | 24.04 LTS | Sistema operativo |
 | 2. Base de datos | PostgreSQL | 16 (`postgresql-16` de Ubuntu 24.04) | Base `encorely`, 25 tablas, sin extensiones |
 | 2. Base de datos | `pg_dump` y `pg_restore` | 16 | Respaldo y restauración (9.5) |
 
 En el servidor 1 no se instala el SDK ni el runtime de .NET: vienen dentro de la imagen.
 
-Servicios de Azure: Application Gateway (balanceador, TLS y WebSockets), Container Registry (imágenes de la API por versión), Key Vault `kv-encorely` (secretos y certificado TLS) y Azure Monitor (métricas y alertas de las VM).
+Servicios de Azure en uso: Virtual Machines, Virtual Network con sus NSG, IP pública con etiqueta DNS y Azure Monitor (métricas de las VM, incluidas en el servicio). Application Gateway, Container Registry, Key Vault y Azure Backup quedan para cuando haya presupuesto (3.2.3).
 
 Se usa Ubuntu y no Windows Server porque .NET 10 es multiplataforma, la API se distribuye como contenedor Linux, la CI ya compila y prueba en `ubuntu-24.04`, y una VM Windows paga licencia y gasta más RAM en el sistema.
 
@@ -191,7 +202,7 @@ Se usa Ubuntu y no Windows Server porque .NET 10 es multiplataforma, la API se d
 | Teléfono físico | PC | `<IP-del-PC>:5000` en la misma red Wi-Fi | La API escucha en `0.0.0.0:5000` | Local |
 | App (dev build) | Metro | HTTP 8081 | Bundle de JavaScript en desarrollo | Local |
 | API | PostgreSQL | TCP 5432 (TLS en producción) | Npgsql | Todos |
-| Application Gateway | Servidor 1, contenedor de la API | HTTP 5000 en la VM, publicado hacia el 8080 del contenedor (`ASPNETCORE_HTTP_PORTS=8080`) | Tráfico de la API y sonda `/health/ready` | Producción |
+| Caddy (servidor 1) | Contenedor de la API | HTTP 8080 en la red Docker `edge` (`ASPNETCORE_HTTP_PORTS=8080`), sin publicar en la VM | Tráfico de la API | Producción |
 | API | `exp.host` | HTTPS 443 | Envío de push y lectura de receipts | Con `PUSH_ENABLED=true` |
 | API | `accounts.spotify.com` | HTTPS 443 | Canje del code PKCE | Con `SPOTIFY_CLIENT_ID` |
 | API | `itunes.apple.com` | HTTPS 443 | Búsqueda de canciones desde el panel | Solo administración |
@@ -203,33 +214,33 @@ Puertos que deben quedar libres en el PC de desarrollo: 5000 (API), 5432 (Postgr
 
 #### 3.4.1 Red de producción en Azure
 
-Una red virtual `vnet-encorely` (10.0.0.0/16) con tres subredes. Solo el Application Gateway tiene IP pública; las VM quedan con IP privada.
+Una red virtual `vnet-encorely` (10.0.0.0/16) con dos subredes en uso. `snet-gateway` (10.0.0.0/24) queda reservada para el Application Gateway de la topología objetivo y no está creada.
 
 | Subred | Rango | Qué contiene | Grupo de seguridad (NSG) |
 |---|---|---|---|
-| `snet-gateway` | 10.0.0.0/24 | Application Gateway | `nsg-gateway` |
-| `snet-app` | 10.0.1.0/24 | Servidor 1, aplicaciones | `nsg-app` |
-| `snet-data` | 10.0.2.0/24 | Servidor 2, base de datos (IP de ejemplo 10.0.2.4) | `nsg-data` |
+| `snet-app` | 10.0.1.0/24 | Servidor 1, aplicaciones (10.0.1.4, IP pública `pip-encorely-api`) | `nsg-app` |
+| `snet-data` | 10.0.2.0/24 | Servidor 2, base de datos (10.0.2.4, sin IP pública) | `nsg-data` |
 
 | Origen | Destino | Puerto | Protocolo | Para qué |
 |---|---|---|---|---|
-| Internet (app móvil) | Application Gateway | 443 | HTTPS y WSS | API `/api/v1` y chat `/hubs/chat` |
-| Application Gateway | Servidor 1 | 5000 | HTTP | Tráfico de la API y sonda `/health/ready` |
-| Servidor 1 | Servidor 2 | 5432 | TCP con TLS | API hacia PostgreSQL |
-| IP autorizada del equipo | Servidores 1 y 2 | 22 | SSH | Administración |
-| Servidor 1 | Internet | 443 | HTTPS | Expo Push, iTunes Search, Spotify y Container Registry |
+| Internet (app móvil) | Servidor 1, Caddy | 443 | HTTPS y WSS | API `/api/v1` y chat `/hubs/chat` |
+| Internet | Servidor 1, Caddy | 80 | HTTP | Reto ACME de Let's Encrypt y redirección 308 a HTTPS |
+| Caddy | Contenedor de la API | 8080 | HTTP | Red Docker `edge` (172.30.0.0/24), interna del servidor 1 |
+| Servidor 1 | Servidor 2 | 5432 | TCP con TLS | API hacia PostgreSQL (`hostssl` solo desde 10.0.1.0/24) |
+| IP autorizada del equipo | Servidor 1 | 22 | SSH | Administración |
+| Servidor 1 | Servidor 2 | 22 | SSH | Administración del servidor 2 con el servidor 1 como salto |
+| Servidor 1 | Internet | 443 | HTTPS | Expo Push, iTunes Search, Spotify y Let's Encrypt |
 
-Todo lo que no está en la tabla queda denegado. El 5432 nunca se abre a internet.
+`nsg-data` niega con prioridad 4000 todo lo demás que venga de la red virtual, y Azure niega por defecto lo que llega de internet. El 5432 nunca se abre a internet.
 
-Dominio y certificado: el dominio de la API (por definir, por ejemplo `api.encorely.co`) apunta a la IP pública del Application Gateway, que termina TLS con un certificado guardado en Key Vault. El Application Gateway v2 soporta WebSockets sin configuración adicional; el tiempo de espera del backend debe quedar por encima del intervalo de ping de SignalR (15 s, el valor por defecto que usa la API).
+Dominio y certificado: la API usa la etiqueta DNS de Azure `encorely-api.northcentralus.cloudapp.azure.com`, que apunta a la IP pública del servidor 1. Caddy saca y renueva solo el certificado de Let's Encrypt. Caddy pasa los WebSockets de SignalR sin configuración adicional. Para usar un dominio propio basta con un registro CNAME hacia esa etiqueta y cambiar `API_DOMAIN` y `PUBLIC_BASE_URL`.
 
 Ancho de banda mínimo propuesto para el piloto (estimación del equipo, no medición):
 
 | Tramo | Mínimo | Por qué |
 |---|---|---|
 | Teléfono de la persona | 4G o wifi | Muestras de audio de iTunes y chat en tiempo real |
-| Internet ↔ Application Gateway | 10 Mbps sostenidos | Tráfico de la API y del chat |
-| Application Gateway ↔ servidor 1 | 100 Mbps | Red interna de Azure, misma región |
+| Internet ↔ servidor 1 | 10 Mbps sostenidos | Tráfico de la API y del chat |
 | Servidor 1 ↔ servidor 2 | 100 Mbps | Consultas SQL dentro de la misma red virtual |
 | Servidor 1 → internet | 10 Mbps | Push de Expo y consultas a iTunes y Spotify |
 
@@ -261,9 +272,9 @@ Tecnología: EF Core 10 + Npgsql, Dapper (radar), `expo-sqlite`, `expo-secure-st
 
 #### 4.1.4 Infraestructura
 
-Componentes en Encorely: Application Gateway `agw-encorely`; red virtual `vnet-encorely` con tres subredes y sus NSG; VM `vm-encorely-api` con Docker y el contenedor `encorely-api`; VM `vm-encorely-db` con PostgreSQL 16; Container Registry para las imágenes de la API; EAS Build para los binarios de la app.
+Componentes en Encorely: red virtual `vnet-encorely` con dos subredes y sus NSG; VM `vm-encorely-api` con Docker y los contenedores `encorely-caddy` (proxy y TLS) y `encorely-api`; VM `vm-encorely-db` con PostgreSQL 16; EAS Build para los binarios de la app.
 
-Tecnología: Microsoft Azure, Ubuntu Server 24.04 LTS, Docker Engine con `docker compose` v2, GitHub Actions.
+Tecnología: Microsoft Azure, Ubuntu Server 24.04 LTS, Docker Engine con `docker compose` v2, Caddy, GitHub Actions.
 
 #### 4.1.5 Integraciones
 
@@ -275,13 +286,13 @@ Tecnología: HTTPS con `HttpClient`, `expo-notifications`, `expo-auth-session`.
 
 Componentes en Encorely: E2EE del chat en el teléfono (`src/features/chat/crypto`); access token JWT de 15 min y refresh token rotado (`TokenService`); contraseñas con BCrypt (`PasswordHasher`); rate limiting por IP y por usuario; CORS (`CORS_ORIGINS`), HSTS y cabeceras de seguridad (`SecurityHeaders`); forwarded headers solo desde `FORWARDED_TRUSTED_NETWORKS`; secretos en Key Vault `kv-encorely`; TLS en el Application Gateway y hacia PostgreSQL.
 
-Tecnología: ASP.NET Core (JWT Bearer, Rate Limiting), BCrypt.Net, `@noble/curves` y `@noble/ciphers` (X25519, Ed25519, XChaCha20-Poly1305), Azure Key Vault.
+Tecnología: ASP.NET Core (JWT Bearer, Rate Limiting), BCrypt.Net, `@noble/curves` y `@noble/ciphers` (X25519, Ed25519, XChaCha20-Poly1305), Let's Encrypt vía Caddy.
 
 #### 4.1.7 Operación
 
-Componentes en Encorely: workers `PushDispatcher`, `PushReceiptChecker` y `MaintenanceService`; migraciones y siembra al arrancar (`DB_MIGRATE_ON_STARTUP`, `SEED_CATALOG`); health checks `/health/live` y `/health/ready`; logs JSON con `traceId` (`docker logs encorely-api`); respaldos con Azure Backup diario y `pg_dump`; métricas y alertas en Azure Monitor.
+Componentes en Encorely: workers `PushDispatcher`, `PushReceiptChecker` y `MaintenanceService`; migraciones y siembra al arrancar (`DB_MIGRATE_ON_STARTUP`, `SEED_CATALOG`); health checks `/health/live` y `/health/ready`; logs JSON con `traceId` (`docker logs encorely-api`); respaldos con `pg_dump` diario; métricas en Azure Monitor.
 
-Tecnología: `BackgroundService` de .NET, EF Core Migrations, ASP.NET Core Health Checks, Azure Backup, Azure Monitor.
+Tecnología: `BackgroundService` de .NET, EF Core Migrations, ASP.NET Core Health Checks, `pg_dump`, Azure Monitor.
 
 ### 4.2 Diagrama de arquitectura lógica
 
@@ -303,7 +314,7 @@ top to bottom direction
 package "Seguridad" {
   rectangle "E2EE del chat" as S1
   rectangle "JWT y refresh token\nBCrypt · rate limiting\nCORS · HSTS\nforwarded headers" as S2
-  rectangle "Key Vault · TLS" as S3
+  rectangle "TLS con Let's Encrypt\nsecretos fuera del repo" as S3
 }
 rectangle " " <<capas>> {
   rectangle "**Presentación**\n----\nApp móvil · panel /admin\npáginas legales" as PRE
@@ -559,7 +570,7 @@ Cómo se carga: en `Development`, `DotEnv` lee el `.env` más cercano sin pisar 
 
 Valores fijos en `appsettings.json`: versión de consentimiento `Legal:ConsentVersion = 2026-10-14` y su fecha. Cambiarlos obliga a todas las personas a aceptar de nuevo (`POST /me/consents`).
 
-Valores en producción (Azure). Los secretos se guardan en Key Vault `kv-encorely` y nunca en archivos versionados (8.7):
+Valores en producción (Azure). Los secretos se generan con `openssl rand`, se envían por SSH sin imprimirse y viven solo en `/etc/encorely/api.env` del servidor 1 (permisos 600); nunca en archivos versionados (8.7):
 
 | Variable | Valor en Azure | Secreto |
 |---|---|---|
@@ -574,8 +585,8 @@ Valores en producción (Azure). Los secretos se guardan en Key Vault `kv-encorel
 | `SEED_CATALOG` | `true` (siembra géneros, canciones y eventos si faltan) | No |
 | `JWT_SIGNING_KEY` | Llave HS256 de 32 caracteres o más | Sí |
 | `BANNED_EMAIL_KEY` | Llave HMAC del veto de correos, distinta de la del JWT | Sí |
-| `FORWARDED_TRUSTED_NETWORKS` | `10.0.0.0/24`, la subred del Application Gateway | No |
-| `PUBLIC_BASE_URL` | `https://<dominio-de-la-API>` | No |
+| `FORWARDED_TRUSTED_NETWORKS` | `172.30.0.0/24`, la red Docker `edge` desde la que llega Caddy (con Application Gateway sería `10.0.0.0/24`) | No |
+| `PUBLIC_BASE_URL` | `https://encorely-api.northcentralus.cloudapp.azure.com` | No |
 | `PRIVACY_CONTACT_EMAIL` | Correo de datos personales del equipo | No |
 | `PUSH_ENABLED`, `EXPO_PUSH_ACCESS_TOKEN` | `true` y el token de Expo, si se usa | Solo el token |
 | `SPOTIFY_CLIENT_ID` | Client ID público de la app de Spotify | No |
@@ -595,16 +606,50 @@ Valores en producción (perfil `production` de EAS):
 
 | Variable | Valor en producción | Secreto |
 |---|---|---|
-| `EXPO_PUBLIC_API_URL` | `https://<dominio-de-la-API>`, el dominio que apunta al Application Gateway (3.4.1); hoy `eas.json` trae el marcador `https://api.encorely.example` | No |
+| `EXPO_PUBLIC_API_URL` | `https://encorely-api.northcentralus.cloudapp.azure.com` (3.4.1), en los perfiles `demo` y `production` de `eas.json` | No |
 | `EXPO_PUBLIC_EAS_PROJECT_ID` | ID del proyecto EAS de Encorely, si se usa push | No |
 
 #### 5.3.3 Configuración estática de la app
 ### 5.4 Integración continua
 ### 5.5 Plan de despliegue a producción
 #### 5.5.1 Estado actual del despliegue
+
+| Pieza | Estado | Verificación |
+|---|---|---|
+| API (`encorely-api:353c779`, commit de `main`) | Desplegada el 2026-11-19 en `vm-encorely-api` | `/health/live` y `/health/ready` responden `Healthy` por el dominio público |
+| Base de datos | PostgreSQL 16 en `vm-encorely-db`, 11 migraciones aplicadas y catálogo sembrado | 26 tablas (25 del modelo y el historial de migraciones) |
+| TLS | Let's Encrypt vía Caddy, renovación automática | Certificado vigente hasta el 2027-02-17; HTTP responde 308 a HTTPS |
+| Respaldo | `pg_dump` diario a las 03:15 UTC, 7 días de retención, más un respaldo inicial | `/etc/cron.d/encorely-pgdump` y `/var/lib/postgresql/backups` en el servidor 2 |
+| Admin de producción | Pendiente (paso 12 de 5.5.4) | No aplica |
+| Push, Spotify y `PRIVACY_CONTACT_EMAIL` | Sin configurar; la API arranca y funciona sin ellos | No aplica |
+| App en tiendas | Pendiente; los perfiles `demo` y `production` de EAS ya apuntan al dominio de Azure | No aplica |
+
 #### 5.5.2 Cronograma, responsables y ventana
 #### 5.5.3 Actividades de la fase de despliegue
 #### 5.5.4 Procedimiento de despliegue de la API
+
+**Procedimiento aplicado (Azure for Students, 2026-11-19)**
+
+Los archivos están en `deploy/azure/` del repositorio: `compose.yml` (API y Caddy), `Caddyfile` y `setup-db.sh` (disco de datos, swap y PostgreSQL 16 en el servidor 2).
+
+1. Crear `rg-encorely`, `vnet-encorely`, `snet-app` y `snet-data` con `nsg-app` y `nsg-data` según 3.4.1.
+2. Crear las dos VM con `az vm create` según 3.2.3: el servidor 2 con `--public-ip-address ''` y `--data-disk-sizes-gb 32`, el servidor 1 con `--public-ip-address-dns-name encorely-api`.
+3. Preparar el servidor 2 desde el PC, con el servidor 1 como salto: `ssh encorely-db 'sudo bash -s' < deploy/azure/setup-db.sh`.
+4. Instalar Docker en el servidor 1 (paso 7 de abajo, sin Azure CLI) y copiar `compose.yml` y `Caddyfile` a `/opt/encorely`, con un `.env` que fija `API_TAG` y `API_DOMAIN`.
+5. Generar la contraseña de `encorely_app`, `JWT_SIGNING_KEY` y `BANNED_EMAIL_KEY` con `openssl rand` en el PC; aplicar la contraseña con `ALTER USER` por la entrada estándar de `psql` y escribir `/etc/encorely/api.env` con `sudo tee`, sin que ningún valor salga en pantalla.
+6. Copiar la imagen sin registro y arrancar:
+
+   ```bash
+   docker save encorely-api:<commit> | gzip -1 | ssh encorely-api 'gunzip | docker load'
+   ssh encorely-api 'cd /opt/encorely && sudo docker compose up -d'
+   ```
+
+7. Ejecutar el smoke del paso 13 contra `https://encorely-api.northcentralus.cloudapp.azure.com`.
+
+Para actualizar la API se repite el paso 6 con la nueva etiqueta en `API_TAG`. Para volver a la versión anterior (5.6) se pone la etiqueta previa en `API_TAG` y se corre `docker compose up -d`; las imágenes anteriores siguen cargadas en el servidor 1.
+
+**Procedimiento de la topología objetivo (con Application Gateway, versión 1.5)**
+
 
 Los servidores se levantan de atrás hacia adelante: red, base de datos, API y balanceador.
 
@@ -738,7 +783,7 @@ Los servidores se levantan de atrás hacia adelante: red, base de datos, API y b
 ### 5.7 Productos del despliegue
 ### 5.8 Diagramas de despliegue
 
-#### 5.8.1 Despliegue objetivo en producción
+#### 5.8.1 Despliegue en producción
 
 ```plantuml
 @startuml
@@ -752,9 +797,9 @@ left to right direction
 node "Cliente" <<device>> as CLI {
   artifact "com.encorely.app" as A1
 }
-node "agw-encorely\nApplication Gateway" <<execution environment>> as LB
 node "vm-encorely-api\nUbuntu Server 24.04" <<device>> as VM1 {
   node "Docker" <<execution environment>> as DK {
+    artifact "caddy" as A0
     artifact "encorely-api" as A2
   }
 }
@@ -763,13 +808,13 @@ node "vm-encorely-db\nUbuntu Server 24.04" <<device>> as VM2 {
     artifact "esquema\nencorely" as A3
   }
 }
-CLI --> LB : HTTPS / WSS 443
-LB --> VM1 : HTTP 5000
+CLI --> A0 : HTTPS / WSS 443
+A0 --> A2 : HTTP 8080
 VM1 --> VM2 : TCP 5432 (TLS)
 @enduml
 ```
 
-Cliente: teléfono Android o iOS. Balanceador: Application Gateway de Azure en `snet-gateway`, la única pieza con IP pública. Servidor 1: VM `vm-encorely-api` en `snet-app`, con Docker y el contenedor de la API (8080 dentro del contenedor, 5000 en la VM). Servidor 2: VM `vm-encorely-db` en `snet-data`, con PostgreSQL 16 y el esquema `encorely`. Cada nodo aloja exactamente el artefacto que le corresponde. Hay una sola réplica del contenedor; el balanceador no reparte carga entre varias.
+Cliente: teléfono Android o iOS. Servidor 1: VM `vm-encorely-api` en `snet-app`, la única pieza con IP pública, con Docker, el contenedor de Caddy (TLS en 443) y el de la API (8080, solo en la red Docker interna). Servidor 2: VM `vm-encorely-db` en `snet-data`, con PostgreSQL 16 y el esquema `encorely`. Hay una sola réplica del contenedor de la API. En la topología objetivo (3.2.3) un Application Gateway en `snet-gateway` toma el lugar de Caddy.
 
 #### 5.8.2 Despliegue actual de la demo local
 

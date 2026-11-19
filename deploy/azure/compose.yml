@@ -1,0 +1,38 @@
+# vm-encorely-api: API + Caddy (TLS de Let's Encrypt). Una sola réplica: el lockout de login vive en memoria
+# y el hub de SignalR no tiene backplane.
+name: encorely
+
+services:
+  api:
+    image: encorely-api:${API_TAG:?falta API_TAG}
+    container_name: encorely-api
+    restart: unless-stopped
+    env_file: /etc/encorely/api.env
+    networks: [edge]
+    logging:
+      driver: json-file
+      options: { max-size: 20m, max-file: '5' }
+
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: encorely-caddy
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?falta API_DOMAIN}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+
+# Subred fija: es la única que la API acepta en X-Forwarded-For (FORWARDED_TRUSTED_NETWORKS).
+networks:
+  edge:
+    ipam:
+      config: [{ subnet: 172.30.0.0/24 }]
+
+volumes:
+  caddy_data:
+  caddy_config:
